@@ -83,7 +83,7 @@ namespace LWAssets.Editor
             _searchText = EditorGUILayout.TextField(_searchText, EditorStyles.toolbarSearchField, 
                 GUILayout.Width(200));
             
-            if (GUILayout.Button("", GUI.skin.FindStyle("ToolbarSeachCancelButton")))
+            if (GUILayout.Button("SeachCancel"))
             {
                 _searchText = "";
                 GUI.FocusControl(null);
