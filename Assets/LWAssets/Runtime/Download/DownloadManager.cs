@@ -1,0 +1,507 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace LWAssets
+{
+    /// <summary>
+    /// 下载进度
+    /// </summary>
+    public struct DownloadProgress
+    {
+        public int TotalCount;
+        public int CompletedCount;
+        public long TotalBytes;
+        public long DownloadedBytes;
+        public float Progress => TotalBytes > 0 ? (float)DownloadedBytes / TotalBytes : 0;
+        public string CurrentFile;
+        public float Speed; // bytes per second
+    }
+    
+    /// <summary>
+    /// 下载任务
+    /// </summary>
+    public class DownloadTask
+    {
+        public string Url;
+        public string SavePath;
+        public long ExpectedSize;
+        public string ExpectedHash;
+        public int RetryCount;
+        public long DownloadedBytes;
+        public DownloadTaskStatus Status;
+        public Exception Error;
+        
+        public event Action<DownloadTask> OnProgress;
+        public event Action<DownloadTask> OnCompleted;
+        public event Action<DownloadTask> OnFailed;
+        
+        internal void NotifyProgress() => OnProgress?.Invoke(this);
+        internal void NotifyCompleted() => OnCompleted?.Invoke(this);
+        internal void NotifyFailed() => OnFailed?.Invoke(this);
+    }
+    
+    public enum DownloadTaskStatus
+    {
+        Pending,
+        Downloading,
+        Completed,
+        Failed,
+        Cancelled
+    }
+    
+    /// <summary>
+    /// 下载管理器
+    /// </summary>
+    public class DownloadManager : IDisposable
+    {
+        private readonly LWAssetsConfig _config;
+        private readonly Queue<DownloadTask> _pendingQueue = new Queue<DownloadTask>();
+        private readonly List<DownloadTask> _activeTasks = new List<DownloadTask>();
+        private readonly Dictionary<string, DownloadTask> _taskMap = new Dictionary<string, DownloadTask>();
+        
+        private CancellationTokenSource _cts;
+        private bool _isRunning;
+        private long _totalDownloadedBytes;
+        private DateTime _lastSpeedCalculateTime;
+        private long _lastDownloadedBytes;
+        private float _currentSpeed;
+        
+        private readonly object _lockObj = new object();
+        
+        public int PendingCount => _pendingQueue.Count;
+        public int ActiveCount => _activeTasks.Count;
+        public bool IsRunning => _isRunning;
+        public float CurrentSpeed => _currentSpeed;
+        
+        public event Action<DownloadTask> OnTaskCompleted;
+        public event Action<DownloadTask> OnTaskFailed;
+        public event Action OnAllCompleted;
+        
+        public DownloadManager(LWAssetsConfig config)
+        {
+            _config = config;
+            _cts = new CancellationTokenSource();
+        }
+        
+        #region 公共方法
+        
+        /// <summary>
+        /// 下载Bundle列表
+        /// </summary>
+        public async UniTask DownloadAsync(IEnumerable<BundleInfo> bundles, 
+            IProgress<DownloadProgress> progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            var tasks = new List<DownloadTask>();
+            long totalSize = 0;
+            
+            foreach (var bundle in bundles)
+            {
+                var url = _config.GetRemoteURL() + bundle.GetFileName();
+                var savePath = Path.Combine(_config.GetPersistentDataPath(), bundle.GetFileName());
+                
+                // 检查是否已下载
+                if (File.Exists(savePath))
+                {
+                    var fileInfo = new FileInfo(savePath);
+                    if (fileInfo.Length == bundle.Size)
+                    {
+                        // 验证哈希
+                        if (ValidateFileHash(savePath, bundle.Hash))
+                        {
+                            continue; // 已存在且有效
+                        }
+                    }
+                }
+                
+                var task = new DownloadTask
+                {
+                    Url = url,
+                    SavePath = savePath,
+                    ExpectedSize = bundle.Size,
+                    ExpectedHash = bundle.Hash,
+                    Status = DownloadTaskStatus.Pending
+                };
+                
+                tasks.Add(task);
+                totalSize += bundle.Size;
+            }
+            
+            if (tasks.Count == 0)
+            {
+                progress?.Report(new DownloadProgress
+                {
+                    TotalCount = 0,
+                    CompletedCount = 0,
+                    TotalBytes = 0,
+                    DownloadedBytes = 0
+                });
+                return;
+            }
+            
+            // 添加到队列
+            foreach (var task in tasks)
+            {
+                EnqueueTask(task);
+            }
+            
+            // 启动下载
+            StartDownloading();
+            
+            // 等待所有任务完成
+            var downloadProgress = new DownloadProgress
+            {
+                TotalCount = tasks.Count,
+                TotalBytes = totalSize
+            };
+            
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
+            {
+                while (true)
+                {
+                    linkedCts.Token.ThrowIfCancellationRequested();
+                    
+                    // 计算进度
+                    int completedCount = 0;
+                    long downloadedBytes = 0;
+                    string currentFile = null;
+                    
+                    foreach (var task in tasks)
+                    {
+                        if (task.Status == DownloadTaskStatus.Completed)
+                        {
+                            completedCount++;
+                            downloadedBytes += task.ExpectedSize;
+                        }
+                        else if (task.Status == DownloadTaskStatus.Downloading)
+                        {
+                            currentFile = Path.GetFileName(task.SavePath);
+                            downloadedBytes += task.DownloadedBytes;
+                        }
+                        else if (task.Status == DownloadTaskStatus.Failed)
+                        {
+                            throw task.Error ?? new Exception($"Download failed: {task.Url}");
+                        }
+                    }
+                    
+                    downloadProgress.CompletedCount = completedCount;
+                    downloadProgress.DownloadedBytes = downloadedBytes;
+                    downloadProgress.CurrentFile = currentFile;
+                    downloadProgress.Speed = _currentSpeed;
+                    
+                    progress?.Report(downloadProgress);
+                    
+                    if (completedCount >= tasks.Count)
+                    {
+                        break;
+                    }
+                    
+                    await UniTask.Delay(100, cancellationToken: linkedCts.Token);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 添加下载任务
+        /// </summary>
+        public void EnqueueTask(DownloadTask task)
+        {
+            lock (_lockObj)
+            {
+                if (_taskMap.ContainsKey(task.Url))
+                {
+                    return; // 避免重复
+                }
+                
+                _taskMap[task.Url] = task;
+                _pendingQueue.Enqueue(task);
+            }
+        }
+        
+        /// <summary>
+        /// 开始下载
+        /// </summary>
+        public void StartDownloading()
+        {
+            if (_isRunning) return;
+            
+            _isRunning = true;
+            _lastSpeedCalculateTime = DateTime.Now;
+            _lastDownloadedBytes = 0;
+            
+            ProcessQueue().Forget();
+        }
+        
+        /// <summary>
+        /// 暂停下载
+        /// </summary>
+        public void Pause()
+        {
+            _isRunning = false;
+        }
+        
+        /// <summary>
+        /// 取消所有下载
+        /// </summary>
+        public void CancelAll()
+        {
+            _cts.Cancel();
+            _cts = new CancellationTokenSource();
+            
+            lock (_lockObj)
+            {
+                _pendingQueue.Clear();
+                _activeTasks.Clear();
+                _taskMap.Clear();
+            }
+            
+            _isRunning = false;
+        }
+        
+        #endregion
+        
+        #region 内部方法
+        
+        /// <summary>
+        /// 处理下载队列
+        /// </summary>
+        private async UniTaskVoid ProcessQueue()
+        {
+            while (_isRunning)
+            {
+                // 计算速度
+                CalculateSpeed();
+                
+                // 填充活动任务
+                while (_activeTasks.Count < _config.MaxConcurrentDownloads)
+                {
+                    DownloadTask task;
+                    lock (_lockObj)
+                    {
+                        if (_pendingQueue.Count == 0) break;
+                        task = _pendingQueue.Dequeue();
+                        _activeTasks.Add(task);
+                    }
+                    
+                    // 启动下载
+                    DownloadTaskAsync(task, _cts.Token).Forget();
+                }
+                
+                // 检查是否全部完成
+                lock (_lockObj)
+                {
+                    if (_pendingQueue.Count == 0 && _activeTasks.Count == 0)
+                    {
+                        _isRunning = false;
+                        OnAllCompleted?.Invoke();
+                        break;
+                    }
+                }
+                
+                await UniTask.Delay(50);
+            }
+        }
+        
+        /// <summary>
+        /// 执行单个下载任务
+        /// </summary>
+        private async UniTaskVoid DownloadTaskAsync(DownloadTask task, CancellationToken cancellationToken)
+        {
+            task.Status = DownloadTaskStatus.Downloading;
+            
+            try
+            {
+                // 确保目录存在
+                var directory = Path.GetDirectoryName(task.SavePath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                
+                // 检查断点续传
+                long startPosition = 0;
+                string tempPath = task.SavePath + ".tmp";
+                
+                if (_config.EnableBreakpointResume && File.Exists(tempPath))
+                {
+                    var fileInfo = new FileInfo(tempPath);
+                    startPosition = fileInfo.Length;
+                    task.DownloadedBytes = startPosition;
+                }
+                
+                // 创建请求
+                using (var request = new UnityWebRequest(task.Url, UnityWebRequest.kHttpVerbGET))
+                {
+                    // 设置断点续传
+                    if (startPosition > 0)
+                    {
+                        request.SetRequestHeader("Range", $"bytes={startPosition}-");
+                    }
+                    
+                    // 使用自定义下载处理器
+                    var downloadHandler = new DownloadHandlerFileWithProgress(tempPath, startPosition, task);
+                    request.downloadHandler = downloadHandler;
+                    request.timeout = _config.DownloadTimeout;
+                    
+                    var operation = request.SendWebRequest();
+                    
+                    while (!operation.isDone)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        
+                        task.DownloadedBytes = startPosition + (long)(request.downloadedBytes);
+                        task.NotifyProgress();
+                        
+                        Interlocked.Add(ref _totalDownloadedBytes, (long)request.downloadedBytes);
+                        
+                        await UniTask.Yield(cancellationToken);
+                    }
+                    
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        throw new Exception($"Download failed: {request.error}");
+                    }
+                }
+                
+                // 验证文件
+                if (!string.IsNullOrEmpty(task.ExpectedHash))
+                {
+                    if (!ValidateFileHash(tempPath, task.ExpectedHash))
+                    {
+                        File.Delete(tempPath);
+                        throw new Exception("File hash mismatch");
+                    }
+                }
+                
+                // 重命名临时文件
+                if (File.Exists(task.SavePath))
+                {
+                    File.Delete(task.SavePath);
+                }
+                File.Move(tempPath, task.SavePath);
+                
+                task.Status = DownloadTaskStatus.Completed;
+                task.NotifyCompleted();
+                OnTaskCompleted?.Invoke(task);
+            }
+            catch (OperationCanceledException)
+            {
+                task.Status = DownloadTaskStatus.Cancelled;
+            }
+            catch (Exception ex)
+            {
+                task.Error = ex;
+                task.RetryCount++;
+                
+                if (task.RetryCount < _config.MaxRetryCount)
+                {
+                    // 重试
+                    Debug.LogWarning($"[LWAssets] Download retry {task.RetryCount}/{_config.MaxRetryCount}: {task.Url}");
+                    await UniTask.Delay(TimeSpan.FromSeconds(_config.RetryDelay), cancellationToken: cancellationToken);
+                    
+                    lock (_lockObj)
+                    {
+                        _activeTasks.Remove(task);
+                        _pendingQueue.Enqueue(task);
+                    }
+                    return;
+                }
+                
+                task.Status = DownloadTaskStatus.Failed;
+                task.NotifyFailed();
+                OnTaskFailed?.Invoke(task);
+                Debug.LogError($"[LWAssets] Download failed: {task.Url}, Error: {ex.Message}");
+            }
+            finally
+            {
+                lock (_lockObj)
+                {
+                    _activeTasks.Remove(task);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 计算下载速度
+        /// </summary>
+        private void CalculateSpeed()
+        {
+            var now = DateTime.Now;
+            var elapsed = (now - _lastSpeedCalculateTime).TotalSeconds;
+            
+            if (elapsed >= 1.0)
+            {
+                var bytesDownloaded = _totalDownloadedBytes - _lastDownloadedBytes;
+                _currentSpeed = (float)(bytesDownloaded / elapsed);
+                
+                _lastSpeedCalculateTime = now;
+                _lastDownloadedBytes = _totalDownloadedBytes;
+            }
+        }
+        
+        /// <summary>
+        /// 验证文件哈希
+        /// </summary>
+        private bool ValidateFileHash(string filePath, string expectedHash)
+        {
+            if (string.IsNullOrEmpty(expectedHash)) return true;
+            
+            var actualHash = HashUtility.ComputeFileMD5(filePath);
+            return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
+        }
+        
+        #endregion
+        
+        public void Dispose()
+        {
+            CancelAll();
+            _cts?.Dispose();
+        }
+    }
+    
+    /// <summary>
+    /// 支持进度和断点续传的下载处理器
+    /// </summary>
+    public class DownloadHandlerFileWithProgress : DownloadHandlerScript
+    {
+        private readonly FileStream _fileStream;
+        private readonly DownloadTask _task;
+        private readonly long _startPosition;
+        
+        public DownloadHandlerFileWithProgress(string path, long startPosition, DownloadTask task) 
+            : base(new byte[1024 * 1024]) // 1MB buffer
+        {
+            _startPosition = startPosition;
+            _task = task;
+            
+            _fileStream = new FileStream(path, 
+                startPosition > 0 ? FileMode.Append : FileMode.Create, 
+                FileAccess.Write);
+        }
+        
+        protected override bool ReceiveData(byte[] data, int dataLength)
+        {
+            if (data == null || dataLength == 0) return false;
+            
+            _fileStream.Write(data, 0, dataLength);
+            return true;
+        }
+        
+        protected override void CompleteContent()
+        {
+            _fileStream?.Flush();
+            _fileStream?.Close();
+        }
+        
+        public override void Dispose()
+        {
+            _fileStream?.Dispose();
+            base.Dispose();
+        }
+    }
+}

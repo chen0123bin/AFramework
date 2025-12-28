@@ -1,0 +1,176 @@
+{
+    "Version": "0.1",
+    "BuildTime": "2025-12-28 20:48:09",
+    "Platform": "Windows",
+    "Bundles": [
+        {
+            "BundleName": "mytest_prefabs",
+            "Hash": "b2d3b683ff93e3623a8dea609d5f8f73",
+            "CRC": 2765795873,
+            "Size": 28505,
+            "IsRawFile": false,
+            "IsEncrypted": false,
+            "Tags": [
+                "qqq"
+            ],
+            "Dependencies": [],
+            "Assets": [
+                "assets/0res/prefabs/cube.prefab",
+                "assets/0res/prefabs/sphere.prefab"
+            ],
+            "Priority": 0
+        },
+        {
+            "BundleName": "scenes_scenes",
+            "Hash": "8979e1b36b454f1946c72a17b5d0a1a4",
+            "CRC": 3799167898,
+            "Size": 95246,
+            "IsRawFile": false,
+            "IsEncrypted": false,
+            "Tags": [],
+            "Dependencies": [
+                "mytest_prefabs"
+            ],
+            "Assets": [],
+            "Priority": 0
+        },
+        {
+            "BundleName": "shaders",
+            "Hash": "a19ecab8f1de533acf3ee16e317810af",
+            "CRC": 2397558506,
+            "Size": 29818,
+            "IsRawFile": false,
+            "IsEncrypted": false,
+            "Tags": [],
+            "Dependencies": [],
+            "Assets": [
+                "assets/textmesh pro/shaders/tmp_bitmap-custom-atlas.shader",
+                "assets/textmesh pro/shaders/tmp_bitmap-mobile.shader",
+                "assets/textmesh pro/shaders/tmp_bitmap.shader",
+                "assets/textmesh pro/shaders/tmp_sdf overlay.shader",
+                "assets/textmesh pro/shaders/tmp_sdf ssd.shader",
+                "assets/textmesh pro/shaders/tmp_sdf-mobile masking.shader",
+                "assets/textmesh pro/shaders/tmp_sdf-mobile overlay.shader",
+                "assets/textmesh pro/shaders/tmp_sdf-mobile ssd.shader",
+                "assets/textmesh pro/shaders/tmp_sdf-mobile.shader",
+                "assets/textmesh pro/shaders/tmp_sdf-surface-mobile.shader",
+                "assets/textmesh pro/shaders/tmp_sdf-surface.shader",
+                "assets/textmesh pro/shaders/tmp_sdf.shader",
+                "assets/textmesh pro/shaders/tmp_sprite.shader"
+            ],
+            "Priority": 0
+        },
+        {
+            "BundleName": "raw_333.txt",
+            "Hash": "3454f892e3df84762604f3d9638e3d04",
+            "CRC": 0,
+            "Size": 8,
+            "IsRawFile": true,
+            "IsEncrypted": false,
+            "Tags": [],
+            "Dependencies": [],
+            "Assets": [
+                "Assets/0Res/RawFiles/333.txt"
+            ],
+            "Priority": 0
+        }
+    ],
+    "Assets": [
+        {
+            "AssetPath": "assets/0res/prefabs/cube.prefab",
+            "AssetType": "GameObject",
+            "BundleName": "mytest_prefabs",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/0res/prefabs/sphere.prefab",
+            "AssetType": "GameObject",
+            "BundleName": "mytest_prefabs",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_bitmap-custom-atlas.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_bitmap-mobile.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_bitmap.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf overlay.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf ssd.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf-mobile masking.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf-mobile overlay.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf-mobile ssd.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf-mobile.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf-surface-mobile.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf-surface.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sdf.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "assets/textmesh pro/shaders/tmp_sprite.shader",
+            "AssetType": "Shader",
+            "BundleName": "shaders",
+            "IsRawFile": false
+        },
+        {
+            "AssetPath": "Assets/0Res/RawFiles/333.txt",
+            "AssetType": "",
+            "BundleName": "raw_333.txt",
+            "IsRawFile": true
+        }
+    ]
+}
