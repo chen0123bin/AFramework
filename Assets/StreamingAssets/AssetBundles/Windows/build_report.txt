@@ -1,17 +1,17 @@
 === LWAssets Build Report ===
-Build Time: 2025/12/28 20:48:09
+Build Time: 2025/12/29 16:57:03
 Platform: StandaloneWindows64
 Version: 0.1
 
 === Bundle Summary ===
 Total Bundles: 4
-Total Size: 149.98 KB
-Total Assets: 16
+Total Size: 149.96 KB
+Total Assets: 18
 
 === Bundle Details ===
   scenes_scenes
-    Size: 93.01 KB
-    Assets: 0
+    Size: 92.99 KB
+    Assets: 2
     Dependencies: 1
     Tags: 
   shaders
@@ -24,7 +24,7 @@ Total Assets: 16
     Assets: 2
     Dependencies: 0
     Tags: qqq
-  raw_333.txt
+  raw_333
     Size: 8 B
     Assets: 1
     Dependencies: 0

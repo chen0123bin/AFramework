@@ -1,0 +1,16 @@
+=== Shader Usage Report ===
+
+TextMeshPro/Mobile/Distance Field
+  Usage Count: 4
+  Type: Custom
+  Path: Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader
+
+Standard
+  Usage Count: 1
+  Type: Built-in
+
+GUI/Text Shader
+  Usage Count: 1
+  Type: Custom
+  Path: Library/unity default resources
+

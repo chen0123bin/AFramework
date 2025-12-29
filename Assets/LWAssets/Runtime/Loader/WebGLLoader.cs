@@ -37,18 +37,19 @@ namespace LWAssets
         
         public override async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
         {
-            var assetInfo = _manifest.GetAssetInfo(assetPath);
-            if (assetInfo == null)
+           // 直接通过 manifest 获取 Bundle 信息
+            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            if (bundleInfo == null)
             {
                 Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
                 return null;
             }
             
             // 加载Bundle
-            var bundleHandle = await LoadBundleAsync(assetInfo.BundleName, cancellationToken);
+            var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
             if (bundleHandle == null || !bundleHandle.IsValid)
             {
-                Debug.LogError($"[LWAssets] Failed to load bundle: {assetInfo.BundleName}");
+                Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
                 return null;
             }
             
@@ -60,7 +61,7 @@ namespace LWAssets
             var asset = request.asset as T;
             if (asset != null)
             {
-                TrackAsset(asset, assetInfo.BundleName);
+                TrackAsset(asset, bundleInfo.BundleName);
             }
             
             return asset;
@@ -93,18 +94,14 @@ namespace LWAssets
         
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
-            var assetInfo = _manifest.GetAssetInfo(assetPath);
-            if (assetInfo == null)
+            // 直接通过 manifest 获取 Bundle 信息
+            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            if (bundleInfo == null)
             {
-                Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
+                Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
                 return null;
             }
             
-            var bundleInfo = _manifest.GetBundleInfo(assetInfo.BundleName);
-            if (bundleInfo == null)
-            {
-                return null;
-            }
             
             // WebGL从缓存或远程加载
             var cacheKey = bundleInfo.GetFileName();
@@ -139,18 +136,19 @@ namespace LWAssets
             
             try
             {
-                var assetInfo = _manifest.GetAssetInfo(scenePath);
-                if (assetInfo == null)
+                // 直接通过 manifest 获取 Bundle 信息
+                var bundleInfo = _manifest.GetBundleByAsset(scenePath);
+                if (bundleInfo == null)
                 {
                     handle.SetError(new System.IO.FileNotFoundException($"Scene not found: {scenePath}"));
                     return handle;
                 }
                 
                 // 加载场景Bundle
-                var bundleHandle = await LoadBundleAsync(assetInfo.BundleName, cancellationToken);
+                var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
                 if (bundleHandle == null || !bundleHandle.IsValid)
                 {
-                    handle.SetError(new Exception($"Failed to load scene bundle: {assetInfo.BundleName}"));
+                    handle.SetError(new Exception($"Failed to load scene bundle: {bundleInfo.BundleName}"));
                     return handle;
                 }
                 

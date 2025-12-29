@@ -194,13 +194,13 @@ namespace LWAssets
                 if (!path.StartsWith("Assets/")) continue;
                 if (path.EndsWith(".cs") || path.EndsWith(".meta")) continue;
                 
-                manifest.Assets.Add(new AssetInfo
-                {
-                    AssetPath = path,
-                    AssetType = AssetDatabase.GetMainAssetTypeAtPath(path)?.Name ?? "Unknown",
-                    BundleName = "editor_simulate",
-                    IsRawFile = IsRawFile(path)
-                });
+                // manifest.Assets.Add(new AssetInfo
+                // {
+                //     AssetPath = path,
+                //     AssetType = AssetDatabase.GetMainAssetTypeAtPath(path)?.Name ?? "Unknown",
+                //     BundleName = "editor_simulate",
+                //     IsRawFile = IsRawFile(path)
+                // });
             }
             
             manifest.BuildIndex();
@@ -208,11 +208,6 @@ namespace LWAssets
             return manifest;
         }
         
-        private static bool IsRawFile(string path)
-        {
-            var ext = Path.GetExtension(path).ToLower();
-            return ext == ".txt" || ext == ".json" || ext == ".xml" || ext == ".bytes" || ext == ".csv";
-        }
     }
 }
 #endif

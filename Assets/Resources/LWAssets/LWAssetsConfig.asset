@@ -33,4 +33,4 @@ MonoBehaviour:
   _memoryCriticalThreshold: 805306368
   _enableAutoUnload: 1
   _enableDetailLog: 0
-  _enableProfiler: 0
+  _enableProfiler: 1

@@ -97,7 +97,15 @@ namespace LWAssets
             _isInitialized = true;
             Debug.Log($"[LWAssets] Initialized with {_config.PlayMode} mode");
         }
-        
+        public static async UniTask WarmupShadersAsync(CancellationToken token = default)
+        {
+            // 预加载 shader bundle
+            await _loader.LoadAssetAsync<ShaderVariantCollection>("shaders/variant_collection", token)
+                .ContinueWith(async svc =>
+                {
+                    svc.WarmUp();
+                });
+        }
         /// <summary>
         /// 创建对应模式的加载器
         /// </summary>

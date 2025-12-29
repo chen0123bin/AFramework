@@ -123,7 +123,7 @@ namespace LWAssets.Editor
             EditorGUILayout.BeginHorizontal();
             
             // Bundle列表
-            EditorGUILayout.BeginVertical("box", GUILayout.Width(position.width * 0.4f));
+            EditorGUILayout.BeginVertical("box", GUILayout.Width(position.width * 0.45f));
             EditorGUILayout.LabelField("Bundle List", EditorStyles.boldLabel);
             
             _bundleListScrollPos = EditorGUILayout.BeginScrollView(_bundleListScrollPos);
@@ -144,7 +144,7 @@ namespace LWAssets.Editor
                 EditorGUILayout.LabelField(FileUtility.FormatFileSize(bundle.Size), GUILayout.Width(80));
                 EditorGUILayout.LabelField($"[{string.Join(",", bundle.Tags)}]");
                 
-                if (GUILayout.Button("Select", GUILayout.Width(50)))
+                if (GUILayout.Button("✔", GUILayout.Width(30)))
                 {
                     _selectedBundle = bundle;
                 }
@@ -217,16 +217,16 @@ namespace LWAssets.Editor
         
         private void DrawAssetList()
         {
-            EditorGUILayout.LabelField($"All Assets ({_manifest.Assets.Count})", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField($"All Assets ({_manifest.GetAssetCount()})", EditorStyles.boldLabel);
             
             _assetListScrollPos = EditorGUILayout.BeginScrollView(_assetListScrollPos);
             
-            var filteredAssets = _manifest.Assets
+            var filteredAssets = _manifest.GetAssets()
                 .Where(a => string.IsNullOrEmpty(_searchText) || 
-                    a.AssetPath.ToLower().Contains(_searchText.ToLower()));
+                    a.ToLower().Contains(_searchText.ToLower()));
             
             EditorGUILayout.BeginHorizontal("box");
-            EditorGUILayout.LabelField("Asset Path", EditorStyles.boldLabel, GUILayout.Width(300));
+            EditorGUILayout.LabelField("Asset Path", EditorStyles.boldLabel, GUILayout.Width(400));
             EditorGUILayout.LabelField("Type", EditorStyles.boldLabel, GUILayout.Width(100));
             EditorGUILayout.LabelField("Bundle", EditorStyles.boldLabel);
             EditorGUILayout.EndHorizontal();
@@ -234,13 +234,13 @@ namespace LWAssets.Editor
             foreach (var asset in filteredAssets)
             {
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(asset.AssetPath, GUILayout.Width(300));
-                EditorGUILayout.LabelField(asset.AssetType, GUILayout.Width(100));
-                EditorGUILayout.LabelField(asset.BundleName);
+                EditorGUILayout.LabelField(asset, GUILayout.Width(400));
+                EditorGUILayout.LabelField(GetTypeByAssetPath(asset), GUILayout.Width(100));
+                EditorGUILayout.LabelField(_manifest.GetBundleNameByAsset(asset));
                 
                 if (GUILayout.Button("Ping", GUILayout.Width(40)))
                 {
-                    var obj = AssetDatabase.LoadAssetAtPath<Object>(asset.AssetPath);
+                    var obj = AssetDatabase.LoadAssetAtPath<Object>(asset);
                     if (obj != null)
                     {
                         EditorGUIUtility.PingObject(obj);
@@ -251,7 +251,10 @@ namespace LWAssets.Editor
             
             EditorGUILayout.EndScrollView();
         }
-        
+        string GetTypeByAssetPath(string assetPath)
+        {
+            return AssetDatabase.GetMainAssetTypeAtPath(assetPath)?.Name ?? "Unknown";
+        }
         private void DrawDependencyGraph()
         {
             EditorGUILayout.LabelField("Dependency Analysis", EditorStyles.boldLabel);
