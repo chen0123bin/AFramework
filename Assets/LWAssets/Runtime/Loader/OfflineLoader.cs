@@ -57,7 +57,7 @@ namespace LWAssets
             var asset = request.asset as T;
             if (asset != null)
             {
-                TrackAsset(asset, bundleInfo.BundleName);
+                TrackAsset(assetPath,asset, bundleInfo.BundleName);
             }
 
             return asset;

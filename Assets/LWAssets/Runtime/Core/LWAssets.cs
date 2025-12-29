@@ -30,6 +30,10 @@ namespace LWAssets
         public static bool IsInitialized => _isInitialized;
         
         /// <summary>
+        /// 资源加载器
+        /// </summary>
+        public static IAssetLoader Loader => _loader;
+        /// <summary>
         /// 当前运行模式
         /// </summary>
         public static PlayMode CurrentPlayMode => _config?.PlayMode ?? PlayMode.EditorSimulate;
@@ -138,7 +142,7 @@ namespace LWAssets
         /// <summary>
         /// 加载清单文件
         /// </summary>
-        private static async UniTask<BundleManifest> LoadManifestAsync()
+        public static async UniTask<BundleManifest> LoadManifestAsync()
         {
             if (_config.PlayMode == PlayMode.EditorSimulate)
             {
@@ -288,7 +292,11 @@ namespace LWAssets
             CheckInitialized();
             _loader.Release(asset);
         }
-        
+         public static void Release(string assetPath)
+        {
+            CheckInitialized();
+            _loader.Release(assetPath);
+        }
         /// <summary>
         /// 释放所有未使用资源
         /// </summary>

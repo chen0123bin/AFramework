@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -16,6 +17,15 @@ namespace LWAssets
         /// </summary>
         UniTask InitializeAsync(BundleManifest manifest);
         
+        /// <summary>
+        /// 获取Bundle缓存
+        /// </summary>
+        Dictionary<string, BundleHandle> GetBundleCache();
+
+        /// <summary>
+        /// 获取资源引用缓存
+        /// </summary>
+        Dictionary<string, AssetRefInfo> GetAssetRefCache();
         #region 同步加载
         
         T LoadAsset<T>(string assetPath) where T : UnityEngine.Object;
@@ -41,6 +51,9 @@ namespace LWAssets
         #region 资源管理
         
         void Release(UnityEngine.Object asset);
+        void Release(string assetPath);
+
+        void ForceReleaseAsset(string assetPath);
         UniTask UnloadUnusedAssetsAsync();
         void ForceUnloadAll();
         

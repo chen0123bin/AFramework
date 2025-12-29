@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -7,6 +8,14 @@ using UnityEngine.SceneManagement;
 
 namespace LWAssets
 {
+    public class AssetRefInfo
+    {
+        public string AssetPath;
+        public string BundleName;
+        public int RefCount;
+        
+        public UnityEngine.Object Asset;
+    }
     /// <summary>
     /// 加载器基类
     /// </summary>
@@ -18,7 +27,7 @@ namespace LWAssets
         // Bundle缓存
         protected readonly Dictionary<string, BundleHandle> _bundleCache = new Dictionary<string, BundleHandle>();
         // 资源引用计数
-        protected readonly Dictionary<UnityEngine.Object, string> _assetRefMap = new Dictionary<UnityEngine.Object, string>();
+        protected readonly Dictionary<string, AssetRefInfo> _assetRefMap = new Dictionary<string, AssetRefInfo>();
         // 加载中的Bundle
         protected readonly Dictionary<string, UniTask<BundleHandle>> _loadingBundles = new Dictionary<string, UniTask<BundleHandle>>();
         
@@ -31,6 +40,21 @@ namespace LWAssets
         
         public abstract UniTask InitializeAsync(BundleManifest manifest);
         
+        /// <summary>
+        /// 获取Bundle缓存
+        /// </summary>
+        public Dictionary<string, BundleHandle> GetBundleCache()
+        {
+            return _bundleCache;
+        }
+        
+        /// <summary>
+        /// 获取资源引用缓存
+        /// </summary>
+        public Dictionary<string, AssetRefInfo> GetAssetRefCache()
+        {
+            return _assetRefMap;
+        }
         #region 同步加载 - 默认实现（阻塞等待异步）
         
         public virtual T LoadAsset<T>(string assetPath) where T : UnityEngine.Object
@@ -181,18 +205,53 @@ namespace LWAssets
             
             lock (_lockObj)
             {
-                if (_assetRefMap.TryGetValue(asset, out var bundleName))
+                var info = _assetRefMap.FirstOrDefault(x => x.Value.Asset == asset);
+                if (info.Value != null)
                 {
-                    _assetRefMap.Remove(asset);
+                    Release(info.Value.AssetPath);
+                }
+            }
+        }
+        
+        public virtual void Release(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath)) return;
+            
+            lock (_lockObj)
+            {
+                if (_assetRefMap.TryGetValue(assetPath, out var info))
+                {
+                    info.RefCount--;
+                    if (info.RefCount <= 0)
+                    {
+                        _assetRefMap.Remove(assetPath);
+                        
+                        if (_bundleCache.TryGetValue(info.BundleName, out var handle))
+                        {
+                            handle.Release();
+                        }
+                    }
+                }
+            }
+        }
+        public virtual void ForceReleaseAsset(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath)) return;
+            
+            lock (_lockObj)
+            {
+                if (_assetRefMap.TryGetValue(assetPath, out var info))
+                {
+                    info.RefCount = 0;
+                    _assetRefMap.Remove(assetPath);
                     
-                    if (_bundleCache.TryGetValue(bundleName, out var handle))
+                    if (_bundleCache.TryGetValue(info.BundleName, out var handle))
                     {
                         handle.Release();
                     }
                 }
             }
         }
-        
         public virtual async UniTask UnloadUnusedAssetsAsync()
         {
             lock (_lockObj)
@@ -242,13 +301,26 @@ namespace LWAssets
         /// <summary>
         /// 记录资源引用
         /// </summary>
-        protected void TrackAsset(UnityEngine.Object asset, string bundleName)
+        protected void TrackAsset(string assetPath,UnityEngine.Object asset, string bundleName)
         {
             if (asset == null) return;
             
             lock (_lockObj)
             {
-                _assetRefMap[asset] = bundleName;
+                if(_assetRefMap.TryGetValue(assetPath, out var info))
+                {
+                    info.RefCount++;
+                }
+                else
+                {
+                    _assetRefMap[assetPath] = new AssetRefInfo
+                    {
+                        AssetPath = assetPath,
+                        Asset = asset,
+                        BundleName = bundleName,
+                        RefCount = 1,
+                    };
+                }
             }
         }
         

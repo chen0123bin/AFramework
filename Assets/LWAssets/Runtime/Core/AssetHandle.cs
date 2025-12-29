@@ -10,11 +10,9 @@ namespace LWAssets
     public abstract class HandleBase : IDisposable
     {
         protected string _assetPath;
-        protected int _referenceCount;
         protected bool _isDisposed;
         
         public string AssetPath => _assetPath;
-        public int ReferenceCount => _referenceCount;
         public bool IsDisposed => _isDisposed;
         public abstract bool IsValid { get; }
         public abstract bool IsDone { get; }
@@ -25,27 +23,6 @@ namespace LWAssets
         protected void InvokeComplete()
         {
             OnComplete?.Invoke();
-        }
-        
-        public void Retain()
-        {
-            if (_isDisposed)
-            {
-                Debug.LogWarning($"[LWAssets] Cannot retain disposed handle: {_assetPath}");
-                return;
-            }
-            _referenceCount++;
-        }
-        
-        public void Release()
-        {
-            if (_isDisposed) return;
-            
-            _referenceCount--;
-            if (_referenceCount <= 0)
-            {
-                Dispose();
-            }
         }
         
         public abstract void Dispose();
@@ -71,7 +48,6 @@ namespace LWAssets
         public AssetHandle(string assetPath)
         {
             _assetPath = assetPath;
-            _referenceCount = 1;
         }
         
         internal void SetAsset(T asset)
@@ -136,7 +112,6 @@ namespace LWAssets
         public SceneHandle(string scenePath)
         {
             _assetPath = scenePath;
-            _referenceCount = 1;
         }
         
         internal void SetScene(UnityEngine.SceneManagement.Scene scene)
@@ -198,7 +173,6 @@ namespace LWAssets
         public RawFileHandle(string assetPath)
         {
             _assetPath = assetPath;
-            _referenceCount = 1;
         }
         
         internal void SetData(byte[] data)
