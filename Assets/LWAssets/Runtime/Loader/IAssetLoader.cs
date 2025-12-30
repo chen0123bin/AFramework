@@ -17,15 +17,7 @@ namespace LWAssets
         /// </summary>
         UniTask InitializeAsync(BundleManifest manifest);
         
-        /// <summary>
-        /// 获取Bundle缓存
-        /// </summary>
-        Dictionary<string, BundleHandle> GetBundleCache();
-
-        /// <summary>
-        /// 获取资源引用缓存
-        /// </summary>
-        Dictionary<string, HandleBase> GetHandleBaseCache();
+      
         #region 同步加载
         
         T LoadAsset<T>(string assetPath) where T : UnityEngine.Object;

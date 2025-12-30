@@ -33,21 +33,7 @@ namespace LWAssets
 
         public abstract UniTask InitializeAsync(BundleManifest manifest);
 
-        /// <summary>
-        /// 获取Bundle缓存
-        /// </summary>
-        public Dictionary<string, BundleHandle> GetBundleCache()
-        {
-            return _bundleHandleCache;
-        }
-
-        /// <summary>
-        /// 获取资源引用缓存
-        /// </summary>
-        public Dictionary<string, HandleBase> GetHandleBaseCache()
-        {
-            return _handleBaseCache;
-        }
+       
         #region 同步加载 - 默认实现（阻塞等待异步）
 
         public virtual T LoadAsset<T>(string assetPath) where T : UnityEngine.Object

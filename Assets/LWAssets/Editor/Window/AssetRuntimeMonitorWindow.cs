@@ -37,7 +37,7 @@ namespace LWAssets.Editor
 
         private sealed class AssetRow
         {
-            public AssetHandle Info;
+            public HandleBase HandleBase;
             public long MemoryBytes;
         }
 
@@ -69,6 +69,10 @@ namespace LWAssets.Editor
         private readonly List<AssetRow> _assetRows = new List<AssetRow>();
         private readonly List<BundleRow> _bundleRows = new List<BundleRow>();
 
+        //通过反射获取运行时的加载器和Bundle缓存
+        private AssetLoaderBase _loader;
+        private Dictionary<string, BundleHandle> _bundleHandleCache;
+        private Dictionary<string, HandleBase> _handleBaseCache;
         /// <summary>
         /// 打开运行时监控窗口
         /// </summary>
@@ -79,6 +83,29 @@ namespace LWAssets.Editor
             window.minSize = new Vector2(780, 420);
         }
 
+        void GetLoader()
+        {
+            if (_loader != null)
+            {
+                return;
+            }
+            var loaderField = typeof(LWAssets).GetField("_loader",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            _loader = loaderField?.GetValue(null) as AssetLoaderBase;
+            if (_loader != null)
+            {
+                //loader通过反射获取_bundleHandleCache
+                var bundleHandleCacheField = _loader.GetType().GetField("_bundleHandleCache",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                _bundleHandleCache = bundleHandleCacheField?.GetValue(_loader) as Dictionary<string, BundleHandle>;
+                //通过反射获取_assetHandleCache
+                var assetHandleCacheField = _loader.GetType().GetField("_handleBaseCache",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                _handleBaseCache = assetHandleCacheField?.GetValue(_loader) as Dictionary<string, HandleBase>;
+            }
+           
+
+        }
         /// <summary>
         /// 初始化窗口状态并首次拉取数据
         /// </summary>
@@ -87,19 +114,23 @@ namespace LWAssets.Editor
             _nextRefreshTime = EditorApplication.timeSinceStartup;
             RefreshData();
         }
-
+     
         /// <summary>
         /// 自动刷新驱动（仅Play模式生效）
         /// </summary>
         private void Update()
         {
-            if (!_autoRefresh) return;
-            if (!EditorApplication.isPlaying) return;
-
-            if (EditorApplication.timeSinceStartup < _nextRefreshTime) return;
+           
+            if (!_autoRefresh || !EditorApplication.isPlaying || EditorApplication.timeSinceStartup < _nextRefreshTime)
+            {
+                _loader = null;
+                return;
+            }
             _nextRefreshTime = EditorApplication.timeSinceStartup + _refreshIntervalSec;
+            GetLoader();
             RefreshData();
             Repaint();
+
         }
 
         /// <summary>
@@ -115,7 +146,7 @@ namespace LWAssets.Editor
                 return;
             }
 
-            if (!global::LWAssets.LWAssets.IsInitialized || global::LWAssets.LWAssets.Loader == null)
+            if (!LWAssets.IsInitialized || _loader == null)
             {
                 EditorGUILayout.HelpBox("LWAssets 尚未初始化，暂无数据。", MessageType.Warning);
                 return;
@@ -151,7 +182,7 @@ namespace LWAssets.Editor
 
                 GUILayout.Space(10);
 
-                _searchText = GUILayout.TextField(_searchText ?? string.Empty,  GUILayout.MinWidth(220));
+                _searchText = GUILayout.TextField(_searchText ?? string.Empty, GUILayout.MinWidth(220));
                 if (GUILayout.Button(string.Empty))
                 {
                     _searchText = string.Empty;
@@ -160,7 +191,7 @@ namespace LWAssets.Editor
 
                 GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(!EditorApplication.isPlaying || !global::LWAssets.LWAssets.IsInitialized))
+                using (new EditorGUI.DisabledScope(!EditorApplication.isPlaying || !LWAssets.IsInitialized))
                 {
                     if (GUILayout.Button("卸载未使用", EditorStyles.toolbarButton, GUILayout.Width(80)))
                     {
@@ -169,7 +200,7 @@ namespace LWAssets.Editor
 
                     if (GUILayout.Button("强制卸载全部", EditorStyles.toolbarButton, GUILayout.Width(90)))
                     {
-                        global::LWAssets.LWAssets.Loader.ForceUnloadAll();
+                        _loader.ForceUnloadAll();
                         RefreshData();
                     }
 
@@ -224,35 +255,41 @@ namespace LWAssets.Editor
         /// </summary>
         private void DrawAssetRow(AssetRow row)
         {
-            var info = row.Info;
-            if (info == null) return;
+            var handle = row.HandleBase;
+            if (handle == null) return;
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(info.Path, EditorStyles.linkLabel, GUILayout.Width(360)))
+                if (GUILayout.Button(handle.Path, EditorStyles.linkLabel, GUILayout.Width(360)))
                 {
-                    PingAsset(info);
+                    PingAsset(handle);
                 }
-
-                GUILayout.Label(info.AssetType ?? "-", GUILayout.Width(110));
-                GUILayout.Label(info.BundleName ?? "-", GUILayout.Width(180));
-                GUILayout.Label(info.RefCount.ToString(), GUILayout.Width(45));
+                if (handle is AssetHandle assetHandle)
+                {
+                   GUILayout.Label(assetHandle.AssetType ?? "-", GUILayout.Width(110));     
+                }
+                else if (handle is SceneHandle sceneHandle)
+                {
+                    GUILayout.Label("Scene", GUILayout.Width(110));     
+                }    
+                GUILayout.Label(handle.BundleName ?? "-", GUILayout.Width(180));
+                GUILayout.Label(handle.RefCount.ToString(), GUILayout.Width(45));
                 GUILayout.Label(FormatBytes(row.MemoryBytes), GUILayout.Width(80));
-                GUILayout.Label(info.LastLoadTimeMs.ToString("F2"), GUILayout.Width(70));
+                GUILayout.Label(handle.LastLoadTimeMs.ToString("F2"), GUILayout.Width(70));
 
                 GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(!global::LWAssets.LWAssets.IsInitialized || global::LWAssets.LWAssets.Loader == null))
+                using (new EditorGUI.DisabledScope(!LWAssets.IsInitialized || _loader == null))
                 {
                     if (GUILayout.Button("Release", GUILayout.Width(60)))
                     {
-                        global::LWAssets.LWAssets.Loader.Release(info.Path);
+                        _loader.Release(handle.Path);
                         RefreshData();
                     }
 
                     if (GUILayout.Button("Force", GUILayout.Width(50)))
                     {
-                        global::LWAssets.LWAssets.Loader.ForceReleaseAsset(info.Path);
+                        _loader.ForceReleaseAsset(handle.Path);
                         RefreshData();
                     }
                 }
@@ -318,11 +355,11 @@ namespace LWAssets.Editor
 
                 GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(!global::LWAssets.LWAssets.IsInitialized || global::LWAssets.LWAssets.Loader == null))
+                using (new EditorGUI.DisabledScope(!LWAssets.IsInitialized || _loader == null))
                 {
                     if (GUILayout.Button("卸载", GUILayout.Width(60)))
                     {
-                        global::LWAssets.LWAssets.Loader.ForceUnloadBundle(row.BundleName, _bundleUnloadAllLoadedObjects);
+                        _loader.ForceUnloadBundle(row.BundleName, _bundleUnloadAllLoadedObjects);
                         RefreshData();
                     }
                 }
@@ -338,44 +375,40 @@ namespace LWAssets.Editor
             _bundleRows.Clear();
 
             if (!EditorApplication.isPlaying) return;
-            if (!global::LWAssets.LWAssets.IsInitialized || global::LWAssets.LWAssets.Loader == null) return;
+            if (!LWAssets.IsInitialized) return;
 
-            var loader = global::LWAssets.LWAssets.Loader;
 
-            var assetMap = loader.GetHandleBaseCache();
-            if (assetMap != null)
+
+            if (_handleBaseCache != null)
             {
-                foreach (var handle in assetMap.Values)
+                foreach (var handle in _handleBaseCache.Values)
                 {
-                    //if (handle is not AssetHandle assetHandle) continue;
-
                     long mem = 0;
                     if (handle.IsValid)
                     {
-                        if(handle is AssetHandle assetHandle)
-                        {                            
+                        if (handle is AssetHandle assetHandle)
+                        {
                             mem = Profiler.GetRuntimeMemorySizeLong(assetHandle.AssetObject);
-                            _assetRows.Add(new AssetRow { Info = assetHandle, MemoryBytes = mem });
-                        } 
-                        // else if(handle is Scen assetHandle)
-                        // {                            
-                        //     mem = Profiler.GetRuntimeMemorySizeLong(assetHandle.AssetObject);
-                        //     _assetRows.Add(new AssetRow { Info = assetHandle, MemoryBytes = mem });
-                        // }
+                            _assetRows.Add(new AssetRow { HandleBase = assetHandle, MemoryBytes = mem });
+                        }
+                        else if (handle is SceneHandle sceneHandle)
+                        {
+                            _assetRows.Add(new AssetRow { HandleBase = sceneHandle, MemoryBytes = 0 });
+                        }
                     }
 
                 }
             }
 
-            var bundleMap = loader.GetBundleCache();
-            if (bundleMap != null)
+
+            if (_bundleHandleCache != null)
             {
                 var assetsByBundle = _assetRows
-                    .Where(r => r.Info != null)
-                    .GroupBy(r => r.Info.BundleName)
+                    .Where(r => r.HandleBase != null)
+                    .GroupBy(r => r.HandleBase.BundleName)
                     .ToDictionary(g => g.Key, g => g.ToList());
 
-                foreach (var kvp in bundleMap)
+                foreach (var kvp in _bundleHandleCache)
                 {
                     var name = kvp.Key;
                     var handle = kvp.Value;
@@ -408,20 +441,20 @@ namespace LWAssets.Editor
             if (!string.IsNullOrEmpty(searchText))
             {
                 var lower = searchText.ToLowerInvariant();
-                query = query.Where(r => r.Info != null && (r.Info.Path ?? string.Empty).ToLowerInvariant().Contains(lower));
+                query = query.Where(r => r.HandleBase != null && (r.HandleBase.Path ?? string.Empty).ToLowerInvariant().Contains(lower));
             }
 
             query = sort switch
             {
                 AssetSort.Path => ascending
-                    ? query.OrderBy(r => r.Info?.Path)
-                    : query.OrderByDescending(r => r.Info?.Path),
+                    ? query.OrderBy(r => r.HandleBase?.Path)
+                    : query.OrderByDescending(r => r.HandleBase?.Path),
                 AssetSort.RefCount => ascending
-                    ? query.OrderBy(r => r.Info?.RefCount ?? 0)
-                    : query.OrderByDescending(r => r.Info?.RefCount ?? 0),
+                    ? query.OrderBy(r => r.HandleBase?.RefCount ?? 0)
+                    : query.OrderByDescending(r => r.HandleBase?.RefCount ?? 0),
                 AssetSort.LoadTime => ascending
-                    ? query.OrderBy(r => r.Info?.LastLoadTimeMs ?? 0)
-                    : query.OrderByDescending(r => r.Info?.LastLoadTimeMs ?? 0),
+                    ? query.OrderBy(r => r.HandleBase?.LastLoadTimeMs ?? 0)
+                    : query.OrderByDescending(r => r.HandleBase?.LastLoadTimeMs ?? 0),
                 _ => ascending
                     ? query.OrderBy(r => r.MemoryBytes)
                     : query.OrderByDescending(r => r.MemoryBytes),
@@ -459,21 +492,24 @@ namespace LWAssets.Editor
         /// <summary>
         /// 在编辑器中定位/高亮资源对象
         /// </summary>
-        private static void PingAsset(AssetHandle info)
+        private static void PingAsset(HandleBase handle)
         {
-            if (info == null) return;
+            if (handle == null) return;
 
-            if (info.AssetObject != null)
+            if (handle is AssetHandle assetHandle)
             {
-                EditorGUIUtility.PingObject(info.AssetObject);
-                Selection.activeObject = info.AssetObject;
+                EditorGUIUtility.PingObject(assetHandle.AssetObject);
+                Selection.activeObject = assetHandle.AssetObject;
+                var projectAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetHandle.Path);
+                if (projectAsset != null)
+                {
+                    EditorGUIUtility.PingObject(projectAsset);
+                }
                 return;
             }
-
-            var projectAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(info.Path);
-            if (projectAsset != null)
+            else if (handle is SceneHandle sceneHandle)
             {
-                EditorGUIUtility.PingObject(projectAsset);
+
             }
         }
 
@@ -482,9 +518,9 @@ namespace LWAssets.Editor
         /// </summary>
         private async UniTaskVoid UnloadUnusedAsync()
         {
-            if (!global::LWAssets.LWAssets.IsInitialized || global::LWAssets.LWAssets.Loader == null) return;
+            if (!LWAssets.IsInitialized || _loader == null) return;
 
-            await global::LWAssets.LWAssets.Loader.UnloadUnusedAssetsAsync();
+            await _loader.UnloadUnusedAssetsAsync();
             await Resources.UnloadUnusedAssets();
             GC.Collect();
             RefreshData();

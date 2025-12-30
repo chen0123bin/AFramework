@@ -9,25 +9,19 @@ namespace LWAssets
     /// </summary>
     public class BundleHandle : HandleBase
     {
-        private readonly string _bundleName;
         private AssetBundle _bundle;
         private readonly List<BundleHandle> _dependencies = new List<BundleHandle>();
 
-        private bool _isDone;
-        private float _progress;
 
         private bool _unloadAllLoadedObjectsOnDispose = true;
         
-        public string BundleName => _bundleName;
         public AssetBundle Bundle => _bundle;
         public override bool IsValid => _bundle != null;
-        public override bool IsDone => _isDone;
-        public override float Progress => _progress;
         public IReadOnlyList<BundleHandle> Dependencies => _dependencies;
         
         public BundleHandle(string bundleName) : base(bundleName)
         {
-            _bundleName = bundleName;
+            BundleName = bundleName;
             _progress = 0f;
             _isDone = false;
         }

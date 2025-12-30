@@ -12,27 +12,36 @@ namespace LWAssets
         protected string _path;
         protected bool _isDisposed;
 
+        protected bool _isDone;
+        protected float _progress;
+        protected Exception _error;
+
         private long _fileSizeBytes;
         private double _lastLoadTimeMs;
         private double _totalLoadTimeMs;
 
+      
+       
+        public abstract bool IsValid { get; }
+      
+        public string BundleName { get; internal set; }
+        public int RefCount { get;protected set; }
+        public bool IsDisposed => _isDisposed;
+        public string Path => _path;
+        public  bool IsDone => _isDone;
+        public  float Progress => _progress;   
+        public Exception Error => _error;
+        public bool HasError => _error != null;
+        public long FileSizeBytes => _fileSizeBytes;
+        public double LastLoadTimeMs => _lastLoadTimeMs;
+        public double TotalLoadTimeMs => _totalLoadTimeMs;
+        public event Action OnComplete;
+        
         protected HandleBase(string path)
         {
             _path = path;
         }
         
-        public string Path => _path;
-        public bool IsDisposed => _isDisposed;
-        public abstract bool IsValid { get; }
-        public abstract bool IsDone { get; }
-        public abstract float Progress { get; }
-        public int RefCount { get;protected set; }
-
-        public long FileSizeBytes => _fileSizeBytes;
-        public double LastLoadTimeMs => _lastLoadTimeMs;
-        public double TotalLoadTimeMs => _totalLoadTimeMs;
-        public event Action OnComplete;
-
         internal void SetLoadInfo(long fileSizeBytes, double loadTimeMs)
         {
             _fileSizeBytes = fileSizeBytes;
@@ -98,18 +107,9 @@ namespace LWAssets
     public class AssetHandle : HandleBase
     {
         protected UnityEngine.Object _asset;
-        private bool _isDone;
-        private float _progress;
-        private Exception _error;
-
-        public string BundleName { get; internal set; }
         public string AssetType { get; internal set; }
         public UnityEngine.Object AssetObject => _asset;
         public override bool IsValid => _asset != null;
-        public override bool IsDone => _isDone;
-        public override float Progress => _progress;
-        public Exception Error => _error;
-        public bool HasError => _error != null;
 
         public AssetHandle(string assetPath) : base(assetPath)
         {
@@ -125,12 +125,10 @@ namespace LWAssets
             _asset = asset;
             _progress = 1f;
             _isDone = true;
-
             BundleName = bundleName;
-            AssetType = asset != null ? asset.GetType().Name : null;
-            SetLoadInfo(0, loadTimeMs);
+            AssetType = asset != null ? asset.GetType().Name : null;          
             RefCount = 1;
-
+            SetLoadInfo(0, loadTimeMs);
             InvokeComplete();
         }
         
@@ -193,19 +191,10 @@ namespace LWAssets
     public class SceneHandle : HandleBase
     {
         private UnityEngine.SceneManagement.Scene _scene;
-        private bool _isDone;
-        private float _progress;
-        private Exception _error;
-
-        public string BundleName { get; internal set; }
-
         public string AssetType { get; internal set; }
         public UnityEngine.SceneManagement.Scene Scene => _scene;
         public override bool IsValid => _scene.IsValid();
-        public override bool IsDone => _isDone;
-        public override float Progress => _progress;
-        public Exception Error => _error;
-        public bool HasError => _error != null;
+       
         
         public SceneHandle(string scenePath) : base(scenePath)
         {
@@ -216,6 +205,7 @@ namespace LWAssets
             _scene = scene;
             _progress = 1f;
             _isDone = true;
+            RefCount = 1;
             BundleName = bundleName;
             AssetType = "Scene";
             SetLoadInfo(0, loadTimeMs);
@@ -257,22 +247,14 @@ namespace LWAssets
     public class RawFileHandle : HandleBase
     {
         private byte[] _data;
-        private bool _isDone;
-        private float _progress;
-        private Exception _error;
-        
+       
         public byte[] Data => _data;
         public string Text => _data != null ? System.Text.Encoding.UTF8.GetString(_data) : null;
         public override bool IsValid => _data != null;
-        public override bool IsDone => _isDone;
-        public override float Progress => _progress;
-        public Exception Error => _error;
-        public bool HasError => _error != null;
-        
+       
         public RawFileHandle(string assetPath) : base(assetPath)
         {
-        }
-        
+        }     
         internal void SetData(byte[] data)
         {
             _data = data;

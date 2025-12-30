@@ -126,7 +126,7 @@ namespace LWAssets
 
         public override async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode,
             bool activateOnLoad, CancellationToken cancellationToken = default)
-        {
+        {           
             var handle = new SceneHandle(scenePath);
             var sw = Stopwatch.StartNew();
             try
