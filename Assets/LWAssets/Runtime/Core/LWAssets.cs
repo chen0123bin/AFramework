@@ -170,11 +170,11 @@ namespace LWAssets
         /// <summary>
         /// 同步加载资源（返回句柄）
         /// </summary>
-        public static AssetHandle<T> LoadAssetWithHandle<T>(string assetPath) where T : UnityEngine.Object
-        {
-            CheckInitialized();
-            return _loader.LoadAssetWithHandle<T>(assetPath);
-        }
+        // public static AssetHandle<T> LoadAssetWithHandle<T>(string assetPath) where T : UnityEngine.Object
+        // {
+        //     CheckInitialized();
+        //     return _loader.LoadAssetWithHandle<T>(assetPath);
+        // }
         
         /// <summary>
         /// 同步加载原始文件
@@ -211,12 +211,12 @@ namespace LWAssets
         /// <summary>
         /// 异步加载资源（返回句柄）
         /// </summary>
-        public static async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath,
-            CancellationToken cancellationToken = default) where T : UnityEngine.Object
-        {
-            CheckInitialized();
-            return await _loader.LoadAssetWithHandleAsync<T>(assetPath, cancellationToken);
-        }
+        // public static async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath,
+        //     CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        // {
+        //     CheckInitialized();
+        //     return await _loader.LoadAssetWithHandleAsync<T>(assetPath, cancellationToken);
+        // }
         
         /// <summary>
         /// 异步加载原始文件

@@ -25,11 +25,11 @@ namespace LWAssets
         /// <summary>
         /// 获取资源引用缓存
         /// </summary>
-        Dictionary<string, AssetRefInfo> GetAssetRefCache();
+        Dictionary<string, HandleBase> GetHandleBaseCache();
         #region 同步加载
         
         T LoadAsset<T>(string assetPath) where T : UnityEngine.Object;
-        AssetHandle<T> LoadAssetWithHandle<T>(string assetPath) where T : UnityEngine.Object;
+        //AssetHandle<T> LoadAssetWithHandle<T>(string assetPath) where T : UnityEngine.Object;
         byte[] LoadRawFile(string assetPath);
         string LoadRawFileText(string assetPath);
         
@@ -39,8 +39,8 @@ namespace LWAssets
         
         UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default) 
             where T : UnityEngine.Object;
-        UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath, CancellationToken cancellationToken = default) 
-            where T : UnityEngine.Object;
+        // UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath, CancellationToken cancellationToken = default) 
+        //     where T : UnityEngine.Object;
         UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default);
         UniTask<string> LoadRawFileTextAsync(string assetPath, CancellationToken cancellationToken = default);
         UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad, 
@@ -48,15 +48,35 @@ namespace LWAssets
         
         #endregion
         
-        #region 资源管理
-        
+       /// <summary>
+       /// 释放指定资源
+       /// </summary>
+       /// <param name="asset"></param>
         void Release(UnityEngine.Object asset);
+        /// <summary>
+        /// 释放指定资源路径的资源
+        /// </summary>
+        /// <param name="assetPath"></param>
         void Release(string assetPath);
-
+        /// <summary>
+        /// 强制释放指定资源（用于调试/编辑器工具）
+        /// </summary>
+        /// <param name="assetPath"></param>
         void ForceReleaseAsset(string assetPath);
+
+        /// <summary>
+        /// 强制卸载指定Bundle（用于调试/编辑器工具）
+        /// </summary>
+        void ForceUnloadBundle(string bundleName, bool unloadAllLoadedObjects = true);
+        /// <summary>
+        /// 异步卸载未使用的资源
+        /// </summary>
+        /// <returns></returns>
         UniTask UnloadUnusedAssetsAsync();
+        /// <summary>
+        /// 强制卸载所有资源（用于调试/编辑器工具）
+        /// </summary>
         void ForceUnloadAll();
-        
-        #endregion
+     
     }
 }

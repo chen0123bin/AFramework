@@ -9,60 +9,143 @@ namespace LWAssets
     /// </summary>
     public abstract class HandleBase : IDisposable
     {
-        protected string _assetPath;
+        protected string _path;
         protected bool _isDisposed;
+
+        private long _fileSizeBytes;
+        private double _lastLoadTimeMs;
+        private double _totalLoadTimeMs;
+
+        protected HandleBase(string path)
+        {
+            _path = path;
+        }
         
-        public string AssetPath => _assetPath;
+        public string Path => _path;
         public bool IsDisposed => _isDisposed;
         public abstract bool IsValid { get; }
         public abstract bool IsDone { get; }
         public abstract float Progress { get; }
-        
+        public int RefCount { get;protected set; }
+
+        public long FileSizeBytes => _fileSizeBytes;
+        public double LastLoadTimeMs => _lastLoadTimeMs;
+        public double TotalLoadTimeMs => _totalLoadTimeMs;
         public event Action OnComplete;
+
+        internal void SetLoadInfo(long fileSizeBytes, double loadTimeMs)
+        {
+            _fileSizeBytes = fileSizeBytes;
+            _lastLoadTimeMs = loadTimeMs;
+            _totalLoadTimeMs += loadTimeMs;
+        }
         
+        /// <summary>
+        /// 触发完成回调
+        /// </summary>
         protected void InvokeComplete()
         {
             OnComplete?.Invoke();
         }
+
+        /// <summary>
+        /// 增加引用计数
+        /// </summary>
+        public void Retain()
+        {
+            if (_isDisposed)
+            {
+                Debug.LogWarning($"[LWAssets] Cannot retain disposed handle: {_path}");
+                return;
+            }
+            RefCount++;
+        }
         
-        public abstract void Dispose();
+        /// <summary>
+        /// 减少引用计数，归零后自动释放
+        /// </summary>
+        public void Release()
+        {
+            if (_isDisposed) return;
+
+            RefCount--;
+            if (RefCount <= 0)
+            {
+                RefCount = 0;
+                Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_isDisposed) return;
+            _isDisposed = true;
+            RefCount = 0;
+
+            _fileSizeBytes = 0;
+            _lastLoadTimeMs = 0;
+            _totalLoadTimeMs = 0;
+
+            OnDispose();
+        }
+
+        protected abstract void OnDispose();
     }
     
     /// <summary>
-    /// 泛型资源句柄
+    /// 资源句柄（非泛型，用于缓存/调试）
     /// </summary>
-    public class AssetHandle<T> : HandleBase where T : UnityEngine.Object
+    public class AssetHandle : HandleBase
     {
-        private T _asset;
+        protected UnityEngine.Object _asset;
         private bool _isDone;
         private float _progress;
         private Exception _error;
-        
-        public T Asset => _asset;
+
+        public string BundleName { get; internal set; }
+        public string AssetType { get; internal set; }
+        public UnityEngine.Object AssetObject => _asset;
         public override bool IsValid => _asset != null;
         public override bool IsDone => _isDone;
         public override float Progress => _progress;
         public Exception Error => _error;
         public bool HasError => _error != null;
-        
-        public AssetHandle(string assetPath)
+
+        public AssetHandle(string assetPath) : base(assetPath)
         {
-            _assetPath = assetPath;
+            _progress = 0f;
+            _isDone = true;
         }
-        
-        internal void SetAsset(T asset)
+
+        /// <summary>
+        /// 设置资源对象并更新统计
+        /// </summary>
+        internal void SetAssetObject(UnityEngine.Object asset, string bundleName, double loadTimeMs)
         {
             _asset = asset;
             _progress = 1f;
             _isDone = true;
+
+            BundleName = bundleName;
+            AssetType = asset != null ? asset.GetType().Name : null;
+            SetLoadInfo(0, loadTimeMs);
+            RefCount = 1;
+
             InvokeComplete();
         }
         
+
+        /// <summary>
+        /// 设置加载进度
+        /// </summary>
         internal void SetProgress(float progress)
         {
             _progress = Mathf.Clamp01(progress);
         }
         
+        /// <summary>
+        /// 设置错误并标记完成
+        /// </summary>
         internal void SetError(Exception error)
         {
             _error = error;
@@ -70,17 +153,29 @@ namespace LWAssets
             InvokeComplete();
         }
         
-        public override void Dispose()
+        protected override void OnDispose()
         {
-            if (_isDisposed) return;
-            
-            _isDisposed = true;
-            
-            if (_asset != null)
-            {
-                LWAssets.Release(_asset);
-                _asset = null;
-            }
+            _asset = null;
+        }
+    }
+
+    /// <summary>
+    /// 泛型资源句柄（用于对外API）
+    /// </summary>
+    public class AssetHandle<T> : AssetHandle where T : UnityEngine.Object
+    {
+        public T Asset => _asset as T;
+
+        public AssetHandle(string assetPath) : base(assetPath)
+        {
+        }
+
+        /// <summary>
+        /// 设置资源对象（可选写入Bundle与耗时统计）
+        /// </summary>
+        internal void SetAsset(T asset, string bundleName = null, double loadTimeMs = 0)
+        {
+            SetAssetObject(asset, bundleName, loadTimeMs);
         }
         
         /// <summary>
@@ -101,7 +196,10 @@ namespace LWAssets
         private bool _isDone;
         private float _progress;
         private Exception _error;
-        
+
+        public string BundleName { get; internal set; }
+
+        public string AssetType { get; internal set; }
         public UnityEngine.SceneManagement.Scene Scene => _scene;
         public override bool IsValid => _scene.IsValid();
         public override bool IsDone => _isDone;
@@ -109,16 +207,18 @@ namespace LWAssets
         public Exception Error => _error;
         public bool HasError => _error != null;
         
-        public SceneHandle(string scenePath)
+        public SceneHandle(string scenePath) : base(scenePath)
         {
-            _assetPath = scenePath;
         }
         
-        internal void SetScene(UnityEngine.SceneManagement.Scene scene)
+        internal void SetScene(UnityEngine.SceneManagement.Scene scene, string bundleName = null, double loadTimeMs = 0)
         {
             _scene = scene;
             _progress = 1f;
             _isDone = true;
+            BundleName = bundleName;
+            AssetType = "Scene";
+            SetLoadInfo(0, loadTimeMs);
             InvokeComplete();
         }
         
@@ -145,10 +245,9 @@ namespace LWAssets
             await op;
         }
         
-        public override void Dispose()
+        protected override void OnDispose()
         {
-            if (_isDisposed) return;
-            _isDisposed = true;
+            UnloadAsync().Forget();
         }
     }
     
@@ -170,9 +269,8 @@ namespace LWAssets
         public Exception Error => _error;
         public bool HasError => _error != null;
         
-        public RawFileHandle(string assetPath)
+        public RawFileHandle(string assetPath) : base(assetPath)
         {
-            _assetPath = assetPath;
         }
         
         internal void SetData(byte[] data)
@@ -195,10 +293,8 @@ namespace LWAssets
             InvokeComplete();
         }
         
-        public override void Dispose()
+        protected override void OnDispose()
         {
-            if (_isDisposed) return;
-            _isDisposed = true;
             _data = null;
         }
     }

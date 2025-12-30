@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -26,26 +27,31 @@ namespace LWAssets
         {
             _manifest = manifest;
             await UniTask.CompletedTask;
-            Debug.Log("[LWAssets] OfflineLoader initialized");
+            UnityEngine.Debug.Log("[LWAssets] OfflineLoader initialized");
         }
 
         #region 异步加载实现
 
+        /// <summary>
+        /// 从离线Bundle加载资源，并记录加载耗时/引用信息
+        /// </summary>
         public override async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
         {
             // 直接通过 manifest 获取 Bundle 信息
             var bundleInfo = _manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
-                Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
+                UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
                 return null;
             }
+
+            var sw = Stopwatch.StartNew();
 
             // 加载Bundle
             var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
             if (bundleHandle == null || !bundleHandle.IsValid)
             {
-                Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
+                UnityEngine.Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
                 return null;
             }
 
@@ -57,56 +63,61 @@ namespace LWAssets
             var asset = request.asset as T;
             if (asset != null)
             {
-                TrackAsset(assetPath,asset, bundleInfo.BundleName);
+                sw.Stop();
+                TrackAsset(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+            }
+            else
+            {
+                sw.Stop();
             }
 
             return asset;
         }
 
-        public override async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath,
-            CancellationToken cancellationToken = default)
-        {
-            var handle = new AssetHandle<T>(assetPath);
+        // public override async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath,
+        //     CancellationToken cancellationToken = default)
+        // {
+        //     var handle = new AssetHandle<T>(assetPath);
 
-            try
-            {
-                var asset = await LoadAssetAsync<T>(assetPath, cancellationToken);
-                if (asset != null)
-                {
-                    handle.SetAsset(asset);
-                }
-                else
-                {
-                    handle.SetError(new Exception($"Failed to load asset: {assetPath}"));
-                }
-            }
-            catch (Exception ex)
-            {
-                handle.SetError(ex);
-            }
+        //     try
+        //     {
+        //         var asset = await LoadAssetAsync<T>(assetPath, cancellationToken);
+        //         if (asset != null)
+        //         {
+        //             handle.SetAsset(asset, bundleName: null, loadTimeMs: 0);
+        //         }
+        //         else
+        //         {
+        //             handle.SetError(new Exception($"Failed to load asset: {assetPath}"));
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         handle.SetError(ex);
+        //     }
 
-            return handle;
-        }
+        //     return handle;
+        // }
 
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
             var bundleInfo = _manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
-                Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
+                UnityEngine.Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
                 return null;
             }
 
             if (!bundleInfo.IsRawFile)
             {
-                Debug.LogError($"[LWAssets] Asset is not a raw file: {assetPath}");
+                UnityEngine.Debug.LogError($"[LWAssets] Asset is not a raw file: {assetPath}");
                 return null;
             }
 
             var filePath = GetBundlePath(bundleInfo);
             if (!File.Exists(filePath))
             {
-                Debug.LogError($"[LWAssets] Raw file not found: {filePath}");
+                UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {filePath}");
                 return null;
             }
 
@@ -117,7 +128,7 @@ namespace LWAssets
             bool activateOnLoad, CancellationToken cancellationToken = default)
         {
             var handle = new SceneHandle(scenePath);
-
+            var sw = Stopwatch.StartNew();
             try
             {
                 var bundleInfo = _manifest.GetBundleByAsset(scenePath);
@@ -151,8 +162,10 @@ namespace LWAssets
 
                     await UniTask.Yield(cancellationToken);
                 }
-
-                handle.SetScene(SceneManager.GetSceneByName(sceneName));
+                sw.Stop();
+                
+                handle.SetScene(SceneManager.GetSceneByName(sceneName), bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+                _handleBaseCache.Add(scenePath, handle);
             }
             catch (Exception ex)
             {
@@ -173,7 +186,7 @@ namespace LWAssets
 
             if (!File.Exists(filePath))
             {
-                Debug.LogError($"[LWAssets] Bundle file not found: {filePath}");
+                UnityEngine.Debug.LogError($"[LWAssets] Bundle file not found: {filePath}");
                 return null;
             }
 
@@ -200,6 +213,7 @@ namespace LWAssets
             return streamingPath;
         }
 
+        
         #endregion
     }
 }

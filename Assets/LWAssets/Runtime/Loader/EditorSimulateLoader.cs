@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -24,35 +25,50 @@ namespace LWAssets
         {
             _manifest = manifest;
             await UniTask.CompletedTask;
-            Debug.Log("[LWAssets] EditorSimulateLoader initialized");
+            UnityEngine.Debug.Log("[LWAssets] EditorSimulateLoader initialized");
         }
         
         #region 同步加载
         
+        /// <summary>
+        /// 编辑器模拟：同步加载资源，并记录加载耗时/引用信息
+        /// </summary>
         public override T LoadAsset<T>(string assetPath)
         {
+            var sw = Stopwatch.StartNew();
             var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            sw.Stop();
             if (asset == null)
             {
-                Debug.LogError($"[LWAssets] Asset not found: {assetPath}");
+                UnityEngine.Debug.LogError($"[LWAssets] Asset not found: {assetPath}");
+            }
+            else
+            {
+                TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
             }
             return asset;
         }
         
-        public override AssetHandle<T> LoadAssetWithHandle<T>(string assetPath)
-        {
-            var handle = new AssetHandle<T>(assetPath);
-            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
-            if (asset != null)
-            {
-                handle.SetAsset(asset);
-            }
-            else
-            {
-                handle.SetError(new FileNotFoundException($"Asset not found: {assetPath}"));
-            }
-            return handle;
-        }
+        /// <summary>
+        /// 编辑器模拟：同步加载资源句柄，并记录加载耗时/引用信息
+        /// </summary>
+        // public override AssetHandle<T> LoadAssetWithHandle<T>(string assetPath)
+        // {
+        //     var handle = new AssetHandle<T>(assetPath);
+        //     var sw = Stopwatch.StartNew();
+        //     var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+        //     sw.Stop();
+        //     if (asset != null)
+        //     {
+        //         TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+        //         handle.SetAsset(asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+        //     }
+        //     else
+        //     {
+        //         handle.SetError(new FileNotFoundException($"Asset not found: {assetPath}"));
+        //     }
+        //     return handle;
+        // }
         
         public override byte[] LoadRawFile(string assetPath)
         {
@@ -62,7 +78,7 @@ namespace LWAssets
                 return File.ReadAllBytes(fullPath);
             }
             
-            Debug.LogError($"[LWAssets] Raw file not found: {assetPath}");
+            UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {assetPath}");
             return null;
         }
         
@@ -74,7 +90,7 @@ namespace LWAssets
                 return File.ReadAllText(fullPath);
             }
             
-            Debug.LogError($"[LWAssets] Raw file not found: {assetPath}");
+            UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {assetPath}");
             return null;
         }
         
@@ -82,38 +98,53 @@ namespace LWAssets
         
         #region 异步加载
         
+        /// <summary>
+        /// 编辑器模拟：异步加载资源，并记录加载耗时/引用信息
+        /// </summary>
         public override async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
         {
             // 模拟异步延迟
             await UniTask.Yield(cancellationToken);
             
+            var sw = Stopwatch.StartNew();
             var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            sw.Stop();
             if (asset == null)
             {
-                Debug.LogError($"[LWAssets] Asset not found: {assetPath}");
+                UnityEngine.Debug.LogError($"[LWAssets] Asset not found: {assetPath}");
+            }
+            else
+            {
+                TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
             }
             return asset;
         }
         
-        public override async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath, 
-            CancellationToken cancellationToken = default)
-        {
-            var handle = new AssetHandle<T>(assetPath);
+        /// <summary>
+        /// 编辑器模拟：异步加载资源句柄，并记录加载耗时/引用信息
+        /// </summary>
+        // public override async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath, 
+        //     CancellationToken cancellationToken = default)
+        // {
+        //     var handle = new AssetHandle<T>(assetPath);
             
-            await UniTask.Yield(cancellationToken);
+        //     await UniTask.Yield(cancellationToken);
             
-            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
-            if (asset != null)
-            {
-                handle.SetAsset(asset);
-            }
-            else
-            {
-                handle.SetError(new FileNotFoundException($"Asset not found: {assetPath}"));
-            }
+        //     var sw = Stopwatch.StartNew();
+        //     var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+        //     sw.Stop();
+        //     if (asset != null)
+        //     {
+        //         TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+        //         handle.SetAsset(asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+        //     }
+        //     else
+        //     {
+        //         handle.SetError(new FileNotFoundException($"Asset not found: {assetPath}"));
+        //     }
             
-            return handle;
-        }
+        //     return handle;
+        // }
         
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
@@ -159,16 +190,18 @@ namespace LWAssets
         
         public override void Release(UnityEngine.Object asset)
         {
-            // 编辑器模式下不需要特殊处理
+            base.Release(asset);
         }
         
         public override async UniTask UnloadUnusedAssetsAsync()
         {
+            await base.UnloadUnusedAssetsAsync();
             await Resources.UnloadUnusedAssets();
         }
         
         public override void ForceUnloadAll()
         {
+            base.ForceUnloadAll();
             Resources.UnloadUnusedAssets();
         }
     }
