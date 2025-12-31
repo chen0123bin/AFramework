@@ -120,10 +120,14 @@ namespace LWAssets.Editor
         /// </summary>
         private void Update()
         {
-           
+            if(!EditorApplication.isPlaying && _loader!=null)
+            {
+                _loader= null;
+            } 
+                      
             if (!_autoRefresh || !EditorApplication.isPlaying || EditorApplication.timeSinceStartup < _nextRefreshTime)
             {
-                _loader = null;
+               
                 return;
             }
             _nextRefreshTime = EditorApplication.timeSinceStartup + _refreshIntervalSec;
@@ -399,8 +403,7 @@ namespace LWAssets.Editor
 
                 }
             }
-
-
+            
             if (_bundleHandleCache != null)
             {
                 var assetsByBundle = _assetRows
@@ -428,8 +431,10 @@ namespace LWAssets.Editor
                         IsValid = handle != null && !handle.IsDisposed && handle.IsValid,
                     });
                 }
+                
             }
         }
+
 
         /// <summary>
         /// 资源数据筛选与排序
@@ -443,6 +448,7 @@ namespace LWAssets.Editor
                 var lower = searchText.ToLowerInvariant();
                 query = query.Where(r => r.HandleBase != null && (r.HandleBase.Path ?? string.Empty).ToLowerInvariant().Contains(lower));
             }
+
 
             query = sort switch
             {
@@ -462,7 +468,6 @@ namespace LWAssets.Editor
 
             return query.ToList();
         }
-
         /// <summary>
         /// Bundle数据筛选与排序
         /// </summary>

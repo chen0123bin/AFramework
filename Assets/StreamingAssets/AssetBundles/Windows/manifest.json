@@ -1,6 +1,6 @@
 {
     "Version": "0.1",
-    "BuildTime": "2025-12-29 16:57:03",
+    "BuildTime": "2025-12-31 14:11:43",
     "Platform": "Windows",
     "Bundles": [
         {
@@ -21,10 +21,10 @@
             "Priority": 0
         },
         {
-            "BundleName": "scenes_scenes",
-            "Hash": "896424b7548b8e7f03f6be3c8c9b7046",
-            "CRC": 1714922142,
-            "Size": 95225,
+            "BundleName": "scene2_test2",
+            "Hash": "db9fe38764df9614ab87cbf1824a2a5d",
+            "CRC": 413557424,
+            "Size": 94932,
             "IsRawFile": false,
             "IsEncrypted": false,
             "Tags": [],
@@ -32,8 +32,23 @@
                 "mytest_prefabs"
             ],
             "Assets": [
-                "Assets/0Res/Scenes/Test.unity",
-                "Assets/0Res/Scenes/Test2.unity"
+                "Assets/0Res/Scenes2/Test2.unity"
+            ],
+            "Priority": 0
+        },
+        {
+            "BundleName": "scenes_scenes",
+            "Hash": "0b8df157e8ce1af10ce089a0c3620fab",
+            "CRC": 1214338350,
+            "Size": 94837,
+            "IsRawFile": false,
+            "IsEncrypted": false,
+            "Tags": [],
+            "Dependencies": [
+                "mytest_prefabs"
+            ],
+            "Assets": [
+                "Assets/0Res/Scenes/Test.unity"
             ],
             "Priority": 0
         },

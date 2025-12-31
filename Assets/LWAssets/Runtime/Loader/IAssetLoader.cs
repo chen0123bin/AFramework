@@ -31,8 +31,6 @@ namespace LWAssets
         
         UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default) 
             where T : UnityEngine.Object;
-        // UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath, CancellationToken cancellationToken = default) 
-        //     where T : UnityEngine.Object;
         UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default);
         UniTask<string> LoadRawFileTextAsync(string assetPath, CancellationToken cancellationToken = default);
         UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad, 

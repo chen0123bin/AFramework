@@ -11,10 +11,8 @@ namespace LWAssets
     {
         private AssetBundle _bundle;
         private readonly List<BundleHandle> _dependencies = new List<BundleHandle>();
-
-
-        private bool _unloadAllLoadedObjectsOnDispose = true;
-        
+        internal bool UnloadAllLoadedObjectsOnDispose = true;
+        public bool IsDependLoad = false;
         public AssetBundle Bundle => _bundle;
         public override bool IsValid => _bundle != null;
         public IReadOnlyList<BundleHandle> Dependencies => _dependencies;
@@ -38,31 +36,18 @@ namespace LWAssets
         {
             if (dependency != null && !_dependencies.Contains(dependency))
             {
-                _dependencies.Add(dependency);
-                dependency.Retain();
+                _dependencies.Add(dependency);              
             }
-        }
-
-        /// <summary>
-        /// 卸载Bundle并释放依赖（unloadAllLoadedObjects 对应 AssetBundle.Unload 参数）
-        /// </summary>
-        public void Dispose(bool unloadAllLoadedObjects)
-        {
-            _unloadAllLoadedObjectsOnDispose = unloadAllLoadedObjects;
-            Dispose();
         }
 
         protected override void OnDispose()
         {
-            foreach (var dep in _dependencies)
-            {
-                dep.Release();
-            }
+           
             _dependencies.Clear();
 
             if (_bundle != null)
             {
-                _bundle.Unload(_unloadAllLoadedObjectsOnDispose);
+                _bundle.Unload(UnloadAllLoadedObjectsOnDispose);
                 _bundle = null;
             }
         }

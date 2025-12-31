@@ -44,32 +44,11 @@ namespace LWAssets
             }
             else
             {
-                TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+                TrackAssetHandle(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
             }
             return asset;
         }
-        
-        /// <summary>
-        /// 编辑器模拟：同步加载资源句柄，并记录加载耗时/引用信息
-        /// </summary>
-        // public override AssetHandle<T> LoadAssetWithHandle<T>(string assetPath)
-        // {
-        //     var handle = new AssetHandle<T>(assetPath);
-        //     var sw = Stopwatch.StartNew();
-        //     var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
-        //     sw.Stop();
-        //     if (asset != null)
-        //     {
-        //         TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
-        //         handle.SetAsset(asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
-        //     }
-        //     else
-        //     {
-        //         handle.SetError(new FileNotFoundException($"Asset not found: {assetPath}"));
-        //     }
-        //     return handle;
-        // }
-        
+             
         public override byte[] LoadRawFile(string assetPath)
         {
             var fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
@@ -115,37 +94,12 @@ namespace LWAssets
             }
             else
             {
-                TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+                TrackAssetHandle(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
             }
             return asset;
         }
         
-        /// <summary>
-        /// 编辑器模拟：异步加载资源句柄，并记录加载耗时/引用信息
-        /// </summary>
-        // public override async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath, 
-        //     CancellationToken cancellationToken = default)
-        // {
-        //     var handle = new AssetHandle<T>(assetPath);
-            
-        //     await UniTask.Yield(cancellationToken);
-            
-        //     var sw = Stopwatch.StartNew();
-        //     var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
-        //     sw.Stop();
-        //     if (asset != null)
-        //     {
-        //         TrackAsset(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
-        //         handle.SetAsset(asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
-        //     }
-        //     else
-        //     {
-        //         handle.SetError(new FileNotFoundException($"Asset not found: {assetPath}"));
-        //     }
-            
-        //     return handle;
-        // }
-        
+       
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
             await UniTask.Yield(cancellationToken);
@@ -155,7 +109,7 @@ namespace LWAssets
         public override async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, 
             bool activateOnLoad, CancellationToken cancellationToken = default)
         {
-            var handle = new SceneHandle(scenePath);
+            var sceneHandle = new SceneHandle(scenePath);
             
             try
             {
@@ -164,19 +118,20 @@ namespace LWAssets
                 
                 while (!op.isDone)
                 {
-                    handle.SetProgress(op.progress);
+                    sceneHandle.SetProgress(op.progress);
                     await UniTask.Yield(cancellationToken);
                 }
                 
                 var scene = SceneManager.GetSceneByPath(scenePath);
-                handle.SetScene(scene);
+                sceneHandle.SetScene(scene);
+                sceneHandle.Retain();
             }
             catch (Exception ex)
             {
-                handle.SetError(ex);
+                sceneHandle.SetError(ex);
             }
             
-            return handle;
+            return sceneHandle;
         }
         
         #endregion

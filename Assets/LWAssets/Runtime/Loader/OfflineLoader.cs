@@ -15,7 +15,7 @@ namespace LWAssets
     {
         protected CacheManager _cacheManager;
         protected DownloadManager _downloadManager;
-
+            
         public OfflineLoader(LWAssetsConfig config, CacheManager cacheManager, DownloadManager downloadManager)
             : base(config)
         {
@@ -64,7 +64,7 @@ namespace LWAssets
             if (asset != null)
             {
                 sw.Stop();
-                TrackAsset(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+                TrackAssetHandle(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
             }
             else
             {
@@ -73,6 +73,7 @@ namespace LWAssets
 
             return asset;
         }
+
 
         // public override async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath,
         //     CancellationToken cancellationToken = default)
@@ -126,24 +127,24 @@ namespace LWAssets
 
         public override async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode,
             bool activateOnLoad, CancellationToken cancellationToken = default)
-        {           
-            var handle = new SceneHandle(scenePath);
+        {
+            var sceneHandle = new SceneHandle(scenePath);
             var sw = Stopwatch.StartNew();
             try
             {
                 var bundleInfo = _manifest.GetBundleByAsset(scenePath);
-                if (bundleInfo  == null)
+                if (bundleInfo == null)
                 {
-                    handle.SetError(new FileNotFoundException($"Scene not found: {scenePath}"));
-                    return handle;
+                    sceneHandle.SetError(new FileNotFoundException($"Scene not found: {scenePath}"));
+                    return sceneHandle;
                 }
 
                 // 加载场景Bundle
                 var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
                 if (bundleHandle == null || !bundleHandle.IsValid)
                 {
-                    handle.SetError(new Exception($"Failed to load scene bundle: {bundleInfo.BundleName}"));
-                    return handle;
+                    sceneHandle.SetError(new Exception($"Failed to load scene bundle: {bundleInfo.BundleName}"));
+                    return sceneHandle;
                 }
 
                 // 加载场景
@@ -153,26 +154,27 @@ namespace LWAssets
 
                 while (!op.isDone)
                 {
-                    handle.SetProgress(op.progress);
-
+                    sceneHandle.SetProgress(op.progress);
                     if (op.progress >= 0.9f && !activateOnLoad)
                     {
                         break;
                     }
-
                     await UniTask.Yield(cancellationToken);
                 }
                 sw.Stop();
-                
-                handle.SetScene(SceneManager.GetSceneByName(sceneName), bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
-                _handleBaseCache.Add(scenePath, handle);
+                sceneHandle.SetScene(SceneManager.GetSceneByName(sceneName), bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+                sceneHandle.Retain();
+                lock (_lockObj)
+                {
+                    _handleBaseCache[scenePath] = sceneHandle;
+                }
             }
             catch (Exception ex)
             {
-                handle.SetError(ex);
+                sceneHandle.SetError(ex);
             }
 
-            return handle;
+            return sceneHandle;
         }
 
         #endregion
@@ -213,7 +215,7 @@ namespace LWAssets
             return streamingPath;
         }
 
-        
+
         #endregion
     }
 }

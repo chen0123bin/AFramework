@@ -89,8 +89,6 @@ namespace LWAssets
         {
             if (_isDisposed) return;
             _isDisposed = true;
-            RefCount = 0;
-
             _fileSizeBytes = 0;
             _lastLoadTimeMs = 0;
             _totalLoadTimeMs = 0;
@@ -126,8 +124,7 @@ namespace LWAssets
             _progress = 1f;
             _isDone = true;
             BundleName = bundleName;
-            AssetType = asset != null ? asset.GetType().Name : null;          
-            RefCount = 1;
+            AssetType = asset != null ? asset.GetType().Name : null;                    
             SetLoadInfo(0, loadTimeMs);
             InvokeComplete();
         }
@@ -205,7 +202,6 @@ namespace LWAssets
             _scene = scene;
             _progress = 1f;
             _isDone = true;
-            RefCount = 1;
             BundleName = bundleName;
             AssetType = "Scene";
             SetLoadInfo(0, loadTimeMs);

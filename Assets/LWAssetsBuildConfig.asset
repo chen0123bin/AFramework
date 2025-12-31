@@ -31,6 +31,13 @@ MonoBehaviour:
     MaxBundleSize: 1000
     Priority: 0
     Tags: []
+  - Name: scene2
+    Strategy: 1
+    FolderPath: Assets/0Res/Scenes2
+    FilePattern: '*.*'
+    MaxBundleSize: 1000
+    Priority: 0
+    Tags: []
   - Name: raw
     Strategy: 4
     FolderPath: Assets/0Res/RawFiles

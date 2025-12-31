@@ -15,6 +15,7 @@ namespace LWAssets.Samples
         [SerializeField] private Button _initButton;
         [SerializeField] private Button _loadAssetButton;
         [SerializeField] private Button _loadSceneButton;
+        [SerializeField] private Button _loadScene2Button;
          [SerializeField] private Button _loadRawButton;
         [SerializeField] private Button _downloadButton;
         [SerializeField] private Button _clearCacheButton;
@@ -25,6 +26,8 @@ namespace LWAssets.Samples
         [Header("Test Assets")]
         [SerializeField] private string _testPrefabPath = "Assets/Prefabs/TestCube.prefab";
         [SerializeField] private string _testScenePath = "Assets/Scenes/TestScene.unity";
+
+        [SerializeField] private string _test2ScenePath = "Assets/Scenes/TestScene2.unity";
         [SerializeField] private string _testRawFilePath = "Assets/Config/game_config.json";
         
         private void Start()
@@ -37,6 +40,8 @@ namespace LWAssets.Samples
             _initButton?.onClick.AddListener(() => InitializeAsync().Forget());
             _loadAssetButton?.onClick.AddListener(() => LoadAssetAsync().Forget());
             _loadSceneButton?.onClick.AddListener(() => LoadSceneAsync().Forget());
+            _loadScene2Button?.onClick.AddListener(() => LoadScene2Async().Forget());
+            
             _loadRawButton?.onClick.AddListener(() => LoadRawFileAsync().Forget());
             _downloadButton?.onClick.AddListener(() => DownloadAsync().Forget());
             _clearCacheButton?.onClick.AddListener(ClearCache);
@@ -140,7 +145,41 @@ namespace LWAssets.Samples
                 Debug.LogException(ex);
             }
         }
-        
+         /// <summary>
+        /// 加载场景示例
+        /// </summary>
+        private async UniTaskVoid LoadScene2Async()
+        {
+            if (!LWAssets.IsInitialized)
+            {
+                UpdateStatusMsg("Please initialize first!");
+                return;
+            }
+            
+            try
+            {
+                UpdateStatusMsg("Loading scene...");
+                
+                var handle = await LWAssets.LoadSceneAsync(
+                    _test2ScenePath,
+                    UnityEngine.SceneManagement.LoadSceneMode.Additive,
+                    true);
+                
+                if (handle.IsValid)
+                {
+                    UpdateStatusMsg($"Scene loaded: {handle.Scene.name}");
+                }
+                else if (handle.HasError)
+                {
+                    UpdateStatusMsg($"Scene load error: {handle.Error.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatusMsg($"Load failed: {ex.Message}");
+                Debug.LogException(ex);
+            }
+        }
         /// <summary>
         /// 加载原始文件示例
         /// </summary>
