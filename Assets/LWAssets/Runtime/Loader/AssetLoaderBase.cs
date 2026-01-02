@@ -282,8 +282,9 @@ namespace LWAssets
                     _bundleHandleCache.Remove(key);
                 }
             }
-    
-            await UniTask.Yield();
+
+            await Resources.UnloadUnusedAssets();
+            GC.Collect();
         }
 
         public virtual void ForceUnloadAll()

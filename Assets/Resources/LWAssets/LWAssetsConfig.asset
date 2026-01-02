@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playMode: 1
   _buildOutputPath: AssetBundles
-  _remoteURL: http://localhost:8080/
+  _remoteURL: http://192.168.10.157:8088/AssetBundles
   _manifestFileName: manifest.json
   _versionFileName: version.json
   _maxConcurrentDownloads: 5
-  _downloadTimeout: 30
+  _downloadTimeout: 10
   _maxRetryCount: 3
   _retryDelay: 1
   _enableBreakpointResume: 1

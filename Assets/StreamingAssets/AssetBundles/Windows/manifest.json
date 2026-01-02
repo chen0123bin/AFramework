@@ -1,13 +1,13 @@
 {
     "Version": "0.1",
-    "BuildTime": "2025-12-31 14:11:43",
+    "BuildTime": "2026-01-02 16:27:04",
     "Platform": "Windows",
     "Bundles": [
         {
             "BundleName": "mytest_prefabs",
-            "Hash": "87c16bb22ec93b5826cab532e3c9e302",
-            "CRC": 2765795873,
-            "Size": 28505,
+            "Hash": "fb3f758b5de75c3eaaae094797fb0ea3",
+            "CRC": 1171300658,
+            "Size": 28238,
             "IsRawFile": false,
             "IsEncrypted": false,
             "Tags": [
@@ -22,9 +22,9 @@
         },
         {
             "BundleName": "scene2_test2",
-            "Hash": "db9fe38764df9614ab87cbf1824a2a5d",
-            "CRC": 413557424,
-            "Size": 94932,
+            "Hash": "8cdb5483e5699f1e1b6e6980f75e2b6f",
+            "CRC": 2911765342,
+            "Size": 93252,
             "IsRawFile": false,
             "IsEncrypted": false,
             "Tags": [],
@@ -38,9 +38,9 @@
         },
         {
             "BundleName": "scenes_scenes",
-            "Hash": "0b8df157e8ce1af10ce089a0c3620fab",
-            "CRC": 1214338350,
-            "Size": 94837,
+            "Hash": "797dc40529973b9e63827da2c493ab64",
+            "CRC": 3089844192,
+            "Size": 93257,
             "IsRawFile": false,
             "IsEncrypted": false,
             "Tags": [],
@@ -54,7 +54,7 @@
         },
         {
             "BundleName": "shaders",
-            "Hash": "a2c5e3931f338fef58c73aeb213ab2c7",
+            "Hash": "a3135c08fba2902ec8d2cb28410a7d97",
             "CRC": 2397558506,
             "Size": 29818,
             "IsRawFile": false,

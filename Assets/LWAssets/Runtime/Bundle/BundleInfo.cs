@@ -64,7 +64,7 @@ namespace LWAssets
         /// </summary>
         public string GetFileName()
         {
-            return $"{BundleName}_{Hash}";
+            return $"{BundleName}_{Hash}.uab";
         }
          /// <summary>
         /// 检查是否包含指定资源

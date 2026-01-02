@@ -223,12 +223,14 @@ namespace LWAssets
         /// <summary>
         /// 卸载场景
         /// </summary>
-        public async Cysharp.Threading.Tasks.UniTask UnloadAsync()
+        public async UniTask UnloadAsync()
         {
             if (!_scene.IsValid()) return;
-            
-            var op = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_scene);
-            await op;
+            var op = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_scene);          
+            if (op != null)
+            {
+                await op;
+            }
         }
         
         protected override void OnDispose()

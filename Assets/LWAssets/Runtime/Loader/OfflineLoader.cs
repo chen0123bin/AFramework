@@ -75,31 +75,6 @@ namespace LWAssets
         }
 
 
-        // public override async UniTask<AssetHandle<T>> LoadAssetWithHandleAsync<T>(string assetPath,
-        //     CancellationToken cancellationToken = default)
-        // {
-        //     var handle = new AssetHandle<T>(assetPath);
-
-        //     try
-        //     {
-        //         var asset = await LoadAssetAsync<T>(assetPath, cancellationToken);
-        //         if (asset != null)
-        //         {
-        //             handle.SetAsset(asset, bundleName: null, loadTimeMs: 0);
-        //         }
-        //         else
-        //         {
-        //             handle.SetError(new Exception($"Failed to load asset: {assetPath}"));
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         handle.SetError(ex);
-        //     }
-
-        //     return handle;
-        // }
-
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
             var bundleInfo = _manifest.GetBundleByAsset(assetPath);

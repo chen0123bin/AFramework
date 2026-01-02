@@ -317,7 +317,8 @@ namespace LWAssets.Editor
                 var bundleInfo = new BundleInfo
                 {
                     BundleName = bundleName,
-                    Hash = unityManifest.GetAssetBundleHash(bundleName).ToString(),
+                    //Hash = unityManifest.GetAssetBundleHash(bundleName).ToString(),
+                    Hash = HashUtility.ComputeFileMD5(bundlePath),
                     CRC = HashUtility.ComputeFileCRC32(bundlePath),
                     Size = fileInfo.Length,
                     Dependencies = unityManifest.GetAllDependencies(bundleName).ToList()

@@ -30,7 +30,7 @@ namespace LWAssets
         public string Url;
         public string SavePath;
         public long ExpectedSize;
-        public uint ExpectedCRC;
+        public string ExpectedHash;
         public int RetryCount;
         public long DownloadedBytes;
         public DownloadTaskStatus Status;
@@ -112,7 +112,7 @@ namespace LWAssets
                     if (fileInfo.Length == bundle.Size)
                     {
                         // 验证哈希
-                        if (ValidateFileCRC32(savePath, bundle.CRC))
+                        if (ValidateFileHash(savePath, bundle.Hash))
                         {
                             continue; // 已存在且有效
                         }
@@ -124,7 +124,7 @@ namespace LWAssets
                     Url = url,
                     SavePath = savePath,
                     ExpectedSize = bundle.Size,
-                    ExpectedCRC = bundle.CRC,
+                    ExpectedHash = bundle.Hash,
                     Status = DownloadTaskStatus.Pending
                 };
                 
@@ -333,48 +333,104 @@ namespace LWAssets
                     startPosition = fileInfo.Length;
                     task.DownloadedBytes = startPosition;
                 }
+
+                if (_config.EnableBreakpointResume && startPosition > 0)
+                {
+                    try
+                    {
+                        using (var headRequest = UnityWebRequest.Head(task.Url))
+                        {
+                            headRequest.timeout = _config.DownloadTimeout;
+                            await headRequest.SendWebRequest();
+
+                            if (headRequest.result == UnityWebRequest.Result.Success)
+                            {
+                                var contentLength = headRequest.GetResponseHeader("Content-Length");
+                                if (long.TryParse(contentLength, out var remoteLength) && remoteLength >= 0)
+                                {
+                                    if (startPosition >= remoteLength)
+                                    {
+                                        File.Delete(tempPath);
+                                        startPosition = 0;
+                                        task.DownloadedBytes = 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                for (int attempt = 0; attempt < 2; attempt++)
+                {
+                    bool useRange = startPosition > 0;
+                    bool retryWithoutRange = false;
+
+                    using (var request = new UnityWebRequest(task.Url, UnityWebRequest.kHttpVerbGET))
+                    {
+                        if (useRange)
+                        {
+                            request.SetRequestHeader("Range", $"bytes={startPosition}-");
+                        }
+
+                        var downloadHandler = new DownloadHandlerFileWithProgress(tempPath, startPosition, task);
+                        request.downloadHandler = downloadHandler;
+                        request.timeout = _config.DownloadTimeout;
+
+                        var operation = request.SendWebRequest();
+
+                        while (!operation.isDone)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            task.DownloadedBytes = startPosition + (long)(request.downloadedBytes);
+                            task.NotifyProgress();
+
+                            Interlocked.Add(ref _totalDownloadedBytes, (long)request.downloadedBytes);
+
+                            await UniTask.Yield(cancellationToken);
+                        }
+
+                        if (request.result != UnityWebRequest.Result.Success)
+                        {
+                            if (useRange && request.responseCode == 416)
+                            {
+                                retryWithoutRange = true;
+                            }
+                            else
+                            {
+                                throw new Exception($"Download failed: {request.error}");
+                            }
+                        }
+                    }
+
+                    if (retryWithoutRange)
+                    {
+                        if (File.Exists(tempPath))
+                        {
+                            File.Delete(tempPath);
+                        }
+
+                        startPosition = 0;
+                        task.DownloadedBytes = 0;
+                        continue;
+                    }
+
+                    break;
+                }
                 
-                // 创建请求
-                using (var request = new UnityWebRequest(task.Url, UnityWebRequest.kHttpVerbGET))
-                {
-                    // 设置断点续传
-                    if (startPosition > 0)
-                    {
-                        request.SetRequestHeader("Range", $"bytes={startPosition}-");
-                    }
-                    
-                    // 使用自定义下载处理器
-                    var downloadHandler = new DownloadHandlerFileWithProgress(tempPath, startPosition, task);
-                    request.downloadHandler = downloadHandler;
-                    request.timeout = _config.DownloadTimeout;
-                    
-                    var operation = request.SendWebRequest();
-                    
-                    while (!operation.isDone)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        
-                        task.DownloadedBytes = startPosition + (long)(request.downloadedBytes);
-                        task.NotifyProgress();
-                        
-                        Interlocked.Add(ref _totalDownloadedBytes, (long)request.downloadedBytes);
-                        
-                        await UniTask.Yield(cancellationToken);
-                    }
-                    
-                    if (request.result != UnityWebRequest.Result.Success)
-                    {
-                        throw new Exception($"Download failed: {request.error}");
-                    }
-                }
-
                 // 验证文件
-                if (!ValidateFileCRC32(tempPath, task.ExpectedCRC))
+                if (!string.IsNullOrEmpty(task.ExpectedHash))
                 {
-                    File.Delete(tempPath);
-                    throw new Exception("File hash mismatch");
+                    if (!ValidateFileHash(tempPath, task.ExpectedHash))
+                    {
+                        File.Delete(tempPath);
+                        throw new Exception("File hash mismatch");
+                    }
                 }
-
+                
                 // 重命名临时文件
                 if (File.Exists(task.SavePath))
                 {
@@ -451,18 +507,9 @@ namespace LWAssets
             var actualHash = HashUtility.ComputeFileMD5(filePath);
             return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
         }
-        /// <summary>
-        /// 验证文件CRC
-        /// </summary>
-        private bool ValidateFileCRC32(string filePath, uint expectedCRC32)
-        {
-            if (expectedCRC32 == 0) return true;
-
-            var actualCRC32 = HashUtility.ComputeFileCRC32(filePath);
-            return actualCRC32 == expectedCRC32;
-        }
+        
         #endregion
-
+        
         public void Dispose()
         {
             CancelAll();

@@ -59,7 +59,7 @@ namespace LWAssets
                 Url = url,
                 SavePath = savePath,
                 ExpectedSize = bundleInfo.Size,
-                ExpectedHash = bundleInfo.Hash
+                ExpectedCRC = bundleInfo.CRC
             };
             
             await _downloadManager.DownloadAsync(new[] { bundleInfo }, null, cancellationToken);

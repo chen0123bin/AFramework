@@ -526,8 +526,7 @@ namespace LWAssets.Editor
             if (!LWAssets.IsInitialized || _loader == null) return;
 
             await _loader.UnloadUnusedAssetsAsync();
-            await Resources.UnloadUnusedAssets();
-            GC.Collect();
+          
             RefreshData();
             Repaint();
         }
