@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using LitJson;
 using UnityEngine;
 
 namespace LWAssets
@@ -37,6 +39,9 @@ namespace LWAssets
     /// </summary>
     public class CacheManager : IDisposable
     {
+        private static readonly object _litJsonLock = new object();
+        private static bool _litJsonMappersRegistered;
+
         private readonly LWAssetsConfig _config;
         private CacheIndex _cacheIndex;
         private readonly Dictionary<string, CacheEntry> _entryDict = new Dictionary<string, CacheEntry>();
@@ -56,8 +61,51 @@ namespace LWAssets
             _config = config;
             _cachePath = config.GetPersistentDataPath();
             _indexPath = Path.Combine(_cachePath, "cache_index.json");
+
+            EnsureLitJsonMappersRegistered();
             
             LoadIndex();
+        }
+
+        private static void EnsureLitJsonMappersRegistered()
+        {
+            if (_litJsonMappersRegistered) return;
+
+            lock (_litJsonLock)
+            {
+                if (_litJsonMappersRegistered) return;
+
+                JsonMapper.RegisterExporter<DateTime>((dt, writer) =>
+                    writer.Write(dt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)));
+
+                JsonMapper.RegisterImporter<string, DateTime>(ParseDateTime);
+                JsonMapper.RegisterImporter<long, DateTime>(ticks => new DateTime(ticks));
+                JsonMapper.RegisterImporter<int, DateTime>(ticks => new DateTime(ticks));
+
+                _litJsonMappersRegistered = true;
+            }
+        }
+
+        private static DateTime ParseDateTime(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return default;
+
+            if (DateTime.TryParseExact(
+                    input,
+                    new[] { "yyyy-MM-dd HH:mm:ss", "yyyy-MM-ddTHH:mm:ss.FFFFFFFK", "yyyy-MM-ddTHH:mm:ssK" },
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind,
+                    out var dt))
+            {
+                return dt;
+            }
+
+            if (DateTime.TryParse(input, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out dt))
+            {
+                return dt;
+            }
+
+            return default;
         }
         
         #region 索引管理
@@ -72,7 +120,10 @@ namespace LWAssets
                 if (File.Exists(_indexPath))
                 {
                     var json = File.ReadAllText(_indexPath);
-                    _cacheIndex = JsonUtility.FromJson<CacheIndex>(json);
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        _cacheIndex = JsonMapper.ToObject<CacheIndex>(json);
+                    }
                 }
             }
             catch (Exception ex)
@@ -83,6 +134,11 @@ namespace LWAssets
             if (_cacheIndex == null)
             {
                 _cacheIndex = new CacheIndex();
+            }
+
+            if (_cacheIndex.Entries == null)
+            {
+                _cacheIndex.Entries = new List<CacheEntry>();
             }
             
             // 构建字典
@@ -111,7 +167,7 @@ namespace LWAssets
                 }
                 
                 _cacheIndex.LastUpdateTime = DateTime.Now;
-                var json = JsonUtility.ToJson(_cacheIndex, true);
+                var json = JsonMapper.ToJson(_cacheIndex, true);
                 File.WriteAllText(_indexPath, json);
                 _isDirty = false;
             }

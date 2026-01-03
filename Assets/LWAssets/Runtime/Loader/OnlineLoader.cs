@@ -37,6 +37,7 @@ namespace LWAssets
             {
                 // 下载Bundle
                 await DownloadBundleAsync(bundleInfo, cancellationToken);
+                _cacheManager.AddEntry(bundleInfo);
             }
             
             // 加载Bundle

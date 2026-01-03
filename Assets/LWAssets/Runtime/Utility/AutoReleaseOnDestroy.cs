@@ -7,6 +7,7 @@ namespace LWAssets
     /// <summary>
     /// 自动在销毁时释放资源
     /// </summary>
+    [DefaultExecutionOrder(-100)]
     public class AutoReleaseOnDestroy : MonoBehaviour
     {
         [HideInInspector]

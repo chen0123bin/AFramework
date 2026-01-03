@@ -9,6 +9,7 @@ namespace LWAssets.Samples
     /// <summary>
     /// LWAssets使用示例
     /// </summary>
+    [DefaultExecutionOrder(1000)]
     public class LWAssetsDemo : MonoBehaviour
     {
         [Header("UI References")]
