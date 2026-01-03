@@ -35,23 +35,44 @@ namespace LWAssets
 
        
         #region 同步加载 - 默认实现（阻塞等待异步）
-
+        /// <summary>
+        /// 同步实例化资源
+        /// </summary>
+        /// <returns></returns>
+        public virtual GameObject Instantiate(string assetPath, Transform parent = null)
+        {
+            // 注意：同步加载在某些平台可能导致问题
+            return InstantiateAsync(assetPath, parent).GetAwaiter().GetResult();
+        }   
+        /// <summary>
+        /// 同步加载资源    
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="assetPath"></param>
+        /// <returns></returns>
         public virtual T LoadAsset<T>(string assetPath) where T : UnityEngine.Object
         {
             // 注意：同步加载在某些平台可能导致问题
             return LoadAssetAsync<T>(assetPath).GetAwaiter().GetResult();
         }
 
-        // public virtual AssetHandle<T> LoadAssetWithHandle<T>(string assetPath) where T : UnityEngine.Object
         // {
         //     return LoadAssetWithHandleAsync<T>(assetPath).GetAwaiter().GetResult();
         // }
-
+        /// <summary>
+        /// 同步加载原始文件    
+        /// </summary>
+        /// <param name="assetPath"></param>
+        /// <returns></returns>
         public virtual byte[] LoadRawFile(string assetPath)
         {
             return LoadRawFileAsync(assetPath).GetAwaiter().GetResult();
         }
-
+        /// <summary>
+        /// 同步加载原始文件文本    
+        /// </summary>
+        /// <param name="assetPath"></param>
+        /// <returns></returns>
         public virtual string LoadRawFileText(string assetPath)
         {
             return LoadRawFileTextAsync(assetPath).GetAwaiter().GetResult();
@@ -60,12 +81,27 @@ namespace LWAssets
         #endregion
 
         #region 异步加载
-
+       
+        /// <summary>
+        /// 异步加载资源    
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="assetPath"></param>
+        /// <returns></returns>
         public abstract UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
             where T : UnityEngine.Object;
 
+        /// <summary>
+        /// 异步加载原始文件    
+        /// </summary>
+        /// <param name="assetPath"></param>
+        /// <returns></returns>
         public abstract UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default);
-
+        /// <summary>
+        /// 异步加载原始文件文本    
+        /// </summary>
+        /// <param name="assetPath"></param>
+        /// <returns></returns>
         public async UniTask<string> LoadRawFileTextAsync(string assetPath, CancellationToken cancellationToken = default)
         {
             var data = await LoadRawFileAsync(assetPath, cancellationToken);
@@ -74,6 +110,172 @@ namespace LWAssets
 
         public abstract UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// 异步实例化资源
+        /// </summary>
+        /// <returns></returns>
+        public async UniTask<GameObject> InstantiateAsync(string assetPath, Transform parent = null, CancellationToken cancellationToken = default)
+        {
+
+            // 加载资源
+            var asset = await LoadAssetAsync<GameObject>(assetPath, cancellationToken);
+            if (asset == null)
+            {
+                UnityEngine.Debug.LogError($"[LWAssets] Failed to load asset: {assetPath}");
+                return null;
+            }
+
+            // 实例化资源
+            var instance = UnityEngine.Object.Instantiate(asset, parent);
+            if (instance == null)
+            {
+                UnityEngine.Debug.LogError($"[LWAssets] Failed to instantiate asset: {assetPath}");
+                return null;
+            }
+            // 挂上自动释放组件
+            var releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
+            releaseComp.Path = assetPath;
+            return instance;
+        }
+
+        #endregion
+
+
+        #region 资源管理
+
+        /// <summary>
+        /// 强制释放所有资源
+        /// </summary>
+        public virtual void ForceReleaseAll()
+        {
+            var toRemove = _handleBaseCache.Values.ToList();
+            for (int i = 0; i < toRemove.Count; i++)
+            {
+                var handle = toRemove[i];
+                ReleaseAsset(handle.Path, true);
+            }
+        }
+        /// <summary>
+        /// 强制释放指定资源
+        /// </summary>
+        /// <param name="assetPath"></param>
+        public virtual void ForceReleaseAsset(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath)) return;
+
+            ReleaseAsset(assetPath, true);
+        }
+
+        /// <summary>
+        /// 释放指定资源
+        /// </summary>
+        /// <param name="asset"></param>
+        public virtual void Release(UnityEngine.Object asset)
+        {
+            if (asset == null) return;
+
+            var info = _handleBaseCache.FirstOrDefault(x => x.Value is AssetHandle ah && ah.AssetObject == asset);
+            ReleaseAsset(info.Key);
+        }
+        /// <summary>
+        /// 释放指定资源路径的资源
+        /// </summary>
+        /// <param name="assetPath"></param>
+        public virtual void Release(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath)) return;
+
+            ReleaseAsset(assetPath);
+        }
+
+        /// <summary>
+        /// 强制卸载指定Bundle
+        /// </summary>
+        public virtual void ForceUnloadBundle(string bundleName)
+        {
+            if (string.IsNullOrEmpty(bundleName)) return;
+            if (_bundleHandleCache.TryGetValue(bundleName, out var bundleHandle))
+            {
+                var toRemove = _handleBaseCache
+                    .Where(kvp => kvp.Value != null && kvp.Value.BundleName == bundleName)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+
+                foreach (var key in toRemove)
+                {
+                    ReleaseAsset(key, true);
+                }
+                if (bundleHandle != null)
+                {
+                    ReleaseBundle(bundleHandle.BundleName, true);
+                }
+            }
+        }
+        /// <summary>
+        /// 异步卸载未使用资源
+        /// </summary>
+        /// <returns></returns>
+        public virtual async UniTask UnloadUnusedAssetsAsync()
+        {
+            lock (_lockObj)
+            {
+                var toRemove = new List<HandleBase>();
+                foreach (var kvp in _handleBaseCache)
+                {
+                    if (kvp.Value == null)
+                    {
+                        toRemove.Add(kvp.Value);
+                        continue;
+                    }
+
+                    if (kvp.Value.IsDisposed || !kvp.Value.IsValid || kvp.Value.RefCount <= 0)
+                    {
+                        toRemove.Add(kvp.Value);
+                    }
+                }
+
+                foreach (var handleBase in toRemove)
+                {
+                    _handleBaseCache.Remove(handleBase.Path);
+                    handleBase.Dispose();
+                }
+            }
+
+            lock (_lockObj)
+            {
+
+                var toRemove = new List<BundleHandle>();
+                foreach (var kvp in _bundleHandleCache)
+                {
+                    if (kvp.Value == null)
+                    {
+                        toRemove.Add(kvp.Value);
+                        continue;
+                    }
+
+                    if (kvp.Value.IsDisposed || !kvp.Value.IsValid || kvp.Value.RefCount <= 0)
+                    {
+                        toRemove.Add(kvp.Value);
+                    }
+                }
+
+                foreach (var bundleHandle in toRemove)
+                {
+                    _bundleHandleCache.Remove(bundleHandle.BundleName);
+                    bundleHandle.Dispose();
+                }
+            }
+            await Resources.UnloadUnusedAssets();
+            GC.Collect();
+        }
+       
+
+        public virtual void Dispose()
+        {
+            ForceReleaseAll();
+            UnloadUnusedAssetsAsync().Forget();
+        }
 
         #endregion
 
@@ -84,7 +286,9 @@ namespace LWAssets
         /// </summary>
         protected async UniTask<BundleHandle> LoadBundleAsync(string bundleName, CancellationToken cancellationToken = default, bool isDepend = false)
         {
-            // 检查缓存
+            UniTask<BundleHandle> taskToAwait = default;
+            bool createdTask = false;
+
             lock (_lockObj)
             {
                 if (_bundleHandleCache.TryGetValue(bundleName, out var cached))
@@ -94,49 +298,37 @@ namespace LWAssets
                         _bundleHandleCache.Remove(bundleName);
                     }
                     else
-                    {                
-                        //如果缓存的Bundle通过依赖加载进缓存，但是当前请求是不是加载，那么需要新增引用
-                        if(cached.IsDependLoad && !isDepend)
+                    {
+                        if (cached.IsDependLoad && !isDepend)
                         {
-                            cached.IsDependLoad = isDepend;
+                            cached.IsDependLoad = false;
                             cached.Retain();
-                        }       
+                        }
+
                         return cached;
                     }
                 }
-            }
-            // 检查是否正在加载
-            UniTask<BundleHandle> loadingTask = default;
-            bool isLoading = false;
 
-            lock (_lockObj)
-            {
-                isLoading = _loadingBundles.TryGetValue(bundleName, out loadingTask);
-            }
-
-            if (isLoading)
-            {
-                return await loadingTask;
-            }
-
-            // 创建加载任务
-            var task = LoadBundleInternalAsync(bundleName, cancellationToken, isDepend);
-
-            lock (_lockObj)
-            {
-                _loadingBundles[bundleName] = task;
+                if (!_loadingBundles.TryGetValue(bundleName, out taskToAwait))
+                {
+                    taskToAwait = LoadBundleInternalAsync(bundleName, CancellationToken.None, isDepend);
+                    _loadingBundles[bundleName] = taskToAwait;
+                    createdTask = true;
+                }
             }
 
             try
             {
-                var bundleHandle = await task;
-                return bundleHandle;
+                return await taskToAwait.AttachExternalCancellation(cancellationToken);
             }
             finally
             {
-                lock (_lockObj)
+                if (createdTask)
                 {
-                    _loadingBundles.Remove(bundleName);
+                    lock (_lockObj)
+                    {
+                        _loadingBundles.Remove(bundleName);
+                    }
                 }
             }
         }
@@ -189,128 +381,14 @@ namespace LWAssets
         protected abstract UniTask<AssetBundle> LoadBundleFromSourceAsync(BundleInfo bundleInfo,
             CancellationToken cancellationToken = default);
 
-        #endregion
 
-        #region 资源管理
-
-        
-        public virtual void Release(UnityEngine.Object asset)
-        {
-            if (asset == null) return;
-
-            lock (_lockObj)
-            {
-                var info = _handleBaseCache.FirstOrDefault(x => x.Value is AssetHandle ah && ah.AssetObject == asset);
-                ReleaseAssetLocked(info.Key);
-            }
-        }
-
-        public virtual void Release(string assetPath)
+        private void ReleaseAsset(string assetPath, bool force = false)
         {
             if (string.IsNullOrEmpty(assetPath)) return;
 
-            lock (_lockObj)
+            if (_handleBaseCache.TryGetValue(assetPath, out var handleBase))
             {
-                ReleaseAssetLocked(assetPath);
-            }
-        }
-        /// <summary>
-        /// 强制释放指定资源
-        /// </summary>
-        /// <param name="assetPath"></param>
-        public virtual void ForceReleaseAsset(string assetPath)
-        {
-            if (string.IsNullOrEmpty(assetPath)) return;
 
-            lock (_lockObj)
-            {
-                ReleaseAssetLocked(assetPath, true);
-            }
-        }
-
-        /// <summary>
-        /// 强制卸载指定Bundle（调试工具使用）
-        /// </summary>
-        public virtual void ForceUnloadBundle(string bundleName, bool unloadAllLoadedObjects = true)
-        {
-            if (string.IsNullOrEmpty(bundleName)) return;
-
-            lock (_lockObj)
-            {
-                if (_bundleHandleCache.TryGetValue(bundleName, out var bundleHandle))
-                {
-                    var toRemove = _handleBaseCache
-                        .Where(kvp => kvp.Value != null && kvp.Value.BundleName == bundleName)
-                        .Select(kvp => kvp.Key)
-                        .ToList();
-
-                    foreach (var key in toRemove)
-                    {
-                        ReleaseAssetLocked(key, true);
-                    }
-
-                    if (bundleHandle != null)
-                    {
-                        ReleaseBundleLocked(bundleHandle.BundleName, true, unloadAllLoadedObjects);
-                    }
-                }
-            }
-        }
-        public virtual async UniTask UnloadUnusedAssetsAsync()
-        {
-            lock (_lockObj)
-            {
-                var toRemove = new List<string>();
-
-                foreach (var kvp in _bundleHandleCache)
-                {
-                    if (kvp.Value == null)
-                    {
-                        toRemove.Add(kvp.Key);
-                        continue;
-                    }
-
-                    if (kvp.Value.IsDisposed || !kvp.Value.IsValid || kvp.Value.RefCount <= 0)
-                    {
-                        kvp.Value.Dispose();
-                        toRemove.Add(kvp.Key);
-                    }
-                }
-
-                foreach (var key in toRemove)
-                {
-                    _bundleHandleCache.Remove(key);
-                }
-            }
-
-            await Resources.UnloadUnusedAssets();
-            GC.Collect();
-        }
-
-        public virtual void ForceUnloadAll()
-        {
-            var toRemove = _handleBaseCache.Values.ToList();
-            for (int i = 0; i < toRemove.Count; i++)
-            {
-                var handle = toRemove[i];
-                ReleaseAssetLocked(handle.Path,true);
-            }
-        }
-
-        public virtual void Dispose()
-        {
-            ForceUnloadAll();
-        }
-
-        #endregion
-
-        private void ReleaseAssetLocked(string assetPath, bool force = false)
-        {
-            if (string.IsNullOrEmpty(assetPath)) return;
-
-            if (_handleBaseCache.TryGetValue(assetPath, out var handleBase) )
-            {
-               
                 if (force)
                 {
                     while (handleBase.RefCount > 0)
@@ -322,56 +400,44 @@ namespace LWAssets
                 {
                     handleBase.Release();
                 }
-                
+                // 递归释放依赖的资源
                 if (handleBase.RefCount <= 0 || handleBase.IsDisposed || !handleBase.IsValid)
                 {
-                    _handleBaseCache.Remove(assetPath);
-                    ReleaseBundleLocked(handleBase.BundleName);
+                    //_handleBaseCache.Remove(assetPath);
+                    ReleaseBundle(handleBase.BundleName);
                 }
 
-              
+
             }
         }
 
-      
 
-        private void ReleaseBundleLocked(string bundleName, bool force = false, bool unloadAllLoadedObjects = true)
+
+        private void ReleaseBundle(string bundleName, bool force = false)
         {
             if (string.IsNullOrEmpty(bundleName)) return;
 
             if (_bundleHandleCache.TryGetValue(bundleName, out var bundleHandle) && bundleHandle != null)
             {
-                bundleHandle.UnloadAllLoadedObjectsOnDispose = unloadAllLoadedObjects;
 
                 if (force)
                 {
                     while (bundleHandle.RefCount > 0)
                     {
-                        if (bundleHandle.RefCount == 1)
-                        {
-                            foreach (var dep in bundleHandle.Dependencies)
-                            {
-                                ReleaseBundleLocked(dep.BundleName, false, unloadAllLoadedObjects);
-                            }
-                        }
                         bundleHandle.Release();
                     }
                 }
                 else
                 {
-                    if (bundleHandle.RefCount == 1)
-                    {
-                        foreach (var dep in bundleHandle.Dependencies)
-                        {
-                            ReleaseBundleLocked(dep.BundleName, false, unloadAllLoadedObjects);
-                        }
-                    }
                     bundleHandle.Release();
                 }
-                if (bundleHandle.IsDisposed || !bundleHandle.IsValid || bundleHandle.RefCount <= 0)
+                // 递归释放依赖的Bundle
+                if (!bundleHandle.IsValid || bundleHandle.RefCount <= 0)
                 {
-                    
-                    _bundleHandleCache.Remove(bundleName);
+                    foreach (var dep in bundleHandle.Dependencies)
+                    {
+                        ReleaseBundle(dep.BundleName, false);
+                    }
                 }
             }
         }
@@ -401,6 +467,12 @@ namespace LWAssets
                 }
             }
         }
+
+        #endregion
+
+
+
+
 
     }
 }

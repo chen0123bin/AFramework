@@ -64,7 +64,7 @@ namespace LWAssets.Editor
         private AssetSort _assetSort = AssetSort.Memory;
         private BundleSort _bundleSort = BundleSort.RefCount;
 
-        private bool _bundleUnloadAllLoadedObjects = true;
+        
 
         private readonly List<AssetRow> _assetRows = new List<AssetRow>();
         private readonly List<BundleRow> _bundleRows = new List<BundleRow>();
@@ -204,7 +204,7 @@ namespace LWAssets.Editor
 
                     if (GUILayout.Button("强制卸载全部", EditorStyles.toolbarButton, GUILayout.Width(90)))
                     {
-                        _loader.ForceUnloadAll();
+                        _loader.ForceReleaseAll();
                         RefreshData();
                     }
 
@@ -310,7 +310,7 @@ namespace LWAssets.Editor
                 EditorGUILayout.LabelField($"已加载Bundle：{_bundleRows.Count}", EditorStyles.miniLabel, GUILayout.Width(120));
                 GUILayout.FlexibleSpace();
 
-                _bundleUnloadAllLoadedObjects = GUILayout.Toggle(_bundleUnloadAllLoadedObjects, "卸载所有已加载对象", GUILayout.Width(140));
+               // _bundleUnloadAllLoadedObjects = GUILayout.Toggle(_bundleUnloadAllLoadedObjects, "卸载所有已加载对象", GUILayout.Width(140));
                 _bundleSort = (BundleSort)EditorGUILayout.EnumPopup(_bundleSort, GUILayout.Width(110));
                 _sortAscending = GUILayout.Toggle(_sortAscending, "升序", GUILayout.Width(50));
             }
@@ -363,7 +363,7 @@ namespace LWAssets.Editor
                 {
                     if (GUILayout.Button("卸载", GUILayout.Width(60)))
                     {
-                        _loader.ForceUnloadBundle(row.BundleName, _bundleUnloadAllLoadedObjects);
+                        _loader.ForceUnloadBundle(row.BundleName);
                         RefreshData();
                     }
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace LWAssets
 {
@@ -193,11 +194,20 @@ namespace LWAssets
             CheckInitialized();
             return _loader.LoadRawFileText(assetPath);
         }
-        
+        public static GameObject Instantiate(string testPrefabPath, Transform spawnPoint)
+        {
+            CheckInitialized();
+            return _loader.Instantiate(testPrefabPath, spawnPoint);
+        }
         #endregion
-        
+
         #region 异步加载API (UniTask)
-        
+        public static async UniTask<GameObject> InstantiateAsync(string testPrefabPath, Transform spawnPoint)
+        {
+            CheckInitialized();
+            return await _loader.InstantiateAsync(testPrefabPath, spawnPoint);
+        }
+
         /// <summary>
         /// 异步加载资源
         /// </summary>
@@ -314,7 +324,7 @@ namespace LWAssets
         public static void ForceUnloadAll()
         {
             CheckInitialized();
-            _loader.ForceUnloadAll();
+            _loader.ForceReleaseAll();
         }
         
         #endregion
@@ -379,7 +389,8 @@ namespace LWAssets
             
             Debug.Log("[LWAssets] Destroyed");
         }
-        
+
+       
         #endregion
     }
 }

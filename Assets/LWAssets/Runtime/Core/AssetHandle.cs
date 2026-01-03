@@ -81,7 +81,7 @@ namespace LWAssets
             if (RefCount <= 0)
             {
                 RefCount = 0;
-                Dispose();
+                //Dispose();
             }
         }
 

@@ -202,9 +202,9 @@ namespace LWAssets
 
         #endregion
 
-        public override void ForceUnloadAll()
+        public override void ForceReleaseAll()
         {
-            base.ForceUnloadAll();
+            base.ForceReleaseAll();
             _webglCache.Clear();
         }
     }

@@ -142,8 +142,27 @@ namespace LWAssets.Editor
                     }
                 }
             }
+
             EditorGUILayout.EndHorizontal();
-            
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Open Download Folder", GUILayout.Height(40)))
+            {
+                EditorUtility.RevealInFinder(_runtimeConfig.GetPersistentDataPath());
+            }
+
+            if (GUILayout.Button("Copy to StreamingAssets", GUILayout.Height(40)))
+            {
+                if (EditorUtility.DisplayDialog("Copy to StreamingAssets",
+                    "Are you sure you want to copy the build assets to StreamingAssets folder?", "Yes", "No"))
+                {
+                    CopyToStreamingAssets();
+                }
+            }
+
+          
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.EndVertical();
             
             EditorGUILayout.Space();

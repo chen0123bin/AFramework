@@ -87,12 +87,14 @@ namespace LWAssets.Samples
                 UpdateStatusMsg("Loading prefab...");
                 
                 // 方式1：直接加载
-                var prefab = await LWAssets.LoadAssetAsync<GameObject>(_testPrefabPath);
-                if (prefab != null)
-                {
-                    var instance = Instantiate(prefab, _spawnPoint);
-                    UpdateStatusMsg($"Loaded: {prefab.name}");
-                }
+                // var prefab = await LWAssets.LoadAssetAsync<GameObject>(_testPrefabPath);
+                // if (prefab != null)
+                // {
+                //     var instance = Instantiate(prefab, _spawnPoint);
+                //     UpdateStatusMsg($"Loaded: {prefab.name}");
+                // }
+                
+                var gameObject = await LWAssets.InstantiateAsync(_testPrefabPath, _spawnPoint);
                 
                 // 方式2：使用句柄
                 // var handle = await LWAssets.LoadAssetWithHandleAsync<GameObject>(_testPrefabPath);

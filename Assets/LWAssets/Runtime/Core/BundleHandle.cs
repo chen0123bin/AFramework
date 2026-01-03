@@ -11,7 +11,7 @@ namespace LWAssets
     {
         private AssetBundle _bundle;
         private readonly List<BundleHandle> _dependencies = new List<BundleHandle>();
-        internal bool UnloadAllLoadedObjectsOnDispose = true;
+        internal bool UnloadAllLoadedObjectsOnDispose = false;
         public bool IsDependLoad = false;
         public AssetBundle Bundle => _bundle;
         public override bool IsValid => _bundle != null;
@@ -47,7 +47,7 @@ namespace LWAssets
 
             if (_bundle != null)
             {
-                _bundle.Unload(UnloadAllLoadedObjectsOnDispose);
+                _bundle.Unload(false);
                 _bundle = null;
             }
         }

@@ -154,9 +154,9 @@ namespace LWAssets
             await Resources.UnloadUnusedAssets();
         }
         
-        public override void ForceUnloadAll()
+        public override void ForceReleaseAll()
         {
-            base.ForceUnloadAll();
+            base.ForceReleaseAll();
             Resources.UnloadUnusedAssets();
         }
     }
