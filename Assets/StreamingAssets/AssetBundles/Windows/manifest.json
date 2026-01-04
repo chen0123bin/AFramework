@@ -1,67 +1,73 @@
+
 {
-    "Version": "0.1",
-    "BuildTime": "2026-01-02 16:27:04",
-    "Platform": "Windows",
-    "Bundles": [
+    "Version" : "0.1",
+    "BuildTime" : "2026-01-04 10:51:45",
+    "Platform"  : "Windows",
+    "Bundles"   : [
         {
-            "BundleName": "mytest_prefabs",
-            "Hash": "fb3f758b5de75c3eaaae094797fb0ea3",
-            "CRC": 1171300658,
-            "Size": 28238,
-            "IsRawFile": false,
-            "IsEncrypted": false,
-            "Tags": [
+            "BundleName" : "mytest_prefabs",
+            "Hash"       : "6c699d4fbe1435b5865767692b53a75e",
+            "CRC"        : 1860597459,
+            "Size"       : 26618,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
                 "qqq"
             ],
-            "Dependencies": [],
-            "Assets": [
+            "Dependencies" : [
+            ],
+            "Assets"       : [
                 "Assets/0Res/Prefabs/Cube.prefab",
                 "Assets/0Res/Prefabs/Sphere.prefab"
             ],
-            "Priority": 0
+            "Priority"     : 0
         },
         {
-            "BundleName": "scene2_test2",
-            "Hash": "8cdb5483e5699f1e1b6e6980f75e2b6f",
-            "CRC": 2911765342,
-            "Size": 93252,
-            "IsRawFile": false,
-            "IsEncrypted": false,
-            "Tags": [],
-            "Dependencies": [
+            "BundleName" : "scene2_test2",
+            "Hash"       : "ce6bd5750c6a0bbafd58ed3f5740f2d8",
+            "CRC"        : 3726759267,
+            "Size"       : 93269,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+            ],
+            "Dependencies" : [
                 "mytest_prefabs"
             ],
-            "Assets": [
+            "Assets"       : [
                 "Assets/0Res/Scenes2/Test2.unity"
             ],
-            "Priority": 0
+            "Priority"     : 0
         },
         {
-            "BundleName": "scenes_scenes",
-            "Hash": "797dc40529973b9e63827da2c493ab64",
-            "CRC": 3089844192,
-            "Size": 93257,
-            "IsRawFile": false,
-            "IsEncrypted": false,
-            "Tags": [],
-            "Dependencies": [
+            "BundleName" : "scenes_scenes",
+            "Hash"       : "80bed2364a44d50c62b9944775c53b1d",
+            "CRC"        : 646458044,
+            "Size"       : 93256,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+            ],
+            "Dependencies" : [
                 "mytest_prefabs"
             ],
-            "Assets": [
+            "Assets"       : [
                 "Assets/0Res/Scenes/Test.unity"
             ],
-            "Priority": 0
+            "Priority"     : 0
         },
         {
-            "BundleName": "shaders",
-            "Hash": "a3135c08fba2902ec8d2cb28410a7d97",
-            "CRC": 2397558506,
-            "Size": 29818,
-            "IsRawFile": false,
-            "IsEncrypted": false,
-            "Tags": [],
-            "Dependencies": [],
-            "Assets": [
+            "BundleName" : "shaders",
+            "Hash"       : "a3135c08fba2902ec8d2cb28410a7d97",
+            "CRC"        : 2397558506,
+            "Size"       : 29818,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+            ],
+            "Dependencies" : [
+            ],
+            "Assets"       : [
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Custom-Atlas.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap.shader",
@@ -76,21 +82,23 @@
                 "Assets/TextMesh Pro/Shaders/TMP_SDF.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Sprite.shader"
             ],
-            "Priority": 0
+            "Priority"     : 0
         },
         {
-            "BundleName": "raw_333",
-            "Hash": "3454f892e3df84762604f3d9638e3d04",
-            "CRC": 0,
-            "Size": 8,
-            "IsRawFile": true,
-            "IsEncrypted": false,
-            "Tags": [],
-            "Dependencies": [],
-            "Assets": [
+            "BundleName" : "raw_333",
+            "Hash"       : "3454f892e3df84762604f3d9638e3d04",
+            "CRC"        : 0,
+            "Size"       : 8,
+            "IsRawFile"  : true,
+            "IsEncrypted" : false,
+            "Tags"        : [
+            ],
+            "Dependencies" : [
+            ],
+            "Assets"       : [
                 "Assets/0Res/RawFiles/333.txt"
             ],
-            "Priority": 0
+            "Priority"     : 0
         }
     ]
 }

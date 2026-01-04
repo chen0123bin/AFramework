@@ -1,20 +1,20 @@
 === LWAssets Build Report ===
-Build Time: 2026/1/2 16:27:04
+Build Time: 2026/1/4 10:51:46
 Platform: StandaloneWindows64
 Version: 0.1
 
 === Bundle Summary ===
 Total Bundles: 5
-Total Size: 238.84 KB
+Total Size: 237.27 KB
 Total Assets: 18
 
 === Bundle Details ===
-  scenes_scenes
-    Size: 91.07 KB
+  scene2_test2
+    Size: 91.08 KB
     Assets: 1
     Dependencies: 1
     Tags: 
-  scene2_test2
+  scenes_scenes
     Size: 91.07 KB
     Assets: 1
     Dependencies: 1
@@ -25,7 +25,7 @@ Total Assets: 18
     Dependencies: 0
     Tags: 
   mytest_prefabs
-    Size: 27.58 KB
+    Size: 25.99 KB
     Assets: 2
     Dependencies: 0
     Tags: qqq
@@ -36,4 +36,4 @@ Total Assets: 18
     Tags: 
 
 === Tag Summary ===
-  qqq: 1 bundles, 27.58 KB
+  qqq: 1 bundles, 25.99 KB
