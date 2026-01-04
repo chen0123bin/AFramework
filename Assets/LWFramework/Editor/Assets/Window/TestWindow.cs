@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.IO;
 using LWAssets;
+using System.Security.Permissions;
 
 namespace LWAssets.Editor
 {
@@ -21,6 +22,14 @@ namespace LWAssets.Editor
 
         private Type _selectedType;
         private object _selectedInstance;
+
+        private bool _isDraggingListElement;
+        private string _draggingListKey;
+        private int _draggingFromIndex = -1;
+        private int _draggingInsertIndex = -1;
+        private int _dragHotControl;
+        private Vector2 _dragStartMousePosition;
+        private bool _didDragListElement;
 
         private readonly Dictionary<string, bool> _foldoutStates = new Dictionary<string, bool>();
         [MenuItem("LWAssets/TestWindow")]
@@ -264,6 +273,11 @@ namespace LWAssets.Editor
         /// </summary>
         private object DrawValueField(string label, Type valueType, object value)
         {
+            if (typeof(UnityEngine.Object).IsAssignableFrom(valueType))
+            {
+                return EditorGUILayout.ObjectField(label, value as UnityEngine.Object, valueType, false);
+            }
+
             if (valueType == typeof(string))
             {
                 if (string.Equals(label, "FoldPath", StringComparison.Ordinal))
@@ -323,18 +337,17 @@ namespace LWAssets.Editor
                 return enumValue != null ? EditorGUILayout.EnumPopup(label, enumValue) : value;
             }
 
-            if (IsStringListType(valueType))
-                return DrawStringList(label, value as List<string>);
+
+            if (TryGetListElementType(valueType, out var elementType))
+                return DrawGenericList(label, valueType, elementType, value as System.Collections.IList);
 
             EditorGUILayout.LabelField(label, $"不支持类型: {valueType.Name}");
             return value;
         }
 
-        /// <summary>
-        /// 判断类型是否为 List&lt;string&gt;
-        /// </summary>
-        private static bool IsStringListType(Type valueType)
+        private static bool TryGetListElementType(Type valueType, out Type elementType)
         {
+            elementType = null;
             if (valueType == null)
                 return false;
 
@@ -345,16 +358,16 @@ namespace LWAssets.Editor
                 return false;
 
             var args = valueType.GetGenericArguments();
-            return args.Length == 1 && args[0] == typeof(string);
+            if (args.Length != 1)
+                return false;
+
+            elementType = args[0];
+            return true;
         }
 
-        /// <summary>
-        /// 绘制 List&lt;string&gt; 的编辑UI（支持展开、增删、逐项编辑）
-        /// </summary>
-        private List<string> DrawStringList(string label, List<string> list)
+        private object DrawGenericList(string label, Type listType, Type elementType, System.Collections.IList list)
         {
             var foldoutKey = _selectedType != null ? $"{_selectedType.FullName}.{label}" : label;
-
             if (!_foldoutStates.TryGetValue(foldoutKey, out var isExpanded))
                 isExpanded = true;
 
@@ -362,14 +375,26 @@ namespace LWAssets.Editor
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    isExpanded = EditorGUILayout.Foldout(isExpanded, $"{label} {(list != null ? $"[{list.Count}]" : "[null]")}", true);
+                    var countText = list != null ? $"[{list.Count}]" : "[null]";
+                    isExpanded = EditorGUILayout.Foldout(isExpanded, $"{label} {countText}", true);
                     GUILayout.FlexibleSpace();
 
                     if (GUILayout.Button("+", GUILayout.Width(28)))
                     {
                         if (list == null)
-                            list = new List<string>();
-                        list.Add(string.Empty);
+                        {
+                            try
+                            {
+                                list = Activator.CreateInstance(listType) as System.Collections.IList;
+                            }
+                            catch
+                            {
+                                list = null;
+                            }
+                        }
+
+                        if (list != null)
+                            list.Add(CreateDefaultElementValue(elementType));
                     }
                 }
 
@@ -383,22 +408,306 @@ namespace LWAssets.Editor
                     return null;
                 }
 
+                var elementHeaderRects = new List<Rect>(list.Count);
+
                 for (int i = 0; i < list.Count; i++)
                 {
-                    using (new EditorGUILayout.HorizontalScope())
+                    using (new EditorGUILayout.VerticalScope("box"))
                     {
-                        list[i] = EditorGUILayout.TextField($"元素 {i}", list[i] ?? string.Empty);
-                        if (GUILayout.Button("-", GUILayout.Width(28)))
+                        var elementFoldoutKey = $"{foldoutKey}[{i}]";
+                        if (!_foldoutStates.TryGetValue(elementFoldoutKey, out var elementExpanded))
+                            elementExpanded = true;
+
+                        var headerRect = GUILayoutUtility.GetRect(0f, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
+                        var dragRect = new Rect(headerRect.x, headerRect.y, 18f, headerRect.height);
+                        var removeRect = new Rect(headerRect.xMax - 28f, headerRect.y, 28f, headerRect.height);
+                        var foldoutRect = new Rect(dragRect.xMax + 4f, headerRect.y, headerRect.width - dragRect.width - removeRect.width - 8f, headerRect.height);
+
+                        if (_didDragListElement && _isDraggingListElement && string.Equals(_draggingListKey, foldoutKey, StringComparison.Ordinal) && _draggingFromIndex == i)
+                            EditorGUI.DrawRect(headerRect, new Color(0.25f, 0.5f, 1f, 0.12f));
+
+                        EditorGUIUtility.AddCursorRect(dragRect, MouseCursor.Pan);
+                        DrawDragHandleIcon(dragRect);
+
+                        var elementLabel = $"元素 {i} ({elementType.Name})";
+                        elementExpanded = EditorGUI.Foldout(foldoutRect, elementExpanded, elementLabel, true);
+                        _foldoutStates[elementFoldoutKey] = elementExpanded;
+
+                        if (GUI.Button(removeRect, "-"))
                         {
                             list.RemoveAt(i);
                             i--;
+                            continue;
+                        }
+
+                        elementHeaderRects.Add(headerRect);
+
+                        TryStartListElementDrag(foldoutKey, i, dragRect);
+
+                        if (i < 0 || i >= list.Count)
+                            continue;
+
+                        if (!(_foldoutStates.TryGetValue($"{foldoutKey}[{i}]", out var elementIsExpanded) && elementIsExpanded))
+                            continue;
+
+                        var element = list[i];
+                        if (element == null)
+                        {
+                            using (new EditorGUILayout.HorizontalScope())
+                            {
+                                EditorGUILayout.LabelField("当前元素为 null");
+                                GUILayout.FlexibleSpace();
+                                if (GUILayout.Button("创建", GUILayout.Width(60)))
+                                {
+                                    var created = CreateDefaultElementValue(elementType);
+                                    list[i] = created;
+                                    element = created;
+                                }
+                            }
+
+                            if (element == null)
+                            {
+                                EditorGUILayout.HelpBox("无法创建元素实例（可能没有无参构造函数）", MessageType.Warning);
+                                continue;
+                            }
+                        }
+
+                        if (IsDirectEditableElementType(elementType))
+                        {
+                            var edited = DrawValueField($"元素 {i}", elementType, element);
+                            list[i] = edited;
+                        }
+                        else
+                        {
+                            EditorGUI.indentLevel++;
+                            DrawObjectMembers(element);
+                            EditorGUI.indentLevel--;
+
+                            if (elementType.IsValueType)
+                                list[i] = element;
                         }
                     }
                 }
+
+                HandleListDragContinueAndDrop(foldoutKey, elementHeaderRects, list);
+
+                DrawListInsertIndicatorIfNeeded(foldoutKey, elementHeaderRects);
             }
 
             return list;
         }
+
+        private void TryStartListElementDrag(string listKey, int elementIndex, Rect dragRect)
+        {
+            var e = Event.current;
+            if (e == null)
+                return;
+
+            if (e.type == EventType.MouseDown && e.button == 0 && dragRect.Contains(e.mousePosition))
+            {
+                _isDraggingListElement = true;
+                _draggingListKey = listKey;
+                _draggingFromIndex = elementIndex;
+                _draggingInsertIndex = elementIndex;
+                _dragStartMousePosition = e.mousePosition;
+                _didDragListElement = false;
+
+                _dragHotControl = GUIUtility.GetControlID(FocusType.Passive);
+                GUIUtility.hotControl = _dragHotControl;
+                e.Use();
+                Repaint();
+            }
+        }
+
+        private void HandleListDragContinueAndDrop(string listKey, List<Rect> elementHeaderRects, System.Collections.IList list)
+        {
+            var e = Event.current;
+            if (e == null)
+                return;
+
+            if (!_isDraggingListElement || !string.Equals(_draggingListKey, listKey, StringComparison.Ordinal))
+                return;
+
+            if (GUIUtility.hotControl != _dragHotControl)
+                return;
+
+            if (e.type == EventType.MouseDrag)
+            {
+                if (!_didDragListElement)
+                {
+                    var delta = e.mousePosition - _dragStartMousePosition;
+                    if (delta.sqrMagnitude >= 16f)
+                        _didDragListElement = true;
+                }
+
+                if (_didDragListElement)
+                    _draggingInsertIndex = CalculateInsertIndex(e.mousePosition, elementHeaderRects);
+
+                e.Use();
+                Repaint();
+                return;
+            }
+
+            if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
+            {
+                CancelListDrag();
+                e.Use();
+                Repaint();
+                return;
+            }
+
+            if (e.type == EventType.MouseUp)
+            {
+                if (_didDragListElement)
+                {
+                    var insertIndex = CalculateInsertIndex(e.mousePosition, elementHeaderRects);
+                    TryReorderListOnDrop(list, _draggingFromIndex, insertIndex);
+                }
+
+                CancelListDrag();
+
+                e.Use();
+                Repaint();
+            }
+        }
+
+        private void CancelListDrag()
+        {
+            _isDraggingListElement = false;
+            _draggingListKey = null;
+            _draggingFromIndex = -1;
+            _draggingInsertIndex = -1;
+            _dragHotControl = 0;
+            _didDragListElement = false;
+            GUIUtility.hotControl = 0;
+        }
+
+        private static void DrawDragHandleIcon(Rect rect)
+        {
+            var color = EditorGUIUtility.isProSkin ? new Color(0.85f, 0.85f, 0.85f, 0.9f) : new Color(0.25f, 0.25f, 0.25f, 0.9f);
+            var width = Mathf.Max(0f, rect.width - 8f);
+            var x = rect.x + (rect.width - width) * 0.5f;
+            var centerY = rect.center.y;
+            for (int i = -1; i <= 1; i++)
+            {
+                var y = centerY + i * 3f;
+                EditorGUI.DrawRect(new Rect(x, y, width, 1f), color);
+            }
+        }
+
+        private static int CalculateInsertIndex(Vector2 mousePosition, List<Rect> elementHeaderRects)
+        {
+            if (elementHeaderRects == null || elementHeaderRects.Count == 0)
+                return 0;
+
+            for (int i = 0; i < elementHeaderRects.Count; i++)
+            {
+                if (mousePosition.y < elementHeaderRects[i].center.y)
+                    return i;
+            }
+
+            return elementHeaderRects.Count;
+        }
+
+        private static void TryReorderListOnDrop(System.Collections.IList list, int fromIndex, int insertIndex)
+        {
+            if (list == null)
+                return;
+
+            if (fromIndex < 0 || fromIndex >= list.Count)
+                return;
+
+            insertIndex = Mathf.Clamp(insertIndex, 0, list.Count);
+
+            if (insertIndex == fromIndex || insertIndex == fromIndex + 1)
+                return;
+
+            var item = list[fromIndex];
+            list.RemoveAt(fromIndex);
+
+            if (insertIndex > fromIndex)
+                insertIndex--;
+
+            insertIndex = Mathf.Clamp(insertIndex, 0, list.Count);
+            list.Insert(insertIndex, item);
+        }
+
+        private void DrawListInsertIndicatorIfNeeded(string listKey, List<Rect> elementHeaderRects)
+        {
+            if (!_isDraggingListElement || !_didDragListElement)
+                return;
+
+            if (!string.Equals(_draggingListKey, listKey, StringComparison.Ordinal))
+                return;
+
+            if (elementHeaderRects == null || elementHeaderRects.Count == 0)
+                return;
+
+            var insertIndex = Mathf.Clamp(_draggingInsertIndex, 0, elementHeaderRects.Count);
+
+            float y;
+            if (insertIndex >= elementHeaderRects.Count)
+                y = elementHeaderRects[elementHeaderRects.Count - 1].yMax;
+            else
+                y = elementHeaderRects[insertIndex].yMin;
+
+            var x = elementHeaderRects[0].x;
+            var width = elementHeaderRects[0].width;
+            EditorGUI.DrawRect(new Rect(x, y - 1f, width, 2f), new Color(0.25f, 0.55f, 1f, 1f));
+        }
+
+        private static bool IsDirectEditableElementType(Type elementType)
+        {
+            if (elementType == null)
+                return true;
+
+            if (typeof(UnityEngine.Object).IsAssignableFrom(elementType))
+                return true;
+
+            if (elementType == typeof(string))
+                return true;
+
+            if (elementType == typeof(int) || elementType == typeof(float) || elementType == typeof(double) || elementType == typeof(long) || elementType == typeof(bool))
+                return true;
+
+            if (elementType.IsEnum)
+                return true;
+
+            return false;
+        }
+
+        private static object CreateDefaultElementValue(Type elementType)
+        {
+            if (elementType == null)
+                return null;
+
+            if (elementType == typeof(string))
+                return string.Empty;
+
+            if (elementType.IsEnum)
+            {
+                var values = Enum.GetValues(elementType);
+                return values.Length > 0 ? values.GetValue(0) : null;
+            }
+
+            if (elementType.IsValueType)
+                return Activator.CreateInstance(elementType);
+
+            var ctor = elementType.GetConstructor(Type.EmptyTypes);
+            if (ctor == null)
+                return null;
+
+            try
+            {
+                return Activator.CreateInstance(elementType);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        
 
         private static string GetAbsoluteFolderPath(string path)
         {
@@ -469,5 +778,22 @@ public class Child2 : MyClass
     public string Sex;
     public string Adress;
     public string FoldPath;
+    public List<TestData> TestDatas;
+    public List<TestData2> TestDatas2;
+}
+public class TestData
+{
+    public string Description;
+    public int Index;
+    public bool IsChoose;
+}
+
+public class TestData2
+{
+    public string Description;
+    public int Index;
+    public bool IsChoose;
+    public bool IsUp;
+    public List<string> Items;
 }
 #endif
