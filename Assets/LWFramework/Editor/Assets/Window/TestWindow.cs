@@ -707,7 +707,7 @@ namespace LWAssets.Editor
             }
         }
 
-        
+
 
         private static string GetAbsoluteFolderPath(string path)
         {

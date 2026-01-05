@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using LWCore;
 using UnityEngine;
 
 namespace LWAssets
@@ -16,7 +17,7 @@ namespace LWAssets
         {
             if (!string.IsNullOrEmpty(Path))
             {
-                LWAssets.Release(Path);
+                ManagerUtility.AssetsMgr.Release(Path);
             }
         }
     }

@@ -14,7 +14,7 @@ namespace LWAssets
         Warning,
         Critical
     }
-    
+
     /// <summary>
     /// 内存监控器
     /// </summary>
@@ -24,24 +24,24 @@ namespace LWAssets
         private MemoryState _currentState = MemoryState.Normal;
         private long _lastUsedMemory;
         private DateTime _lastCheckTime;
-        
+
         public MemoryState CurrentState => _currentState;
         public long UsedMemory => _lastUsedMemory;
-        
+
         public event Action<MemoryState> OnMemoryStateChanged;
         public event Action OnMemoryWarning;
         public event Action OnMemoryCritical;
-        
+
         public MemoryMonitor(LWAssetsConfig config)
         {
             _config = config;
-            
+
             if (_config.EnableAutoUnload)
             {
                 StartMonitoring().Forget();
             }
         }
-        
+
         /// <summary>
         /// 获取当前内存状态
         /// </summary>
@@ -50,7 +50,7 @@ namespace LWAssets
             UpdateMemoryState();
             return _currentState;
         }
-        
+
         /// <summary>
         /// 获取内存统计信息
         /// </summary>
@@ -68,7 +68,7 @@ namespace LWAssets
                 State = _currentState
             };
         }
-        
+
         /// <summary>
         /// 开始监控
         /// </summary>
@@ -77,14 +77,14 @@ namespace LWAssets
             while (true)
             {
                 await UniTask.Delay(1000);
-                
+
                 var previousState = _currentState;
                 UpdateMemoryState();
-                
+
                 if (_currentState != previousState)
                 {
                     OnMemoryStateChanged?.Invoke(_currentState);
-                    
+
                     if (_currentState == MemoryState.Warning)
                     {
                         OnMemoryWarning?.Invoke();
@@ -92,17 +92,17 @@ namespace LWAssets
                     else if (_currentState == MemoryState.Critical)
                     {
                         OnMemoryCritical?.Invoke();
-                        
+
                         // 自动卸载
                         if (_config.EnableAutoUnload)
                         {
-                            await LWAssets.UnloadUnusedAssetsAsync();
+                            await LWAssetsService.Assets.UnloadUnusedAssetsAsync();
                         }
                     }
                 }
             }
         }
-        
+
         /// <summary>
         /// 更新内存状态
         /// </summary>
@@ -110,7 +110,7 @@ namespace LWAssets
         {
             _lastUsedMemory = Profiler.GetTotalAllocatedMemoryLong();
             _lastCheckTime = DateTime.Now;
-            
+
             if (_lastUsedMemory >= _config.MemoryCriticalThreshold)
             {
                 _currentState = MemoryState.Critical;
@@ -124,12 +124,12 @@ namespace LWAssets
                 _currentState = MemoryState.Normal;
             }
         }
-        
+
         public void Dispose()
         {
         }
     }
-    
+
     /// <summary>
     /// 内存统计信息
     /// </summary>
@@ -143,11 +143,11 @@ namespace LWAssets
         public long TempAllocatorSize;
         public long GraphicsMemory;
         public MemoryState State;
-        
+
         public string GetFormattedAllocatedMemory() => FormatBytes(TotalAllocatedMemory);
         public string GetFormattedReservedMemory() => FormatBytes(TotalReservedMemory);
         public string GetFormattedMonoUsedSize() => FormatBytes(MonoUsedSize);
-        
+
         private static string FormatBytes(long bytes)
         {
             if (bytes >= 1024 * 1024 * 1024)

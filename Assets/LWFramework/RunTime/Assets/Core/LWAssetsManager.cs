@@ -10,54 +10,61 @@ namespace LWAssets
     /// <summary>
     /// LWAssets 资源管理系统主入口
     /// </summary>
-    public static class LWAssets
+    public class LWAssetsManager : IAssetsManager, IManager
     {
         #region 属性与字段
 
-        private static IAssetLoader _loader;
-        private static LWAssetsConfig _config;
-        private static DownloadManager _downloadManager;
-        private static CacheManager _cacheManager;
-        private static PreloadManager _preloadManager;
-        private static VersionManager _versionManager;
-        private static BundleManifest _manifest;
+        private IAssetLoader _loader;
+        private LWAssetsConfig _config;
+        private DownloadManager _downloadManager;
+        private CacheManager _cacheManager;
+        private PreloadManager _preloadManager;
+        private VersionManager _versionManager;
+        private BundleManifest _manifest;
 
-        private static bool _isInitialized;
-        private static readonly object _lockObj = new object();
+        private bool _isInitialized;
+        private readonly object _lockObj = new object();
+
+        /// <summary>
+        /// 创建资源系统实例
+        /// </summary>
+        public LWAssetsManager()
+        {
+        }
 
         /// <summary>
         /// 是否已初始化
         /// </summary>
-        public static bool IsInitialized => _isInitialized;
+        public bool IsInitialized => _isInitialized;
 
         /// <summary>
         /// 资源加载器
         /// </summary>
-        public static IAssetLoader Loader => _loader;
+        public IAssetLoader Loader => _loader;
         /// <summary>
         /// 当前运行模式
         /// </summary>
-        public static PlayMode CurrentPlayMode => _config?.PlayMode ?? PlayMode.EditorSimulate;
+        public PlayMode CurrentPlayMode => _config?.PlayMode ?? PlayMode.EditorSimulate;
 
         /// <summary>
         /// 下载管理器
         /// </summary>
-        public static DownloadManager Downloader => _downloadManager;
+        public DownloadManager Downloader => _downloadManager;
 
         /// <summary>
         /// 缓存管理器
         /// </summary>
-        public static CacheManager Cache => _cacheManager;
+        public CacheManager Cache => _cacheManager;
 
         /// <summary>
         /// 预加载管理器
         /// </summary>
-        public static PreloadManager Preloader => _preloadManager;
+        public PreloadManager Preloader => _preloadManager;
 
         /// <summary>
         /// 版本管理器
         /// </summary>
-        public static VersionManager Version => _versionManager;
+        public VersionManager Version => _versionManager;
 
         #endregion
 
@@ -66,7 +73,7 @@ namespace LWAssets
         /// <summary>
         /// 初始化资源系统
         /// </summary>
-        public static async UniTask InitializeAsync(LWAssetsConfig config = null)
+        public async UniTask InitializeAsync(LWAssetsConfig config = null)
         {
             if (_isInitialized)
             {
@@ -102,19 +109,18 @@ namespace LWAssets
             _isInitialized = true;
             Debug.Log($"[LWAssets] Initialized with {_config.PlayMode} mode");
         }
-        public static async UniTask WarmupShadersAsync(CancellationToken token = default)
+
+        public async UniTask WarmupShadersAsync(CancellationToken token = default)
         {
-            // 预加载 shader bundle
-            await _loader.LoadAssetAsync<ShaderVariantCollection>("shaders/variant_collection", token)
-                .ContinueWith(async svc =>
-                {
-                    svc.WarmUp();
-                });
+            CheckInitialized();
+            var svc = await _loader.LoadAssetAsync<ShaderVariantCollection>("shaders/variant_collection", token);
+            if (svc != null)
+                svc.WarmUp();
         }
         /// <summary>
         /// 创建对应模式的加载器
         /// </summary>
-        private static IAssetLoader CreateLoader(PlayMode mode)
+        private IAssetLoader CreateLoader(PlayMode mode)
         {
             switch (mode)
             {
@@ -143,7 +149,7 @@ namespace LWAssets
         /// <summary>
         /// 加载清单文件
         /// </summary>
-        public static async UniTask<BundleManifest> LoadManifestAsync()
+        public async UniTask<BundleManifest> LoadManifestAsync()
         {
             if (_config.PlayMode == PlayMode.EditorSimulate)
             {
@@ -162,25 +168,16 @@ namespace LWAssets
         /// <summary>
         /// 同步加载资源
         /// </summary>
-        public static T LoadAsset<T>(string assetPath) where T : UnityEngine.Object
+        public T LoadAsset<T>(string assetPath) where T : UnityEngine.Object
         {
             CheckInitialized();
             return _loader.LoadAsset<T>(assetPath);
         }
 
         /// <summary>
-        /// 同步加载资源（返回句柄）
-        /// </summary>
-        // public static AssetHandle<T> LoadAssetWithHandle<T>(string assetPath) where T : UnityEngine.Object
-        // {
-        //     CheckInitialized();
-        //     return _loader.LoadAssetWithHandle<T>(assetPath);
-        // }
-
-        /// <summary>
         /// 同步加载原始文件
         /// </summary>
-        public static byte[] LoadRawFile(string assetPath)
+        public byte[] LoadRawFile(string assetPath)
         {
             CheckInitialized();
             return _loader.LoadRawFile(assetPath);
@@ -189,12 +186,13 @@ namespace LWAssets
         /// <summary>
         /// 同步加载原始文件为文本
         /// </summary>
-        public static string LoadRawFileText(string assetPath)
+        public string LoadRawFileText(string assetPath)
         {
             CheckInitialized();
             return _loader.LoadRawFileText(assetPath);
         }
-        public static GameObject Instantiate(string testPrefabPath, Transform spawnPoint)
+
+        public GameObject Instantiate(string testPrefabPath, Transform spawnPoint)
         {
             CheckInitialized();
             return _loader.Instantiate(testPrefabPath, spawnPoint);
@@ -202,7 +200,7 @@ namespace LWAssets
         #endregion
 
         #region 异步加载API (UniTask)
-        public static async UniTask<GameObject> InstantiateAsync(string testPrefabPath, Transform spawnPoint)
+        public async UniTask<GameObject> InstantiateAsync(string testPrefabPath, Transform spawnPoint)
         {
             CheckInitialized();
             return await _loader.InstantiateAsync(testPrefabPath, spawnPoint);
@@ -211,7 +209,7 @@ namespace LWAssets
         /// <summary>
         /// 异步加载资源
         /// </summary>
-        public static async UniTask<T> LoadAssetAsync<T>(string assetPath,
+        public async UniTask<T> LoadAssetAsync<T>(string assetPath,
             CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
             CheckInitialized();
@@ -223,7 +221,7 @@ namespace LWAssets
         /// <summary>
         /// 异步加载原始文件
         /// </summary>
-        public static async UniTask<byte[]> LoadRawFileAsync(string assetPath,
+        public async UniTask<byte[]> LoadRawFileAsync(string assetPath,
             CancellationToken cancellationToken = default)
         {
             CheckInitialized();
@@ -233,7 +231,7 @@ namespace LWAssets
         /// <summary>
         /// 异步加载原始文件为文本
         /// </summary>
-        public static async UniTask<string> LoadRawFileTextAsync(string assetPath,
+        public async UniTask<string> LoadRawFileTextAsync(string assetPath,
             CancellationToken cancellationToken = default)
         {
             CheckInitialized();
@@ -243,7 +241,7 @@ namespace LWAssets
         /// <summary>
         /// 异步加载场景
         /// </summary>
-        public static async UniTask<SceneHandle> LoadSceneAsync(string scenePath,
+        public async UniTask<SceneHandle> LoadSceneAsync(string scenePath,
             UnityEngine.SceneManagement.LoadSceneMode mode = UnityEngine.SceneManagement.LoadSceneMode.Single,
             bool activateOnLoad = true,
             CancellationToken cancellationToken = default)
@@ -255,7 +253,7 @@ namespace LWAssets
         /// <summary>
         /// 批量异步加载资源
         /// </summary>
-        public static async UniTask<T[]> LoadAssetsAsync<T>(string[] assetPaths,
+        public async UniTask<T[]> LoadAssetsAsync<T>(string[] assetPaths,
             IProgress<float> progress = null,
             CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
@@ -289,12 +287,13 @@ namespace LWAssets
         /// <summary>
         /// 释放资源
         /// </summary>
-        public static void Release(UnityEngine.Object asset)
+        public void Release(UnityEngine.Object asset)
         {
             CheckInitialized();
             _loader.Release(asset);
         }
-        public static void Release(string assetPath)
+
+        public void Release(string assetPath)
         {
             CheckInitialized();
             _loader.Release(assetPath);
@@ -302,7 +301,7 @@ namespace LWAssets
         /// <summary>
         /// 释放所有未使用资源
         /// </summary>
-        public static async UniTask UnloadUnusedAssetsAsync()
+        public async UniTask UnloadUnusedAssetsAsync()
         {
             CheckInitialized();
             await _loader.UnloadUnusedAssetsAsync();
@@ -313,7 +312,7 @@ namespace LWAssets
         /// <summary>
         /// 强制卸载所有资源
         /// </summary>
-        public static void ForceUnloadAll()
+        public void ForceUnloadAll()
         {
             CheckInitialized();
             _loader.ForceReleaseAll();
@@ -326,7 +325,7 @@ namespace LWAssets
         /// <summary>
         /// 获取资源包下载大小
         /// </summary>
-        public static async UniTask<long> GetDownloadSizeAsync(string[] tags = null)
+        public async UniTask<long> GetDownloadSizeAsync(string[] tags = null)
         {
             CheckInitialized();
             return await _versionManager.GetDownloadSizeAsync(tags);
@@ -335,7 +334,7 @@ namespace LWAssets
         /// <summary>
         /// 下载资源包
         /// </summary>
-        public static async UniTask DownloadAsync(string[] tags = null,
+        public async UniTask DownloadAsync(string[] tags = null,
             IProgress<DownloadProgress> progress = null,
             CancellationToken cancellationToken = default)
         {
@@ -349,7 +348,7 @@ namespace LWAssets
 
         #region 工具方法
 
-        private static void CheckInitialized()
+        private void CheckInitialized()
         {
             if (!_isInitialized)
             {
@@ -360,7 +359,7 @@ namespace LWAssets
         /// <summary>
         /// 销毁资源系统
         /// </summary>
-        public static void Destroy()
+        public void Destroy()
         {
             if (!_isInitialized) return;
 
@@ -380,6 +379,16 @@ namespace LWAssets
             _isInitialized = false;
 
             Debug.Log("[LWAssets] Destroyed");
+        }
+
+        public void Init()
+        {
+
+        }
+
+        public void Update()
+        {
+
         }
 
 

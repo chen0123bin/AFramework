@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using LWCore;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -89,9 +90,8 @@ namespace LWAssets.Editor
             {
                 return;
             }
-            var loaderField = typeof(LWAssets).GetField("_loader",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            _loader = loaderField?.GetValue(null) as AssetLoaderBase;
+            //_loader = LWAssetsService.Assets.Loader as AssetLoaderBase;
+            _loader = ManagerUtility.AssetsMgr.Loader as AssetLoaderBase;
             if (_loader != null)
             {
                 //loader通过反射获取_bundleHandleCache
@@ -150,7 +150,7 @@ namespace LWAssets.Editor
                 return;
             }
 
-            if (!LWAssets.IsInitialized || _loader == null)
+            if (!ManagerUtility.AssetsMgr.IsInitialized || _loader == null)
             {
                 EditorGUILayout.HelpBox("LWAssets 尚未初始化，暂无数据。", MessageType.Warning);
                 return;
@@ -195,7 +195,7 @@ namespace LWAssets.Editor
 
                 GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(!EditorApplication.isPlaying || !LWAssets.IsInitialized))
+                using (new EditorGUI.DisabledScope(!EditorApplication.isPlaying || !ManagerUtility.AssetsMgr.IsInitialized))
                 {
                     if (GUILayout.Button("卸载未使用", EditorStyles.toolbarButton, GUILayout.Width(80)))
                     {
@@ -287,7 +287,7 @@ namespace LWAssets.Editor
 
                 GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(!LWAssets.IsInitialized || _loader == null))
+                using (new EditorGUI.DisabledScope(!ManagerUtility.AssetsMgr.IsInitialized || _loader == null))
                 {
                     if (GUILayout.Button("Release", GUILayout.Width(60)))
                     {
@@ -363,7 +363,7 @@ namespace LWAssets.Editor
 
                 GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(!LWAssets.IsInitialized || _loader == null))
+                using (new EditorGUI.DisabledScope(!ManagerUtility.AssetsMgr.IsInitialized || _loader == null))
                 {
                     if (GUILayout.Button("卸载", GUILayout.Width(60)))
                     {
@@ -383,7 +383,7 @@ namespace LWAssets.Editor
             _bundleRows.Clear();
 
             if (!EditorApplication.isPlaying) return;
-            if (!LWAssets.IsInitialized) return;
+            if (!ManagerUtility.AssetsMgr.IsInitialized) return;
 
 
 
@@ -531,7 +531,7 @@ namespace LWAssets.Editor
         /// </summary>
         private async UniTaskVoid UnloadUnusedAsync()
         {
-            if (!LWAssets.IsInitialized || _loader == null) return;
+            if (!ManagerUtility.AssetsMgr.IsInitialized || _loader == null) return;
 
             await _loader.UnloadUnusedAssetsAsync();
 

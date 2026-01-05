@@ -41,8 +41,23 @@ namespace LWAssets
         /// <returns></returns>
         public virtual GameObject Instantiate(string assetPath, Transform parent = null)
         {
-            // 注意：同步加载在某些平台可能导致问题
-            return InstantiateAsync(assetPath, parent).GetAwaiter().GetResult();
+            var asset = LoadAsset<GameObject>(assetPath);
+            if (asset == null)
+            {
+                UnityEngine.Debug.LogError($"[LWAssets] Failed to load asset: {assetPath}");
+                return null;
+            }
+
+            var instance = UnityEngine.Object.Instantiate(asset, parent);
+            if (instance == null)
+            {
+                UnityEngine.Debug.LogError($"[LWAssets] Failed to instantiate asset: {assetPath}");
+                return null;
+            }
+
+            var releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
+            releaseComp.Path = assetPath;
+            return instance;
         }
         /// <summary>
         /// 同步加载资源    
@@ -52,13 +67,9 @@ namespace LWAssets
         /// <returns></returns>
         public virtual T LoadAsset<T>(string assetPath) where T : UnityEngine.Object
         {
-            // 注意：同步加载在某些平台可能导致问题
-            return LoadAssetAsync<T>(assetPath).GetAwaiter().GetResult();
+            throw new NotSupportedException($"[LWAssets] {GetType().Name} 不支持同步加载资源，请使用 LoadAssetAsync: {assetPath}");
         }
 
-        // {
-        //     return LoadAssetWithHandleAsync<T>(assetPath).GetAwaiter().GetResult();
-        // }
         /// <summary>
         /// 同步加载原始文件    
         /// </summary>
@@ -66,7 +77,7 @@ namespace LWAssets
         /// <returns></returns>
         public virtual byte[] LoadRawFile(string assetPath)
         {
-            return LoadRawFileAsync(assetPath).GetAwaiter().GetResult();
+            throw new NotSupportedException($"[LWAssets] {GetType().Name} 不支持同步加载原始文件，请使用 LoadRawFileAsync: {assetPath}");
         }
         /// <summary>
         /// 同步加载原始文件文本    
@@ -75,7 +86,7 @@ namespace LWAssets
         /// <returns></returns>
         public virtual string LoadRawFileText(string assetPath)
         {
-            return LoadRawFileTextAsync(assetPath).GetAwaiter().GetResult();
+            throw new NotSupportedException($"[LWAssets] {GetType().Name} 不支持同步加载原始文件文本，请使用 LoadRawFileTextAsync: {assetPath}");
         }
 
         #endregion
