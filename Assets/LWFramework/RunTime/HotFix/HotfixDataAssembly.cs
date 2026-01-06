@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using LWCore;
 using UnityEngine;
 
 public class HotfixDataAssembly : Singleton<HotfixDataAssembly>

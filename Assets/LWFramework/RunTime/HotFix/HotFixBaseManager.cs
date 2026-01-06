@@ -1,12 +1,12 @@
 ﻿
 using Cysharp.Threading.Tasks;
+using LWCore;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace LWFramework.Core
+namespace LWHotfix
 {
 
     /// <summary>
@@ -153,11 +153,8 @@ namespace LWFramework.Core
             m_TypeHotfixList = null;
             m_TypeAttrHotfixListDic = null;
         }
+
     }
 
-    public class TypeAttr
-    {
-        public Attribute attr;
-        public Type type;
-    }
+    
 }

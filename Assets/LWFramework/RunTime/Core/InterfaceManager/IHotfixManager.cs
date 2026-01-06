@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace LWFramework.Core
+namespace LWCore
 {
     public enum HotfixCodeRunMode
     {
@@ -45,13 +45,7 @@ namespace LWFramework.Core
         /// <param name="hotfixName">dll的名称</param>
         /// <returns></returns>
         Type GetTypeByName(string typeName);
-        /// <summary>
-        /// 使用协程加载脚本
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <returns></returns>
-        //[Obsolete("废弃接口，不使用了")]
-        //IEnumerator IE_LoadScript(HotfixCodeRunMode mode);
+      
 
         /// <summary>
         /// 通过反射实例化对象

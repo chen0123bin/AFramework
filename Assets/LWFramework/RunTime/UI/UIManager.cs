@@ -79,7 +79,7 @@ namespace LWUI
             BaseUIView uiViewBase = null;
             if (!m_UIViewDic.TryGetValue(typeof(T).ToString(), out uiViewBase))
             {
-                //uiViewBase = m_UIUtility.CreateView<T>();
+                uiViewBase = m_UIUtility.CreateView<T>();
                 m_UIViewDic.Add(typeof(T).ToString(), uiViewBase);
                 m_UIViewList.Add(uiViewBase);
             }

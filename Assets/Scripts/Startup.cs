@@ -1,7 +1,10 @@
 
 using System;
+using Cysharp.Threading.Tasks;
 using LWAssets;
 using LWCore;
+using LWHotfix;
+using LWUI;
 using UnityEngine;
 [DefaultExecutionOrder(1000)]
 public class Startup : MonoBehaviour
@@ -11,7 +14,7 @@ public class Startup : MonoBehaviour
     public string procedureName = "StartProcedure";
     async void Start()
     {
-
+        LWDebug.Log("Start");
         Application.targetFrameRate = 60;
         DontDestroyOnLoad(gameObject);
         //LWUpdate.ManifestNameUtility = new DefaultManifestNameUtility();
@@ -24,6 +27,8 @@ public class Startup : MonoBehaviour
 
         MainManager.Instance.AddManager(typeof(IAssetsManager).ToString(), new LWAssetsManager());
         MainManager.Instance.AddManager(typeof(IEventManager).ToString(), new LWEventManager());
+        MainManager.Instance.AddManager(typeof(IUIManager).ToString(), new UIManager());
+        MainManager.Instance.AddManager(typeof(IHotfixManager).ToString(), new HotFixCodeManager());
 
         await ManagerUtility.AssetsMgr.InitializeAsync();
         MainManager.Instance.MonoBehaviour = this;
@@ -40,6 +45,7 @@ public class Startup : MonoBehaviour
     private void OnTestEvent1(int obj)
     {
         LWDebug.Log($"OnTestEvent1 {obj}");
+        ManagerUtility.UIMgr.OpenView<TestView>();
     }
 
 
@@ -69,22 +75,23 @@ public class Startup : MonoBehaviour
         {
             ManagerUtility.EventMgr.DispatchEvent("TestEvent", 100);
         }
-        if (Input.GetKeyDown(KeyCode.Print))
-        {
-            //生成截图
-            ScreenCapture.CaptureScreenshot("Assets/0Res/Screenshots/Test.png");
-        }
+      
         MainManager.Instance.Update();
     }
 
 
     void OnDestroy()
-    {
-        // ManagerUtility.HotfixMgr.Destroy();
-        MainManager.Instance.ClearManager();
-        //SqliteHelp.Instance.Close();
+    {      
+        WaitDestroy();
     }
-
+    async void WaitDestroy()
+    {
+        await UniTask.DelayFrame(1);
+        // ManagerUtility.HotfixMgr.Destroy();
+        //SqliteHelp.Instance.Close();
+        MainManager.Instance.ClearManager();
+        Debug.Log("@@@@@@@@@@@@@@@@@@@@@@@@OnDestroy");
+    }
 
 
 }

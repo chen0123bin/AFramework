@@ -1,8 +1,8 @@
 {
     "Version": "0.1",
-    "ManifestHash": "186dd7cd8d97907eac9affaede14d2dc",
-    "ManifestSize": 3644,
-    "BuildTime": "2026-01-04 10:51:46",
+    "ManifestHash": "2d4c40898d4b44b31b377b0726f12602",
+    "ManifestSize": 4203,
+    "BuildTime": "2026-01-06 19:27:12",
     "MinAppVersion": "0.1",
     "ForceUpdate": false
 }

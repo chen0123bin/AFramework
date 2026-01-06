@@ -9,14 +9,18 @@ namespace LWAssets
     /// <summary>
     /// 自动在销毁时释放资源
     /// </summary>
-    [DefaultExecutionOrder(-100)]
     public class AutoReleaseOnDestroy : MonoBehaviour
     {
-        [HideInInspector]
-        [FormerlySerializedAs("Path")] public string m_Path;
+        [HideInInspector, FormerlySerializedAs("Path")]
+        public string m_Path;
+        void Start()
+        {
+            LWDebug.Log("Start");
+        }
         private void OnDestroy()
         {
-            if (!string.IsNullOrEmpty(m_Path))
+            LWDebug.Log("OnDestroy");
+            if (!string.IsNullOrEmpty(m_Path) && ManagerUtility.AssetsMgr != null)
             {
                 ManagerUtility.AssetsMgr.Release(m_Path);
             }

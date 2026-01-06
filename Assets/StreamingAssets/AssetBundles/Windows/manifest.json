@@ -1,7 +1,7 @@
 
 {
     "Version" : "0.1",
-    "BuildTime" : "2026-01-04 10:51:45",
+    "BuildTime" : "2026-01-06 19:27:12",
     "Platform"  : "Windows",
     "Bundles"   : [
         {
@@ -23,10 +23,28 @@
             "Priority"     : 0
         },
         {
+            "BundleName" : "mytest_ui",
+            "Hash"       : "ec01703fb8751578673ddde6a81bee49",
+            "CRC"        : 4205162263,
+            "Size"       : 355722,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+                "qqq"
+            ],
+            "Dependencies" : [
+                "shaders"
+            ],
+            "Assets"       : [
+                "Assets/0Res/Prefabs/UI/TestView.prefab"
+            ],
+            "Priority"     : 0
+        },
+        {
             "BundleName" : "scene2_test2",
-            "Hash"       : "ce6bd5750c6a0bbafd58ed3f5740f2d8",
-            "CRC"        : 3726759267,
-            "Size"       : 93269,
+            "Hash"       : "8cdb5483e5699f1e1b6e6980f75e2b6f",
+            "CRC"        : 2911765342,
+            "Size"       : 93252,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -41,9 +59,9 @@
         },
         {
             "BundleName" : "scenes_scenes",
-            "Hash"       : "80bed2364a44d50c62b9944775c53b1d",
-            "CRC"        : 646458044,
-            "Size"       : 93256,
+            "Hash"       : "797dc40529973b9e63827da2c493ab64",
+            "CRC"        : 3089844192,
+            "Size"       : 93257,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [

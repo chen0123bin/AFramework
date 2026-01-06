@@ -1,15 +1,11 @@
 ﻿
 using Cysharp.Threading.Tasks;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using LWCore;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Networking;
 
-namespace LWFramework.Core
+namespace LWHotfix
 {
 
     /// <summary>
@@ -89,58 +85,44 @@ namespace LWFramework.Core
         */
         async UniTask LoadHotFixDll(string hotfixName, string dir = "Hotfix/")
         {
-            string dllPath = "";
-            byte[] bytes = null;
+            //string dllPath = "";
+            //byte[] bytes = null;
             //byte[] bytes2 = null;
-            if (Application.isEditor)
-            {
-                //这里情况比较复杂,Mobile上基本认为Persistent才支持File操作,
-                dllPath = $"{Application.dataPath}/@Resources/{dir}{hotfixName}.dll.bytes" ;
-                if (FileUtility.ExistsFile(dllPath))
-                {
-                    bytes = File.ReadAllBytes(dllPath);
-                }
-                else {
-                    bytes = await ManagerUtility.AssetsMgr.LoadByteAsync($"Assets/@Resources/{dir}{hotfixName}.dll.bytes");
-                    if (LWUtility.GlobalConfig.encrypt)
-                    {                      
-                        bytes = LWFramework.Asset.EncryptDecryptManager.GetEncryptDecryptServices(LWUtility.GlobalConfig.encryptType).Decrypt(bytes);
-                    }
-                }
+            // if (Application.isEditor)
+            // {
+            //     //这里情况比较复杂,Mobile上基本认为Persistent才支持File操作,
+            //     dllPath = $"{Application.dataPath}/@Resources/{dir}{hotfixName}.dll.bytes" ;
+            //     if (FileUtility.ExistsFile(dllPath))
+            //     {
+            //         bytes = File.ReadAllBytes(dllPath);
+            //     }
+            //     else {
+            //         bytes = await ManagerUtility.AssetsMgr.LoadByteAsync($"Assets/@Resources/{dir}{hotfixName}.dll.bytes");
+            //         if (LWUtility.GlobalConfig.encrypt)
+            //         {                      
+            //             bytes = LWFramework.Asset.EncryptDecryptManager.GetEncryptDecryptServices(LWUtility.GlobalConfig.encryptType).Decrypt(bytes);
+            //         }
+            //     }
               
-            }
-            else
-            {              
-                bytes = await ManagerUtility.AssetsMgr.LoadByteAsync($"Assets/@Resources/{dir}{hotfixName}.dll.bytes");
-                if (LWUtility.GlobalConfig.encrypt)
-                {
-                    bytes = LWFramework.Asset.EncryptDecryptManager.GetEncryptDecryptServices(LWUtility.GlobalConfig.encryptType).Decrypt(bytes);
-                }
-            }
+            // }
+            // else
+            // {              
+            //     bytes = await ManagerUtility.AssetsMgr.LoadByteAsync($"Assets/@Resources/{dir}{hotfixName}.dll.bytes");
+            //     if (LWUtility.GlobalConfig.encrypt)
+            //     {
+            //         bytes = LWFramework.Asset.EncryptDecryptManager.GetEncryptDecryptServices(LWUtility.GlobalConfig.encryptType).Decrypt(bytes);
+            //     }
+            // }
           
-            LWDebug.Log("反射模式:"  + bytes.Length);
+            //LWDebug.Log("反射模式:"  + bytes.Length);
             //反射执行          
           
-            Assembly assembly = Assembly.Load(bytes);
+            //Assembly assembly = Assembly.Load(bytes);
             
-            //Assembly[] test = AppDomain.CurrentDomain.GetAssemblies();
-            //List<Assembly> list = new List<Assembly>();
-            //for (int i = 0; i < test.Length; i++)
-            //{
-            //    if (test[i].GetName().Name.Contains("BaseHotfix")) {
-            //        list.Add(test[i]);
-            //    }
-            //}
-            OnHotFixLoaded(assembly);
+
+            //OnHotFixLoaded(assembly);
         }
 
-
-        //public override T Instantiate<T>(string typeName, object[] args = null)
-        //{
-        //    Assembly assembly = this.FindDomainByTypeName(typeName);
-        //    object ret = assembly.CreateInstance(typeName, false, BindingFlags.Default, null, args, null, null);
-        //    return (T)ret;
-        //}
 
 
         

@@ -12,25 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 750b74174f22ca54d8c0d12647dcf2b9, type: 3}
   m_Name: LWAssetsConfig
   m_EditorClassIdentifier: 
-  _playMode: 1
-  _buildOutputPath: AssetBundles
-  _remoteURL: http://127.0.0.1:8088/AFramework/AssetBundles/
-  _manifestFileName: manifest.json
-  _versionFileName: version.json
-  _maxConcurrentDownloads: 5
-  _downloadTimeout: 10
-  _maxRetryCount: 3
-  _retryDelay: 1
-  _enableBreakpointResume: 1
-  _maxCacheSize: 1073741824
-  _cacheExpirationDays: 30
-  _enableAutoCleanup: 1
-  _cleanupThreshold: 0.9
-  _enablePreload: 1
-  _maxPreloadTasks: 3
-  _maxPreloadMemory: 268435456
-  _memoryWarningThreshold: 536870912
-  _memoryCriticalThreshold: 805306368
-  _enableAutoUnload: 1
-  _enableDetailLog: 0
-  _enableProfiler: 1
+  m_PlayMode: 1
+  m_BuildOutputPath: AssetBundles
+  m_RemoteUrl: http://127.0.0.1:8088/AFramework/AssetBundles/
+  m_ManifestFileName: manifest.json
+  m_VersionFileName: version.json
+  m_MaxConcurrentDownloads: 5
+  m_DownloadTimeout: 10
+  m_MaxRetryCount: 3
+  m_RetryDelay: 1
+  m_EnableBreakpointResume: 1
+  m_MaxCacheSize: 1073741824
+  m_CacheExpirationDays: 30
+  m_EnableAutoCleanup: 1
+  m_CleanupThreshold: 0.9
+  m_EnablePreload: 1
+  m_MaxPreloadTasks: 3
+  m_MaxPreloadMemory: 268435456
+  m_MemoryWarningThreshold: 536870912
+  m_MemoryCriticalThreshold: 805306368
+  m_EnableAutoUnload: 1
+  m_EnableDetailLog: 0
+  m_EnableProfiler: 1
