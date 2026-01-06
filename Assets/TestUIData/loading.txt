@@ -1,0 +1,210 @@
+{
+  "Root": {
+    "name": "LoadingView",
+    "rectTransform": {
+      "anchorMin": [0, 0],
+      "anchorMax": [1, 1],
+      "pivot": [0.5, 0.5],
+      "anchoredPosition": [0, 0],
+      "sizeDelta": [0, 0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    "children": [
+      {
+        "type": "Image",
+        "name": "Background",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0, 0],
+          "anchorMax": [1, 1],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, 0],
+          "sizeDelta": [0, 0],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "image": {
+          "sprite": "UI/Skin/Background.psd",
+          "color": [0, 0, 0, 1],
+          "material": null,
+          "raycastTarget": true,
+          "imageType": "Sliced",
+          "fillCenter": true,
+          "pixelsPerUnitMultiplier": 1
+        }
+      },
+      {
+        "type": "Text",
+        "name": "TitleText",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.5],
+          "anchorMax": [0.5, 0.5],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, 50],
+          "sizeDelta": [400, 60],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "text": {
+          "content": "LOADING...",
+          "font": "Arial.ttf",
+          "fontSize": 48,
+          "fontStyle": "Bold",
+          "color": [1, 1, 1, 1],
+          "alignment": "MiddleCenter",
+          "horizontalOverflow": "Overflow",
+          "verticalOverflow": "Truncate",
+          "lineSpacing": 1,
+          "richText": true,
+          "raycastTarget": true
+        }
+      },
+      {
+        "type": "Slider",
+        "name": "ProgressBar",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.5],
+          "anchorMax": [0.5, 0.5],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, -50],
+          "sizeDelta": [600, 20],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "slider": {
+          "interactable": false,
+          "transition": "None",
+          "fillRect": "Fill",
+          "handleRect": "Handle",
+          "direction": "LeftToRight",
+          "minValue": 0,
+          "maxValue": 1,
+          "wholeNumbers": false,
+          "value": 0
+        },
+        "children": [
+          {
+            "type": "Image",
+            "name": "Background",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [1, 1],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/Background.psd",
+              "color": [0.2, 0.2, 0.2, 1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            }
+          },
+          {
+            "type": "Image",
+            "name": "Fill",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [0, 1],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/UISprite.psd",
+              "color": [0, 0.8, 1, 1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            }
+          },
+          {
+            "type": "Image",
+            "name": "Handle",
+            "active": false,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [0, 1],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [20, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/Knob.psd",
+              "color": [1, 1, 1, 0],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Simple"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Text",
+        "name": "ProgressText",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.5],
+          "anchorMax": [0.5, 0.5],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, -80],
+          "sizeDelta": [200, 30],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "text": {
+          "content": "0%",
+          "font": "Arial.ttf",
+          "fontSize": 20,
+          "fontStyle": "Normal",
+          "color": [0.8, 0.8, 0.8, 1],
+          "alignment": "MiddleCenter",
+          "horizontalOverflow": "Wrap",
+          "verticalOverflow": "Truncate",
+          "lineSpacing": 1,
+          "richText": true,
+          "raycastTarget": false
+        }
+      },
+      {
+        "type": "Text",
+        "name": "TipText",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0],
+          "anchorMax": [0.5, 0],
+          "pivot": [0.5, 0],
+          "anchoredPosition": [0, 50],
+          "sizeDelta": [800, 40],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "text": {
+          "content": "Tip: Game data is being loaded, please wait...",
+          "font": "Arial.ttf",
+          "fontSize": 18,
+          "fontStyle": "Italic",
+          "color": [0.6, 0.6, 0.6, 1],
+          "alignment": "MiddleCenter",
+          "horizontalOverflow": "Wrap",
+          "verticalOverflow": "Truncate",
+          "lineSpacing": 1,
+          "richText": true,
+          "raycastTarget": false
+        }
+      }
+    ]
+  }
+}
