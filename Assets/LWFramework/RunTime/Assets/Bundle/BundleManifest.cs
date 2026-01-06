@@ -36,17 +36,17 @@ namespace LWAssets
         /// <summary>
         /// Bundle名称 -> BundleInfo 的映射
         /// </summary>
-        [NonSerialized] private Dictionary<string, BundleInfo> _bundleDict;
+        [NonSerialized] private Dictionary<string, BundleInfo> m_BundleDict;
         /// <summary>
         /// 资源路径 -> BundleInfo 的映射（运行时构建）
         /// </summary>
         [NonSerialized]
-        private Dictionary<string, BundleInfo> _assetToBundleDict;
+        private Dictionary<string, BundleInfo> m_AssetToBundleDict;
 
         /// <summary>
         /// 标签 -> Bundle列表 的映射
         /// </summary>
-        [NonSerialized] private Dictionary<string, List<BundleInfo>> _tagBundleDict;
+        [NonSerialized] private Dictionary<string, List<BundleInfo>> m_TagBundleDict;
 
         /// <summary>
         /// 构建运行时索引
@@ -55,28 +55,28 @@ namespace LWAssets
         {
 
 
-            _bundleDict = new Dictionary<string, BundleInfo>(Bundles.Count);
-            _assetToBundleDict = new Dictionary<string, BundleInfo>();
-            _tagBundleDict = new Dictionary<string, List<BundleInfo>>();
+            m_BundleDict = new Dictionary<string, BundleInfo>(Bundles.Count);
+            m_AssetToBundleDict = new Dictionary<string, BundleInfo>();
+            m_TagBundleDict = new Dictionary<string, List<BundleInfo>>();
 
             foreach (var bundle in Bundles)
             {
                 // 1. 构建Bundle名称索引
-                _bundleDict[bundle.BundleName] = bundle;
+                m_BundleDict[bundle.BundleName] = bundle;
 
                 // 2. 构建资源路径 -> Bundle 索引
                 foreach (var assetPath in bundle.Assets)
                 {
-                    _assetToBundleDict[assetPath] = bundle;
+                    m_AssetToBundleDict[assetPath] = bundle;
                 }
 
                 // 3. 构建标签索引
                 foreach (var tag in bundle.Tags)
                 {
-                    if (!_tagBundleDict.TryGetValue(tag, out var list))
+                    if (!m_TagBundleDict.TryGetValue(tag, out var list))
                     {
                         list = new List<BundleInfo>();
-                        _tagBundleDict[tag] = list;
+                        m_TagBundleDict[tag] = list;
                     }
                     list.Add(bundle);
                 }
@@ -88,8 +88,8 @@ namespace LWAssets
         /// </summary>
         public BundleInfo GetBundleInfo(string bundleName)
         {
-            if (_bundleDict == null) BuildIndex();
-            return _bundleDict.TryGetValue(bundleName, out var info) ? info : null;
+            if (m_BundleDict == null) BuildIndex();
+            return m_BundleDict.TryGetValue(bundleName, out var info) ? info : null;
         }
 
 
@@ -99,24 +99,24 @@ namespace LWAssets
         /// </summary>
         public BundleInfo GetBundleByAsset(string assetPath)
         {
-            if (_assetToBundleDict == null) BuildIndex();
-            return _assetToBundleDict.TryGetValue(assetPath, out var info) ? info : null;
+            if (m_AssetToBundleDict == null) BuildIndex();
+            return m_AssetToBundleDict.TryGetValue(assetPath, out var info) ? info : null;
         }
         /// <summary>
         /// 获取所有的Asset的Path
         /// </summary>
         public List<string> GetAssets()
         {
-            if (_assetToBundleDict == null) BuildIndex();
-            return _assetToBundleDict.Keys.ToList();
+            if (m_AssetToBundleDict == null) BuildIndex();
+            return m_AssetToBundleDict.Keys.ToList();
         }
         /// <summary>
         /// 检查资源是否存在
         /// </summary>
         public bool ContainsAsset(string assetPath)
         {
-            if (_assetToBundleDict == null) BuildIndex();
-            return _assetToBundleDict.ContainsKey(assetPath);
+            if (m_AssetToBundleDict == null) BuildIndex();
+            return m_AssetToBundleDict.ContainsKey(assetPath);
         }
 
         /// <summary>
@@ -140,19 +140,19 @@ namespace LWAssets
         /// </summary>
         public List<BundleInfo> GetBundlesByTag(string tag)
         {
-            if (_tagBundleDict == null) BuildIndex();
-            return _tagBundleDict.TryGetValue(tag, out var list) ? list : new List<BundleInfo>();
+            if (m_TagBundleDict == null) BuildIndex();
+            return m_TagBundleDict.TryGetValue(tag, out var list) ? list : new List<BundleInfo>();
         }
         /// <summary>
         /// 获取多个标签的所有Bundle（并集）
         /// </summary>
         public List<BundleInfo> GetBundlesByTags(IEnumerable<string> tags)
         {
-            if (_tagBundleDict == null) BuildIndex();
+            if (m_TagBundleDict == null) BuildIndex();
             var result = new HashSet<BundleInfo>();
             foreach (var tag in tags)
             {
-                if (_tagBundleDict.TryGetValue(tag, out var list))
+                if (m_TagBundleDict.TryGetValue(tag, out var list))
                 {
                     foreach (var bundle in list)
                     {

@@ -7,25 +7,25 @@ namespace LWCore
     /// </summary>
     public abstract class Singleton<T> where T : Singleton<T>, new()
     {
-        private static T _instance;
-        private static readonly object _lock = new object();
+        private static T m_Instance;
+        private static readonly object m_LockObj = new object();
 
         public static T Instance
         {
             get
             {
-                if (_instance == null)
+                if (m_Instance == null)
                 {
-                    lock (_lock)
+                    lock (m_LockObj)
                     {
-                        if (_instance == null)
+                        if (m_Instance == null)
                         {
-                            _instance = new T();
-                            _instance.OnSingletonInit();
+                            m_Instance = new T();
+                            m_Instance.OnSingletonInit();
                         }
                     }
                 }
-                return _instance;
+                return m_Instance;
             }
         }
 

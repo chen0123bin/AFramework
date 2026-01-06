@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using LWCore;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace LWAssets
 {
@@ -12,12 +13,12 @@ namespace LWAssets
     public class AutoReleaseOnDestroy : MonoBehaviour
     {
         [HideInInspector]
-        public string Path;
+        [FormerlySerializedAs("Path")] public string m_Path;
         private void OnDestroy()
         {
-            if (!string.IsNullOrEmpty(Path))
+            if (!string.IsNullOrEmpty(m_Path))
             {
-                ManagerUtility.AssetsMgr.Release(Path);
+                ManagerUtility.AssetsMgr.Release(m_Path);
             }
         }
     }

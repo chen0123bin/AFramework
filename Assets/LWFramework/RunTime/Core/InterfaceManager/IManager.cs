@@ -1,12 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public interface IManager
+﻿namespace LWCore
 {
+    public interface IManager
+    {
 
-    void Init();
+        void Init();
 
-    void Update();
+        void Update();
 
+    }
 }
+

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace LWAssets
 {
@@ -39,74 +40,74 @@ namespace LWAssets
         #region 基础设置
 
         [Header("基础设置")]
-        [SerializeField] private PlayMode _playMode = PlayMode.EditorSimulate;
+        [FormerlySerializedAs("_playMode")] [SerializeField] private PlayMode m_PlayMode = PlayMode.EditorSimulate;
 
-        [SerializeField] private string _buildOutputPath = "AssetBundles";
+        [FormerlySerializedAs("_buildOutputPath")] [SerializeField] private string m_BuildOutputPath = "AssetBundles";
 
-        [SerializeField] private string _remoteURL = "http://localhost:8080/";
+        [FormerlySerializedAs("_remoteURL")] [SerializeField] private string m_RemoteUrl = "http://localhost:8080/";
 
-        [SerializeField] private string _manifestFileName = "manifest.json";
+        [FormerlySerializedAs("_manifestFileName")] [SerializeField] private string m_ManifestFileName = "manifest.json";
 
-        [SerializeField] private string _versionFileName = "version.json";
+        [FormerlySerializedAs("_versionFileName")] [SerializeField] private string m_VersionFileName = "version.json";
 
         #endregion
 
         #region 下载设置
 
         [Header("下载设置")]
-        [SerializeField] private int _maxConcurrentDownloads = 5;
+        [FormerlySerializedAs("_maxConcurrentDownloads")] [SerializeField] private int m_MaxConcurrentDownloads = 5;
 
-        [SerializeField] private int _downloadTimeout = 30;
+        [FormerlySerializedAs("_downloadTimeout")] [SerializeField] private int m_DownloadTimeout = 30;
 
-        [SerializeField] private int _maxRetryCount = 3;
+        [FormerlySerializedAs("_maxRetryCount")] [SerializeField] private int m_MaxRetryCount = 3;
 
-        [SerializeField] private float _retryDelay = 1f;
+        [FormerlySerializedAs("_retryDelay")] [SerializeField] private float m_RetryDelay = 1f;
 
-        [SerializeField] private bool _enableBreakpointResume = true;
+        [FormerlySerializedAs("_enableBreakpointResume")] [SerializeField] private bool m_EnableBreakpointResume = true;
 
         #endregion
 
         #region 缓存设置
 
         [Header("缓存设置")]
-        [SerializeField] private long _maxCacheSize = 1024 * 1024 * 1024; // 1GB
+        [FormerlySerializedAs("_maxCacheSize")] [SerializeField] private long m_MaxCacheSize = 1024 * 1024 * 1024; // 1GB
 
-        [SerializeField] private int _cacheExpirationDays = 30;
+        [FormerlySerializedAs("_cacheExpirationDays")] [SerializeField] private int m_CacheExpirationDays = 30;
 
-        [SerializeField] private bool _enableAutoCleanup = true;
+        [FormerlySerializedAs("_enableAutoCleanup")] [SerializeField] private bool m_EnableAutoCleanup = true;
 
-        [SerializeField] private float _cleanupThreshold = 0.9f; // 缓存使用率达到90%时清理
+        [FormerlySerializedAs("_cleanupThreshold")] [SerializeField] private float m_CleanupThreshold = 0.9f; // 缓存使用率达到90%时清理
 
         #endregion
 
         #region 预加载设置
 
         [Header("预加载设置")]
-        [SerializeField] private bool _enablePreload = true;
+        [FormerlySerializedAs("_enablePreload")] [SerializeField] private bool m_EnablePreload = true;
 
-        [SerializeField] private int _maxPreloadTasks = 3;
+        [FormerlySerializedAs("_maxPreloadTasks")] [SerializeField] private int m_MaxPreloadTasks = 3;
 
-        [SerializeField] private long _maxPreloadMemory = 256 * 1024 * 1024; // 256MB
+        [FormerlySerializedAs("_maxPreloadMemory")] [SerializeField] private long m_MaxPreloadMemory = 256 * 1024 * 1024; // 256MB
 
         #endregion
 
         #region 内存设置
 
         [Header("内存设置")]
-        [SerializeField] private long _memoryWarningThreshold = 512 * 1024 * 1024; // 512MB
+        [FormerlySerializedAs("_memoryWarningThreshold")] [SerializeField] private long m_MemoryWarningThreshold = 512 * 1024 * 1024; // 512MB
 
-        [SerializeField] private long _memoryCriticalThreshold = 768 * 1024 * 1024; // 768MB
+        [FormerlySerializedAs("_memoryCriticalThreshold")] [SerializeField] private long m_MemoryCriticalThreshold = 768 * 1024 * 1024; // 768MB
 
-        [SerializeField] private bool _enableAutoUnload = true;
+        [FormerlySerializedAs("_enableAutoUnload")] [SerializeField] private bool m_EnableAutoUnload = true;
 
         #endregion
 
         #region 调试设置
 
         [Header("调试设置")]
-        [SerializeField] private bool _enableDetailLog = false;
+        [FormerlySerializedAs("_enableDetailLog")] [SerializeField] private bool m_EnableDetailLog = false;
 
-        [SerializeField] private bool _enableProfiler = false;
+        [FormerlySerializedAs("_enableProfiler")] [SerializeField] private bool m_EnableProfiler = false;
 
         #endregion
 
@@ -114,36 +115,36 @@ namespace LWAssets
 
         public PlayMode PlayMode
         {
-            get => _playMode;
-            set => _playMode = value;
+            get => m_PlayMode;
+            set => m_PlayMode = value;
         }
 
-        public string BuildOutputPath => _buildOutputPath;
-        public string RemoteURL => _remoteURL;
-        public string ManifestFileName => _manifestFileName;
-        public string VersionFileName => _versionFileName;
+        public string BuildOutputPath => m_BuildOutputPath;
+        public string RemoteURL => m_RemoteUrl;
+        public string ManifestFileName => m_ManifestFileName;
+        public string VersionFileName => m_VersionFileName;
 
-        public int MaxConcurrentDownloads => _maxConcurrentDownloads;
-        public int DownloadTimeout => _downloadTimeout;
-        public int MaxRetryCount => _maxRetryCount;
-        public float RetryDelay => _retryDelay;
-        public bool EnableBreakpointResume => _enableBreakpointResume;
+        public int MaxConcurrentDownloads => m_MaxConcurrentDownloads;
+        public int DownloadTimeout => m_DownloadTimeout;
+        public int MaxRetryCount => m_MaxRetryCount;
+        public float RetryDelay => m_RetryDelay;
+        public bool EnableBreakpointResume => m_EnableBreakpointResume;
 
-        public long MaxCacheSize => _maxCacheSize;
-        public int CacheExpirationDays => _cacheExpirationDays;
-        public bool EnableAutoCleanup => _enableAutoCleanup;
-        public float CleanupThreshold => _cleanupThreshold;
+        public long MaxCacheSize => m_MaxCacheSize;
+        public int CacheExpirationDays => m_CacheExpirationDays;
+        public bool EnableAutoCleanup => m_EnableAutoCleanup;
+        public float CleanupThreshold => m_CleanupThreshold;
 
-        public bool EnablePreload => _enablePreload;
-        public int MaxPreloadTasks => _maxPreloadTasks;
-        public long MaxPreloadMemory => _maxPreloadMemory;
+        public bool EnablePreload => m_EnablePreload;
+        public int MaxPreloadTasks => m_MaxPreloadTasks;
+        public long MaxPreloadMemory => m_MaxPreloadMemory;
 
-        public long MemoryWarningThreshold => _memoryWarningThreshold;
-        public long MemoryCriticalThreshold => _memoryCriticalThreshold;
-        public bool EnableAutoUnload => _enableAutoUnload;
+        public long MemoryWarningThreshold => m_MemoryWarningThreshold;
+        public long MemoryCriticalThreshold => m_MemoryCriticalThreshold;
+        public bool EnableAutoUnload => m_EnableAutoUnload;
 
-        public bool EnableDetailLog => _enableDetailLog;
-        public bool EnableProfiler => _enableProfiler;
+        public bool EnableDetailLog => m_EnableDetailLog;
+        public bool EnableProfiler => m_EnableProfiler;
 
         #endregion
 
@@ -176,7 +177,7 @@ namespace LWAssets
         /// </summary>
         public string GetStreamingAssetsPath()
         {
-            return Path.Combine(Application.streamingAssetsPath, _buildOutputPath, GetPlatformName());
+            return Path.Combine(Application.streamingAssetsPath, m_BuildOutputPath, GetPlatformName());
         }
 
         /// <summary>
@@ -184,7 +185,7 @@ namespace LWAssets
         /// </summary>
         public string GetPersistentDataPath()
         {
-            return Path.Combine(Application.persistentDataPath, _buildOutputPath, GetPlatformName());
+            return Path.Combine(Application.persistentDataPath, m_BuildOutputPath, GetPlatformName());
         }
 
         /// <summary>
@@ -192,7 +193,7 @@ namespace LWAssets
         /// </summary>
         public string GetRemoteURL()
         {
-            var url = _remoteURL.TrimEnd('/');
+            var url = m_RemoteUrl.TrimEnd('/');
             return $"{url}/{GetPlatformName()}/";
         }
 
@@ -201,7 +202,7 @@ namespace LWAssets
         /// </summary>
         public string GetBuildOutputPath()
         {
-            return Path.Combine(Application.dataPath, "..", _buildOutputPath, GetPlatformName());
+            return Path.Combine(Application.dataPath, "..", m_BuildOutputPath, GetPlatformName());
         }
 
         #endregion

@@ -11,39 +11,32 @@ namespace LWCore
         /// 是否跨场景保留
         /// </summary>
         protected virtual bool IsPersistent => true;
-        private static T _instance;
-        private static readonly object _lock = new object();
-        private static bool _applicationIsQuitting = false;
+        private static T m_Instance;
+        private static readonly object m_LockObj = new object();
 
         public static T Instance
         {
             get
             {
-                if (_applicationIsQuitting)
+                lock (m_LockObj)
                 {
-                    Debug.LogWarning($"[Singleton] Instance '{typeof(T)}' already destroyed. Returning null.");
-                    return null;
-                }
-
-                lock (_lock)
-                {
-                    if (_instance == null)
+                    if (m_Instance == null)
                     {
-                        _instance = FindObjectOfType<T>();
+                        m_Instance = FindObjectOfType<T>();
 
-                        if (_instance == null)
+                        if (m_Instance == null)
                         {
                             GameObject singletonObject = new GameObject();
-                            _instance = singletonObject.AddComponent<T>();
+                            m_Instance = singletonObject.AddComponent<T>();
                             singletonObject.name = $"[Singleton] {typeof(T)}";
 
-                            if (_instance.IsPersistent)
+                            if (m_Instance.IsPersistent)
                             {
                                 DontDestroyOnLoad(singletonObject);
                             }
                         }
                     }
-                    return _instance;
+                    return m_Instance;
                 }
             }
         }
@@ -52,16 +45,16 @@ namespace LWCore
 
         protected virtual void Awake()
         {
-            if (_instance == null)
+            if (m_Instance == null)
             {
-                _instance = this as T;
+                m_Instance = this as T;
                 if (IsPersistent)
                 {
                     DontDestroyOnLoad(gameObject);
                 }
                 OnSingletonInit();
             }
-            else if (_instance != this)
+            else if (m_Instance != this)
             {
                 Destroy(gameObject);
             }
@@ -71,10 +64,7 @@ namespace LWCore
 
         protected virtual void OnDestroy()
         {
-            if (_instance == this)
-            {
-                _applicationIsQuitting = true;
-            }
+
         }
     }
 }

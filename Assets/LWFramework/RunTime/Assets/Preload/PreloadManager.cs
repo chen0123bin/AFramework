@@ -37,42 +37,42 @@ namespace LWAssets
     /// </summary>
     public class PreloadManager : IDisposable
     {
-        private readonly LWAssetsConfig _config;
-        private readonly MemoryMonitor _memoryMonitor;
-        private readonly PreloadPredictor _predictor;
+        private readonly LWAssetsConfig m_Config;
+        private readonly MemoryMonitor m_MemoryMonitor;
+        private readonly PreloadPredictor m_Predictor;
 
-        private readonly PriorityQueue<PreloadRequest> _pendingQueue;
-        private readonly List<PreloadRequest> _activeRequests;
-        private readonly Dictionary<string, PreloadRequest> _requestMap;
-        private readonly HashSet<string> _preloadedAssets;
+        private readonly PriorityQueue<PreloadRequest> m_PendingQueue;
+        private readonly List<PreloadRequest> m_ActiveRequests;
+        private readonly Dictionary<string, PreloadRequest> m_RequestMap;
+        private readonly HashSet<string> m_PreloadedAssets;
 
-        private CancellationTokenSource _cts;
-        private bool _isRunning;
-        private readonly object _lockObj = new object();
+        private CancellationTokenSource m_Cts;
+        private bool m_IsRunning;
+        private readonly object m_LockObj = new object();
 
-        public bool IsEnabled => _config.EnablePreload;
-        public int PendingCount => _pendingQueue.Count;
-        public int ActiveCount => _activeRequests.Count;
-        public int PreloadedCount => _preloadedAssets.Count;
+        public bool IsEnabled => m_Config.EnablePreload;
+        public int PendingCount => m_PendingQueue.Count;
+        public int ActiveCount => m_ActiveRequests.Count;
+        public int PreloadedCount => m_PreloadedAssets.Count;
 
         public event Action<string> OnAssetPreloaded;
         public event Action<string> OnPreloadFailed;
 
         public PreloadManager(LWAssetsConfig config)
         {
-            _config = config;
-            _memoryMonitor = new MemoryMonitor(config);
-            _predictor = new PreloadPredictor();
+            m_Config = config;
+            m_MemoryMonitor = new MemoryMonitor(config);
+            m_Predictor = new PreloadPredictor();
 
-            _pendingQueue = new PriorityQueue<PreloadRequest>(
+            m_PendingQueue = new PriorityQueue<PreloadRequest>(
                 (a, b) => b.Priority.CompareTo(a.Priority)); // 高优先级在前
-            _activeRequests = new List<PreloadRequest>();
-            _requestMap = new Dictionary<string, PreloadRequest>();
-            _preloadedAssets = new HashSet<string>();
+            m_ActiveRequests = new List<PreloadRequest>();
+            m_RequestMap = new Dictionary<string, PreloadRequest>();
+            m_PreloadedAssets = new HashSet<string>();
 
-            _cts = new CancellationTokenSource();
+            m_Cts = new CancellationTokenSource();
 
-            if (_config.EnablePreload)
+            if (m_Config.EnablePreload)
             {
                 StartPreloading();
             }
@@ -85,16 +85,16 @@ namespace LWAssets
         /// </summary>
         public void RequestPreload(string assetPath, PreloadPriority priority = PreloadPriority.Normal)
         {
-            if (!_config.EnablePreload) return;
+            if (!m_Config.EnablePreload) return;
             if (string.IsNullOrEmpty(assetPath)) return;
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
                 // 检查是否已预加载
-                if (_preloadedAssets.Contains(assetPath)) return;
+                if (m_PreloadedAssets.Contains(assetPath)) return;
 
                 // 检查是否已在队列中
-                if (_requestMap.ContainsKey(assetPath)) return;
+                if (m_RequestMap.ContainsKey(assetPath)) return;
 
                 var request = new PreloadRequest
                 {
@@ -104,8 +104,8 @@ namespace LWAssets
                     CTS = new CancellationTokenSource()
                 };
 
-                _requestMap[assetPath] = request;
-                _pendingQueue.Enqueue(request);
+                m_RequestMap[assetPath] = request;
+                m_PendingQueue.Enqueue(request);
             }
         }
 
@@ -125,13 +125,13 @@ namespace LWAssets
         /// </summary>
         public void CancelPreload(string assetPath)
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_requestMap.TryGetValue(assetPath, out var request))
+                if (m_RequestMap.TryGetValue(assetPath, out var request))
                 {
                     request.IsCancelled = true;
                     request.CTS?.Cancel();
-                    _requestMap.Remove(assetPath);
+                    m_RequestMap.Remove(assetPath);
                 }
             }
         }
@@ -141,17 +141,17 @@ namespace LWAssets
         /// </summary>
         public void CancelAll()
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                foreach (var request in _requestMap.Values)
+                foreach (var request in m_RequestMap.Values)
                 {
                     request.IsCancelled = true;
                     request.CTS?.Cancel();
                 }
 
-                _pendingQueue.Clear();
-                _activeRequests.Clear();
-                _requestMap.Clear();
+                m_PendingQueue.Clear();
+                m_ActiveRequests.Clear();
+                m_RequestMap.Clear();
             }
         }
 
@@ -160,7 +160,7 @@ namespace LWAssets
         /// </summary>
         public void Pause()
         {
-            _isRunning = false;
+            m_IsRunning = false;
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace LWAssets
         /// </summary>
         public void Resume()
         {
-            if (!_isRunning && _config.EnablePreload)
+            if (!m_IsRunning && m_Config.EnablePreload)
             {
                 StartPreloading();
             }
@@ -179,7 +179,7 @@ namespace LWAssets
         /// </summary>
         public void RecordAccess(string assetPath)
         {
-            _predictor.RecordAccess(assetPath);
+            m_Predictor.RecordAccess(assetPath);
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace LWAssets
         /// </summary>
         public List<string> GetPredictedAssets(string currentAsset, int maxCount = 5)
         {
-            return _predictor.Predict(currentAsset, maxCount);
+            return m_Predictor.Predict(currentAsset, maxCount);
         }
 
         #endregion
@@ -199,7 +199,7 @@ namespace LWAssets
         /// </summary>
         private void StartPreloading()
         {
-            _isRunning = true;
+            m_IsRunning = true;
             ProcessQueueAsync().Forget();
         }
 
@@ -208,43 +208,43 @@ namespace LWAssets
         /// </summary>
         private async UniTaskVoid ProcessQueueAsync()
         {
-            while (_isRunning)
+            while (m_IsRunning)
             {
                 // 检查内存状态
-                var memoryState = _memoryMonitor.GetMemoryState();
+                var memoryState = m_MemoryMonitor.GetMemoryState();
                 if (memoryState == MemoryState.Critical)
                 {
                     // 内存紧张，暂停预加载
-                    await UniTask.Delay(1000, cancellationToken: _cts.Token);
+                    await UniTask.Delay(1000, cancellationToken: m_Cts.Token);
                     continue;
                 }
 
                 // 填充活动任务
-                while (_activeRequests.Count < _config.MaxPreloadTasks)
+                while (m_ActiveRequests.Count < m_Config.MaxPreloadTasks)
                 {
                     PreloadRequest request;
-                    lock (_lockObj)
+                    lock (m_LockObj)
                     {
-                        if (_pendingQueue.Count == 0) break;
+                        if (m_PendingQueue.Count == 0) break;
 
                         // 内存警告时只处理高优先级
                         if (memoryState == MemoryState.Warning)
                         {
-                            var peek = _pendingQueue.Peek();
+                            var peek = m_PendingQueue.Peek();
                             if (peek.Priority < PreloadPriority.High) break;
                         }
 
-                        request = _pendingQueue.Dequeue();
+                        request = m_PendingQueue.Dequeue();
                         if (request.IsCancelled) continue;
 
-                        _activeRequests.Add(request);
+                        m_ActiveRequests.Add(request);
                     }
 
                     // 执行预加载
                     PreloadAssetAsync(request).Forget();
                 }
 
-                await UniTask.Delay(100, cancellationToken: _cts.Token);
+                await UniTask.Delay(100, cancellationToken: m_Cts.Token);
             }
         }
 
@@ -256,7 +256,7 @@ namespace LWAssets
             try
             {
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                    _cts.Token, request.CTS.Token))
+                    m_Cts.Token, request.CTS.Token))
                 {
                     // 执行加载
                     var asset = await LWAssetsService.Assets.LoadAssetAsync<UnityEngine.Object>(
@@ -264,15 +264,15 @@ namespace LWAssets
 
                     if (asset != null)
                     {
-                        lock (_lockObj)
+                        lock (m_LockObj)
                         {
-                            _preloadedAssets.Add(request.AssetPath);
+                            m_PreloadedAssets.Add(request.AssetPath);
                         }
 
                         request.IsCompleted = true;
                         OnAssetPreloaded?.Invoke(request.AssetPath);
 
-                        if (_config.EnableDetailLog)
+                        if (m_Config.EnableDetailLog)
                         {
                             Debug.Log($"[LWAssets] Preloaded: {request.AssetPath}");
                         }
@@ -287,17 +287,17 @@ namespace LWAssets
             {
                 OnPreloadFailed?.Invoke(request.AssetPath);
 
-                if (_config.EnableDetailLog)
+                if (m_Config.EnableDetailLog)
                 {
                     Debug.LogWarning($"[LWAssets] Preload failed: {request.AssetPath}, Error: {ex.Message}");
                 }
             }
             finally
             {
-                lock (_lockObj)
+                lock (m_LockObj)
                 {
-                    _activeRequests.Remove(request);
-                    _requestMap.Remove(request.AssetPath);
+                    m_ActiveRequests.Remove(request);
+                    m_RequestMap.Remove(request.AssetPath);
                 }
             }
         }
@@ -306,11 +306,11 @@ namespace LWAssets
 
         public void Dispose()
         {
-            _isRunning = false;
-            _cts?.Cancel();
-            _cts?.Dispose();
+            m_IsRunning = false;
+            m_Cts?.Cancel();
+            m_Cts?.Dispose();
             CancelAll();
-            _memoryMonitor?.Dispose();
+            m_MemoryMonitor?.Dispose();
         }
     }
 
@@ -319,38 +319,38 @@ namespace LWAssets
     /// </summary>
     public class PriorityQueue<T>
     {
-        private readonly List<T> _items = new List<T>();
-        private readonly Comparison<T> _comparison;
+        private readonly List<T> m_Items = new List<T>();
+        private readonly Comparison<T> m_Comparison;
 
-        public int Count => _items.Count;
+        public int Count => m_Items.Count;
 
         public PriorityQueue(Comparison<T> comparison)
         {
-            _comparison = comparison;
+            m_Comparison = comparison;
         }
 
         public void Enqueue(T item)
         {
-            _items.Add(item);
-            _items.Sort(_comparison);
+            m_Items.Add(item);
+            m_Items.Sort(m_Comparison);
         }
 
         public T Dequeue()
         {
-            if (_items.Count == 0) return default;
-            var item = _items[0];
-            _items.RemoveAt(0);
+            if (m_Items.Count == 0) return default;
+            var item = m_Items[0];
+            m_Items.RemoveAt(0);
             return item;
         }
 
         public T Peek()
         {
-            return _items.Count > 0 ? _items[0] : default;
+            return m_Items.Count > 0 ? m_Items[0] : default;
         }
 
         public void Clear()
         {
-            _items.Clear();
+            m_Items.Clear();
         }
     }
 }

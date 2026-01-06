@@ -7,8 +7,8 @@ namespace LWAssets
     /// </summary>
     public static class LWAssetsService
     {
-        private static readonly object _lockObj = new object();
-        private static IAssetsManager _instance;
+        private static readonly object m_LockObj = new object();
+        private static IAssetsManager m_Instance;
 
         /// <summary>
         /// 获取全局 IAssetsManager 实例（默认实现为 LWAssets）
@@ -17,16 +17,16 @@ namespace LWAssets
         {
             get
             {
-                if (_instance != null)
-                    return _instance;
+                if (m_Instance != null)
+                    return m_Instance;
 
-                lock (_lockObj)
+                lock (m_LockObj)
                 {
-                    if (_instance == null)
-                        _instance = new LWAssetsManager();
+                    if (m_Instance == null)
+                        m_Instance = new LWAssetsManager();
                 }
 
-                return _instance;
+                return m_Instance;
             }
         }
 
@@ -38,9 +38,9 @@ namespace LWAssets
             if (assetsManager == null)
                 throw new ArgumentNullException(nameof(assetsManager));
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                _instance = assetsManager;
+                m_Instance = assetsManager;
             }
         }
     }

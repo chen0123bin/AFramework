@@ -1,14 +1,15 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Text;
+using System.Collections.Concurrent;
+using LWCore;
 
 [DefaultExecutionOrder(10000)]
-public class LWDebugMono : MonoBehaviour
+public class LWDebugMono : MonoSingleton<LWDebugMono>
 {
-    private static LWDebugMono instance = null;
+
     //错误详情
     public List<LogInfo> m_logAll = new List<LogInfo>();
     public List<LogInfo> m_logLog = new List<LogInfo>();
@@ -31,30 +32,24 @@ public class LWDebugMono : MonoBehaviour
     public int logLevel = 3;
     public bool writeLog = false;
     public bool lwGuiLog = true;
+    public int maxLogCount = 2000;
 
-    private static GameObject m_LogObject;
-    private static bool m_CanFindInstance = true;
-    public static LWDebugMono GetInstance()
+    private float m_LastToggleClickTime = 0f;
+
+    private struct PendingLog
     {
-        if (instance == null && m_CanFindInstance)
-        {
-
-            instance = FindObjectOfType<LWDebugMono>();
-            if (instance == null)
-            {
-                m_LogObject = new GameObject();
-                m_LogObject.name = typeof(LWDebugMono).Name;
-                instance = m_LogObject.AddComponent<LWDebugMono>();
-                DontDestroyOnLoad(m_LogObject);
-            }
-            ;
-        }
-
-        return instance;
+        public string condition;
+        public string stackTrace;
+        public LogType type;
+        public string nowDate;
     }
+
+    private readonly ConcurrentQueue<PendingLog> m_PendingLogs = new ConcurrentQueue<PendingLog>();
+    private StreamWriter m_StreamWriter;
+    private string m_CurrentFileFullPath;
+
     void OnEnable()
     {
-        m_CanFindInstance = true;
         SetLogSaveDir();
         skin = Resources.Load<GUISkin>("LogGUISkin");
         m_CurrLog = m_logAll;
@@ -63,8 +58,13 @@ public class LWDebugMono : MonoBehaviour
     }
     void OnDisable()
     {
-        m_CanFindInstance = false;
         Application.logMessageReceivedThreaded -= OnLogMessageReceivedThreaded;
+        CloseLogFileWriter();
+    }
+
+    private void OnApplicationQuit()
+    {
+        CloseLogFileWriter();
     }
     string FileFullName
     {
@@ -99,62 +99,162 @@ public class LWDebugMono : MonoBehaviour
 
     private void OnLogMessageReceivedThreaded(string condition, string stackTrace, LogType type)
     {
-        //LogInfo logInfo = new LogInfo(type, condition, stackTrace, DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss"));
-        LogInfo logInfo = new LogInfo(type, condition, stackTrace, DateTime.Now.ToString("HH:mm:ss"));
-        bool enableStack = true;
-        switch (type)
+        string nowDate = DateTime.Now.ToString("HH:mm:ss");
+        m_PendingLogs.Enqueue(new PendingLog
         {
-            case LogType.Warning:
-                m_logWarning.Add(logInfo);
-                break;
-            case LogType.Log:
-                m_logLog.Add(logInfo);
-                enableStack = false;
-                break;
-            case LogType.Error:
-            case LogType.Exception:
-                m_logError.Add(logInfo);
-                break;
+            condition = condition,
+            stackTrace = stackTrace,
+            type = type,
+            nowDate = nowDate
+        });
+    }
+
+    private void Update()
+    {
+        DrainPendingLogs(200);
+    }
+
+    private void DrainPendingLogs(int maxCount)
+    {
+        if (maxCount <= 0)
+        {
+            return;
         }
-        m_logAll.Add(logInfo);
-        if (writeLog)
+
+        int processedCount = 0;
+        while (processedCount < maxCount && m_PendingLogs.TryDequeue(out PendingLog pendingLog))
         {
-            if (enableStack)
+            processedCount++;
+
+            if (!IsSelectLogType(pendingLog.type))
             {
-                WriteToFile(FileFullName, logInfo.ToString());
-            }
-            else
-            {
-                WriteToFile(FileFullName, logInfo.GetCondition());
+                continue;
             }
 
+            bool enableStack = true;
+            if (pendingLog.type == LogType.Log)
+            {
+                enableStack = false;
+            }
+
+            string stackTrace = enableStack ? pendingLog.stackTrace : string.Empty;
+            LogInfo logInfo = new LogInfo(pendingLog.type, pendingLog.condition, stackTrace, pendingLog.nowDate);
+
+            switch (pendingLog.type)
+            {
+                case LogType.Warning:
+                    m_logWarning.Add(logInfo);
+                    TrimLogs(m_logWarning);
+                    break;
+                case LogType.Log:
+                    m_logLog.Add(logInfo);
+                    TrimLogs(m_logLog);
+                    break;
+                case LogType.Error:
+                case LogType.Exception:
+                    m_logError.Add(logInfo);
+                    TrimLogs(m_logError);
+                    break;
+            }
+
+            m_logAll.Add(logInfo);
+            TrimLogs(m_logAll);
+
+            if (writeLog)
+            {
+                if (enableStack)
+                {
+                    WriteToFile(FileFullName, logInfo.ToString());
+                }
+                else
+                {
+                    WriteToFile(FileFullName, logInfo.GetCondition());
+                }
+            }
         }
     }
+
+    private bool IsSelectLogType(LogType logType)
+    {
+        if (logLevel < 0)
+        {
+            return false;
+        }
+
+        int logTypeValue = logType == LogType.Exception ? (int)LogType.Error : (int)logType;
+        return logTypeValue <= logLevel;
+    }
+
+    private void TrimLogs(List<LogInfo> logs)
+    {
+        if (maxLogCount <= 0)
+        {
+            return;
+        }
+
+        int removeCount = logs.Count - maxLogCount;
+        if (removeCount <= 0)
+        {
+            return;
+        }
+
+        logs.RemoveRange(0, removeCount);
+    }
+
     void WriteToFile(string fileFullName, string content)
     {
         string fileFullPath = Path.Combine(m_LogSaveDirPath, fileFullName);
-        FileInfo file = new FileInfo(fileFullPath);
-
-        if (file != null)
+        EnsureLogFileWriter(fileFullPath);
+        if (m_StreamWriter == null)
         {
-            //StreamWriter sw;
-            //sw = file.AppendText();
-            ////写入信息
-            //sw.WriteLine(content);
-            //sw.Flush();
-            //sw.Close();
-            //file.Refresh();
-
-            using (StreamWriter streamWriter = new StreamWriter(new FileStream(fileFullPath, FileMode.Append), Encoding.UTF8))
-            {
-                streamWriter.WriteLine(content);
-                streamWriter.Flush();
-                streamWriter.Close();
-            }
-            file.Refresh();
+            return;
         }
 
+        m_StreamWriter.WriteLine(content);
+        m_StreamWriter.Flush();
+    }
 
+    private void EnsureLogFileWriter(string fileFullPath)
+    {
+        if (string.Equals(m_CurrentFileFullPath, fileFullPath, StringComparison.Ordinal) && m_StreamWriter != null)
+        {
+            return;
+        }
+
+        CloseLogFileWriter();
+
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(fileFullPath));
+            FileStream fileStream = new FileStream(fileFullPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            m_StreamWriter = new StreamWriter(fileStream, Encoding.UTF8);
+            m_CurrentFileFullPath = fileFullPath;
+        }
+        catch
+        {
+            m_StreamWriter = null;
+            m_CurrentFileFullPath = null;
+        }
+    }
+
+    private void CloseLogFileWriter()
+    {
+        try
+        {
+            if (m_StreamWriter != null)
+            {
+                m_StreamWriter.Flush();
+                m_StreamWriter.Dispose();
+                m_StreamWriter = null;
+            }
+        }
+        catch
+        {
+        }
+        finally
+        {
+            m_CurrentFileFullPath = null;
+        }
     }
     /////////////////////////界面Log日志///////////////////////////////////////
 
@@ -164,9 +264,18 @@ public class LWDebugMono : MonoBehaviour
         {
             return;
         }
-        if (GUI.Button(new Rect(Screen.width - 80, 30, 50, 50), "", skin.customStyles[4]))
+        if (GUI.Button(new Rect(Screen.width - 70, 0, 70, 70), "", skin.customStyles[4]))
         {
-            m_IsVisible = !m_IsVisible;
+            float now = Time.realtimeSinceStartup;
+            if (now - m_LastToggleClickTime <= 0.45f)
+            {
+                m_IsVisible = !m_IsVisible;
+                m_LastToggleClickTime = 0f;
+            }
+            else
+            {
+                m_LastToggleClickTime = now;
+            }
         }
         if (!m_IsVisible)
         {
@@ -184,6 +293,10 @@ public class LWDebugMono : MonoBehaviour
         if (GUILayout.Button("Clear", skin.button, GUILayout.MaxWidth(120), GUILayout.MaxHeight(35)))
         {
             m_logAll.Clear();
+            m_logLog.Clear();
+            m_logWarning.Clear();
+            m_logError.Clear();
+            m_CurrLog = m_logAll;
         }
         if (GUILayout.Button("Log", skin.button, GUILayout.MaxWidth(120), GUILayout.MaxHeight(35)))
         {

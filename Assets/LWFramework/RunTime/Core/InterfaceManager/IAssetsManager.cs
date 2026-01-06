@@ -97,7 +97,7 @@ namespace LWAssets
         /// <summary>
         /// 同步实例化预制体
         /// </summary>
-        GameObject Instantiate(string assetPath, Transform spawnPoint);
+        GameObject Instantiate(string assetPath, Transform spawnPoint = null);
 
         #endregion
 
@@ -106,7 +106,7 @@ namespace LWAssets
         /// <summary>
         /// 异步实例化预制体
         /// </summary>
-        UniTask<GameObject> InstantiateAsync(string assetPath, Transform spawnPoint);
+        UniTask<GameObject> InstantiateAsync(string assetPath, Transform spawnPoint = null);
 
         /// <summary>
         /// 异步加载资源

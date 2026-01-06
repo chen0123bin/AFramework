@@ -95,11 +95,11 @@ namespace LWAssets.Editor
             if (_loader != null)
             {
                 //loader通过反射获取_bundleHandleCache
-                var bundleHandleCacheField = _loader.GetType().GetField("_bundleHandleCache",
+                var bundleHandleCacheField = _loader.GetType().GetField("m_BundleHandleCache",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 _bundleHandleCache = bundleHandleCacheField?.GetValue(_loader) as Dictionary<string, BundleHandle>;
                 //通过反射获取_assetHandleCache
-                var assetHandleCacheField = _loader.GetType().GetField("_handleBaseCache",
+                var assetHandleCacheField = _loader.GetType().GetField("m_HandleBaseCache",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 _handleBaseCache = assetHandleCacheField?.GetValue(_loader) as Dictionary<string, HandleBase>;
             }
@@ -187,12 +187,12 @@ namespace LWAssets.Editor
                 GUILayout.Space(10);
 
                 _searchText = GUILayout.TextField(_searchText ?? string.Empty, GUILayout.MinWidth(220));
-                if (GUILayout.Button(string.Empty))
+
+                if (GUILayout.Button("✕", EditorStyles.toolbarButton, GUILayout.Width(22)))
                 {
                     _searchText = string.Empty;
                     GUI.FocusControl(null);
                 }
-
                 GUILayout.FlexibleSpace();
 
                 using (new EditorGUI.DisabledScope(!EditorApplication.isPlaying || !ManagerUtility.AssetsMgr.IsInitialized))

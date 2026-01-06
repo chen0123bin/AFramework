@@ -59,24 +59,24 @@ namespace LWAssets
     /// </summary>
     public class DownloadManager : IDisposable
     {
-        private readonly LWAssetsConfig _config;
-        private readonly Queue<DownloadTask> _pendingQueue = new Queue<DownloadTask>();
-        private readonly List<DownloadTask> _activeTasks = new List<DownloadTask>();
-        private readonly Dictionary<string, DownloadTask> _taskMap = new Dictionary<string, DownloadTask>();
+        private readonly LWAssetsConfig m_Config;
+        private readonly Queue<DownloadTask> m_PendingQueue = new Queue<DownloadTask>();
+        private readonly List<DownloadTask> m_ActiveTasks = new List<DownloadTask>();
+        private readonly Dictionary<string, DownloadTask> m_TaskMap = new Dictionary<string, DownloadTask>();
         
-        private CancellationTokenSource _cts;
-        private bool _isRunning;
-        private long _totalDownloadedBytes;
-        private DateTime _lastSpeedCalculateTime;
-        private long _lastDownloadedBytes;
-        private float _currentSpeed;
+        private CancellationTokenSource m_Cts;
+        private bool m_IsRunning;
+        private long m_TotalDownloadedBytes;
+        private DateTime m_LastSpeedCalculateTime;
+        private long m_LastDownloadedBytes;
+        private float m_CurrentSpeed;
         
-        private readonly object _lockObj = new object();
+        private readonly object m_LockObj = new object();
         
-        public int PendingCount => _pendingQueue.Count;
-        public int ActiveCount => _activeTasks.Count;
-        public bool IsRunning => _isRunning;
-        public float CurrentSpeed => _currentSpeed;
+        public int PendingCount => m_PendingQueue.Count;
+        public int ActiveCount => m_ActiveTasks.Count;
+        public bool IsRunning => m_IsRunning;
+        public float CurrentSpeed => m_CurrentSpeed;
         
         public event Action<DownloadTask> OnTaskCompleted;
         public event Action<DownloadTask> OnTaskFailed;
@@ -84,8 +84,8 @@ namespace LWAssets
         
         public DownloadManager(LWAssetsConfig config)
         {
-            _config = config;
-            _cts = new CancellationTokenSource();
+            m_Config = config;
+            m_Cts = new CancellationTokenSource();
         }
         
         #region 公共方法
@@ -102,8 +102,8 @@ namespace LWAssets
             
             foreach (var bundle in bundles)
             {
-                var url = _config.GetRemoteURL() + bundle.GetFileName();
-                var savePath = Path.Combine(_config.GetPersistentDataPath(), bundle.GetFileName());
+                var url = m_Config.GetRemoteURL() + bundle.GetFileName();
+                var savePath = Path.Combine(m_Config.GetPersistentDataPath(), bundle.GetFileName());
                 
                 // 检查是否已下载
                 if (File.Exists(savePath))
@@ -160,7 +160,7 @@ namespace LWAssets
                 TotalBytes = totalSize
             };
             
-            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_Cts.Token))
             {
                 while (true)
                 {
@@ -192,7 +192,7 @@ namespace LWAssets
                     downloadProgress.CompletedCount = completedCount;
                     downloadProgress.DownloadedBytes = downloadedBytes;
                     downloadProgress.CurrentFile = currentFile;
-                    downloadProgress.Speed = _currentSpeed;
+                    downloadProgress.Speed = m_CurrentSpeed;
                     
                     progress?.Report(downloadProgress);
                     
@@ -211,15 +211,15 @@ namespace LWAssets
         /// </summary>
         public void EnqueueTask(DownloadTask task)
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_taskMap.ContainsKey(task.Url))
+                if (m_TaskMap.ContainsKey(task.Url))
                 {
                     return; // 避免重复
                 }
                 
-                _taskMap[task.Url] = task;
-                _pendingQueue.Enqueue(task);
+                m_TaskMap[task.Url] = task;
+                m_PendingQueue.Enqueue(task);
             }
         }
         
@@ -228,11 +228,11 @@ namespace LWAssets
         /// </summary>
         public void StartDownloading()
         {
-            if (_isRunning) return;
+            if (m_IsRunning) return;
             
-            _isRunning = true;
-            _lastSpeedCalculateTime = DateTime.Now;
-            _lastDownloadedBytes = 0;
+            m_IsRunning = true;
+            m_LastSpeedCalculateTime = DateTime.Now;
+            m_LastDownloadedBytes = 0;
             
             ProcessQueue().Forget();
         }
@@ -242,7 +242,7 @@ namespace LWAssets
         /// </summary>
         public void Pause()
         {
-            _isRunning = false;
+            m_IsRunning = false;
         }
         
         /// <summary>
@@ -250,17 +250,17 @@ namespace LWAssets
         /// </summary>
         public void CancelAll()
         {
-            _cts.Cancel();
-            _cts = new CancellationTokenSource();
+            m_Cts.Cancel();
+            m_Cts = new CancellationTokenSource();
             
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                _pendingQueue.Clear();
-                _activeTasks.Clear();
-                _taskMap.Clear();
+                m_PendingQueue.Clear();
+                m_ActiveTasks.Clear();
+                m_TaskMap.Clear();
             }
             
-            _isRunning = false;
+            m_IsRunning = false;
         }
         
         #endregion
@@ -272,32 +272,32 @@ namespace LWAssets
         /// </summary>
         private async UniTaskVoid ProcessQueue()
         {
-            while (_isRunning)
+            while (m_IsRunning)
             {
                 // 计算速度
                 CalculateSpeed();
                 
                 // 填充活动任务
-                while (_activeTasks.Count < _config.MaxConcurrentDownloads)
+                while (m_ActiveTasks.Count < m_Config.MaxConcurrentDownloads)
                 {
                     DownloadTask task;
-                    lock (_lockObj)
+                    lock (m_LockObj)
                     {
-                        if (_pendingQueue.Count == 0) break;
-                        task = _pendingQueue.Dequeue();
-                        _activeTasks.Add(task);
+                        if (m_PendingQueue.Count == 0) break;
+                        task = m_PendingQueue.Dequeue();
+                        m_ActiveTasks.Add(task);
                     }
                     
                     // 启动下载
-                    DownloadTaskAsync(task, _cts.Token).Forget();
+                    DownloadTaskAsync(task, m_Cts.Token).Forget();
                 }
                 
                 // 检查是否全部完成
-                lock (_lockObj)
+                lock (m_LockObj)
                 {
-                    if (_pendingQueue.Count == 0 && _activeTasks.Count == 0)
+                    if (m_PendingQueue.Count == 0 && m_ActiveTasks.Count == 0)
                     {
-                        _isRunning = false;
+                        m_IsRunning = false;
                         OnAllCompleted?.Invoke();
                         break;
                     }
@@ -327,7 +327,7 @@ namespace LWAssets
                 long startPosition = 0;
                 string tempPath = task.SavePath + ".tmp";
                 
-                if (_config.EnableBreakpointResume && File.Exists(tempPath))
+                if (m_Config.EnableBreakpointResume && File.Exists(tempPath))
                 {
                     var fileInfo = new FileInfo(tempPath);
                     startPosition = fileInfo.Length;
@@ -346,7 +346,7 @@ namespace LWAssets
                     // 使用自定义下载处理器
                     var downloadHandler = new DownloadHandlerFileWithProgress(tempPath, startPosition, task);
                     request.downloadHandler = downloadHandler;
-                    request.timeout = _config.DownloadTimeout;
+                    request.timeout = m_Config.DownloadTimeout;
                     
                     var operation = request.SendWebRequest();
                     
@@ -357,7 +357,7 @@ namespace LWAssets
                         task.DownloadedBytes = startPosition + (long)(request.downloadedBytes);
                         task.NotifyProgress();
                         
-                        Interlocked.Add(ref _totalDownloadedBytes, (long)request.downloadedBytes);
+                        Interlocked.Add(ref m_TotalDownloadedBytes, (long)request.downloadedBytes);
                         
                         await UniTask.Yield(cancellationToken);
                     }
@@ -395,16 +395,16 @@ namespace LWAssets
                 task.Error = ex;
                 task.RetryCount++;
                 
-                if (task.RetryCount < _config.MaxRetryCount)
+                if (task.RetryCount < m_Config.MaxRetryCount)
                 {
                     // 重试
-                    Debug.LogWarning($"[LWAssets] Download retry {task.RetryCount}/{_config.MaxRetryCount}: {task.Url}");
-                    await UniTask.Delay(TimeSpan.FromSeconds(_config.RetryDelay), cancellationToken: cancellationToken);
+                    Debug.LogWarning($"[LWAssets] Download retry {task.RetryCount}/{m_Config.MaxRetryCount}: {task.Url}");
+                    await UniTask.Delay(TimeSpan.FromSeconds(m_Config.RetryDelay), cancellationToken: cancellationToken);
                     
-                    lock (_lockObj)
+                    lock (m_LockObj)
                     {
-                        _activeTasks.Remove(task);
-                        _pendingQueue.Enqueue(task);
+                        m_ActiveTasks.Remove(task);
+                        m_PendingQueue.Enqueue(task);
                     }
                     return;
                 }
@@ -416,9 +416,9 @@ namespace LWAssets
             }
             finally
             {
-                lock (_lockObj)
+                lock (m_LockObj)
                 {
-                    _activeTasks.Remove(task);
+                    m_ActiveTasks.Remove(task);
                 }
             }
         }
@@ -429,15 +429,15 @@ namespace LWAssets
         private void CalculateSpeed()
         {
             var now = DateTime.Now;
-            var elapsed = (now - _lastSpeedCalculateTime).TotalSeconds;
+            var elapsed = (now - m_LastSpeedCalculateTime).TotalSeconds;
             
             if (elapsed >= 1.0)
             {
-                var bytesDownloaded = _totalDownloadedBytes - _lastDownloadedBytes;
-                _currentSpeed = (float)(bytesDownloaded / elapsed);
+                var bytesDownloaded = m_TotalDownloadedBytes - m_LastDownloadedBytes;
+                m_CurrentSpeed = (float)(bytesDownloaded / elapsed);
                 
-                _lastSpeedCalculateTime = now;
-                _lastDownloadedBytes = _totalDownloadedBytes;
+                m_LastSpeedCalculateTime = now;
+                m_LastDownloadedBytes = m_TotalDownloadedBytes;
             }
         }
         
@@ -466,7 +466,7 @@ namespace LWAssets
         public void Dispose()
         {
             CancelAll();
-            _cts?.Dispose();
+            m_Cts?.Dispose();
         }
     }
     
@@ -475,17 +475,17 @@ namespace LWAssets
     /// </summary>
     public class DownloadHandlerFileWithProgress : DownloadHandlerScript
     {
-        private readonly FileStream _fileStream;
-        private readonly DownloadTask _task;
-        private readonly long _startPosition;
+        private readonly FileStream m_FileStream;
+        private readonly DownloadTask m_Task;
+        private readonly long m_StartPosition;
         
         public DownloadHandlerFileWithProgress(string path, long startPosition, DownloadTask task) 
             : base(new byte[1024 * 1024]) // 1MB buffer
         {
-            _startPosition = startPosition;
-            _task = task;
+            m_StartPosition = startPosition;
+            m_Task = task;
             
-            _fileStream = new FileStream(path, 
+            m_FileStream = new FileStream(path, 
                 startPosition > 0 ? FileMode.Append : FileMode.Create, 
                 FileAccess.Write);
         }
@@ -494,19 +494,19 @@ namespace LWAssets
         {
             if (data == null || dataLength == 0) return false;
             
-            _fileStream.Write(data, 0, dataLength);
+            m_FileStream.Write(data, 0, dataLength);
             return true;
         }
         
         protected override void CompleteContent()
         {
-            _fileStream?.Flush();
-            _fileStream?.Close();
+            m_FileStream?.Flush();
+            m_FileStream?.Close();
         }
         
         public override void Dispose()
         {
-            _fileStream?.Dispose();
+            m_FileStream?.Dispose();
             base.Dispose();
         }
     }

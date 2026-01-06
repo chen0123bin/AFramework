@@ -39,28 +39,28 @@ namespace LWAssets
     /// </summary>
     public class CacheManager : IDisposable
     {
-        private static readonly object _litJsonLock = new object();
-        private static bool _litJsonMappersRegistered;
+        private static readonly object m_LitJsonLock = new object();
+        private static bool m_LitJsonMappersRegistered;
 
-        private readonly LWAssetsConfig _config;
-        private CacheIndex _cacheIndex;
-        private readonly Dictionary<string, CacheEntry> _entryDict = new Dictionary<string, CacheEntry>();
-        private readonly string _cachePath;
-        private readonly string _indexPath;
-        private bool _isDirty;
+        private readonly LWAssetsConfig m_Config;
+        private CacheIndex m_CacheIndex;
+        private readonly Dictionary<string, CacheEntry> m_EntryDict = new Dictionary<string, CacheEntry>();
+        private readonly string m_CachePath;
+        private readonly string m_IndexPath;
+        private bool m_IsDirty;
         
-        private readonly object _lockObj = new object();
+        private readonly object m_LockObj = new object();
         
-        public long TotalCacheSize => _cacheIndex?.TotalSize ?? 0;
-        public int EntryCount => _cacheIndex?.Entries.Count ?? 0;
-        public long MaxCacheSize => _config.MaxCacheSize;
+        public long TotalCacheSize => m_CacheIndex?.TotalSize ?? 0;
+        public int EntryCount => m_CacheIndex?.Entries.Count ?? 0;
+        public long MaxCacheSize => m_Config.MaxCacheSize;
         public float UsageRatio => MaxCacheSize > 0 ? (float)TotalCacheSize / MaxCacheSize : 0;
         
         public CacheManager(LWAssetsConfig config)
         {
-            _config = config;
-            _cachePath = config.GetPersistentDataPath();
-            _indexPath = Path.Combine(_cachePath, "cache_index.json");
+            m_Config = config;
+            m_CachePath = config.GetPersistentDataPath();
+            m_IndexPath = Path.Combine(m_CachePath, "cache_index.json");
 
             EnsureLitJsonMappersRegistered();
             
@@ -69,11 +69,11 @@ namespace LWAssets
 
         private static void EnsureLitJsonMappersRegistered()
         {
-            if (_litJsonMappersRegistered) return;
+            if (m_LitJsonMappersRegistered) return;
 
-            lock (_litJsonLock)
+            lock (m_LitJsonLock)
             {
-                if (_litJsonMappersRegistered) return;
+                if (m_LitJsonMappersRegistered) return;
 
                 JsonMapper.RegisterExporter<DateTime>((dt, writer) =>
                     writer.Write(dt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)));
@@ -82,7 +82,7 @@ namespace LWAssets
                 JsonMapper.RegisterImporter<long, DateTime>(ticks => new DateTime(ticks));
                 JsonMapper.RegisterImporter<int, DateTime>(ticks => new DateTime(ticks));
 
-                _litJsonMappersRegistered = true;
+                m_LitJsonMappersRegistered = true;
             }
         }
 
@@ -117,12 +117,12 @@ namespace LWAssets
         {
             try
             {
-                if (File.Exists(_indexPath))
+                if (File.Exists(m_IndexPath))
                 {
-                    var json = File.ReadAllText(_indexPath);
+                    var json = File.ReadAllText(m_IndexPath);
                     if (!string.IsNullOrWhiteSpace(json))
                     {
-                        _cacheIndex = JsonMapper.ToObject<CacheIndex>(json);
+                        m_CacheIndex = JsonMapper.ToObject<CacheIndex>(json);
                     }
                 }
             }
@@ -131,21 +131,21 @@ namespace LWAssets
                 Debug.LogWarning($"[LWAssets] Failed to load cache index: {ex.Message}");
             }
             
-            if (_cacheIndex == null)
+            if (m_CacheIndex == null)
             {
-                _cacheIndex = new CacheIndex();
+                m_CacheIndex = new CacheIndex();
             }
 
-            if (_cacheIndex.Entries == null)
+            if (m_CacheIndex.Entries == null)
             {
-                _cacheIndex.Entries = new List<CacheEntry>();
+                m_CacheIndex.Entries = new List<CacheEntry>();
             }
             
             // 构建字典
-            _entryDict.Clear();
-            foreach (var entry in _cacheIndex.Entries)
+            m_EntryDict.Clear();
+            foreach (var entry in m_CacheIndex.Entries)
             {
-                _entryDict[entry.FileName] = entry;
+                m_EntryDict[entry.FileName] = entry;
             }
             
             // 验证缓存文件
@@ -157,19 +157,19 @@ namespace LWAssets
         /// </summary>
         public void SaveIndex()
         {
-            if (!_isDirty) return;
+            if (!m_IsDirty) return;
             
             try
             {
-                if (!Directory.Exists(_cachePath))
+                if (!Directory.Exists(m_CachePath))
                 {
-                    Directory.CreateDirectory(_cachePath);
+                    Directory.CreateDirectory(m_CachePath);
                 }
                 
-                _cacheIndex.LastUpdateTime = DateTime.Now;
-                var json = JsonMapper.ToJson(_cacheIndex, true);
-                File.WriteAllText(_indexPath, json);
-                _isDirty = false;
+                m_CacheIndex.LastUpdateTime = DateTime.Now;
+                var json = JsonMapper.ToJson(m_CacheIndex, true);
+                File.WriteAllText(m_IndexPath, json);
+                m_IsDirty = false;
             }
             catch (Exception ex)
             {
@@ -185,9 +185,9 @@ namespace LWAssets
             var toRemove = new List<string>();
             long totalSize = 0;
             
-            foreach (var entry in _cacheIndex.Entries)
+            foreach (var entry in m_CacheIndex.Entries)
             {
-                var filePath = Path.Combine(_cachePath, entry.FileName);
+                var filePath = Path.Combine(m_CachePath, entry.FileName);
                 if (!File.Exists(filePath))
                 {
                     toRemove.Add(entry.FileName);
@@ -211,11 +211,11 @@ namespace LWAssets
                 RemoveEntry(fileName);
             }
             
-            _cacheIndex.TotalSize = totalSize;
+            m_CacheIndex.TotalSize = totalSize;
             
             if (toRemove.Count > 0)
             {
-                _isDirty = true;
+                m_IsDirty = true;
                 SaveIndex();
             }
         }
@@ -229,14 +229,14 @@ namespace LWAssets
         /// </summary>
         public void AddEntry(BundleInfo bundleInfo)
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
                 var fileName = bundleInfo.GetFileName();
                 
-                if (_entryDict.ContainsKey(fileName))
+                if (m_EntryDict.ContainsKey(fileName))
                 {
                     // 更新访问时间
-                    var entry = _entryDict[fileName];
+                    var entry = m_EntryDict[fileName];
                     entry.LastAccessTime = DateTime.Now;
                     entry.AccessCount++;
                 }
@@ -252,15 +252,15 @@ namespace LWAssets
                         AccessCount = 1
                     };
                     
-                    _cacheIndex.Entries.Add(entry);
-                    _entryDict[fileName] = entry;
-                    _cacheIndex.TotalSize += entry.Size;
+                    m_CacheIndex.Entries.Add(entry);
+                    m_EntryDict[fileName] = entry;
+                    m_CacheIndex.TotalSize += entry.Size;
                 }
                 
-                _isDirty = true;
+                m_IsDirty = true;
                 
                 // 检查是否需要清理
-                if (_config.EnableAutoCleanup && UsageRatio >= _config.CleanupThreshold)
+                if (m_Config.EnableAutoCleanup && UsageRatio >= m_Config.CleanupThreshold)
                 {
                     CleanupAsync().Forget();
                 }
@@ -272,14 +272,14 @@ namespace LWAssets
         /// </summary>
         public void RemoveEntry(string fileName)
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_entryDict.TryGetValue(fileName, out var entry))
+                if (m_EntryDict.TryGetValue(fileName, out var entry))
                 {
-                    _cacheIndex.Entries.Remove(entry);
-                    _entryDict.Remove(fileName);
-                    _cacheIndex.TotalSize -= entry.Size;
-                    _isDirty = true;
+                    m_CacheIndex.Entries.Remove(entry);
+                    m_EntryDict.Remove(fileName);
+                    m_CacheIndex.TotalSize -= entry.Size;
+                    m_IsDirty = true;
                 }
             }
         }
@@ -289,11 +289,11 @@ namespace LWAssets
         /// </summary>
         public bool ValidateBundle(BundleInfo bundleInfo)
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
                 var fileName = bundleInfo.GetFileName();
                 
-                if (!_entryDict.TryGetValue(fileName, out var entry))
+                if (!m_EntryDict.TryGetValue(fileName, out var entry))
                 {
                     return false;
                 }
@@ -305,7 +305,7 @@ namespace LWAssets
                 }
                 
                 // 验证文件存在
-                var filePath = Path.Combine(_cachePath, fileName);
+                var filePath = Path.Combine(m_CachePath, fileName);
                 if (!File.Exists(filePath))
                 {
                     RemoveEntry(fileName);
@@ -315,7 +315,7 @@ namespace LWAssets
                 // 更新访问时间
                 entry.LastAccessTime = DateTime.Now;
                 entry.AccessCount++;
-                _isDirty = true;
+                m_IsDirty = true;
                 
                 return true;
             }
@@ -326,7 +326,7 @@ namespace LWAssets
         /// </summary>
         public string GetCachePath(BundleInfo bundleInfo)
         {
-            return Path.Combine(_cachePath, bundleInfo.GetFileName());
+            return Path.Combine(m_CachePath, bundleInfo.GetFileName());
         }
         
         /// <summary>
@@ -334,9 +334,9 @@ namespace LWAssets
         /// </summary>
         public bool HasCache(string fileName)
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                return _entryDict.ContainsKey(fileName);
+                return m_EntryDict.ContainsKey(fileName);
             }
         }
         
@@ -351,7 +351,7 @@ namespace LWAssets
         {
             if (targetFreeSpace <= 0)
             {
-                targetFreeSpace = (long)(_config.MaxCacheSize * (1 - _config.CleanupThreshold * 0.8f));
+                targetFreeSpace = (long)(m_Config.MaxCacheSize * (1 - m_Config.CleanupThreshold * 0.8f));
             }
             
             Debug.Log($"[LWAssets] Starting cache cleanup, target free space: {targetFreeSpace / 1024 / 1024}MB");
@@ -359,10 +359,10 @@ namespace LWAssets
             var freedSpace = 0L;
             var toRemove = new List<CacheEntry>();
             
-            lock (_lockObj)
+            lock (m_LockObj)
             {
                 // 按LRU策略排序
-                var sortedEntries = _cacheIndex.Entries
+                var sortedEntries = m_CacheIndex.Entries
                     .OrderBy(e => e.LastAccessTime)
                     .ThenBy(e => e.AccessCount)
                     .ToList();
@@ -373,7 +373,7 @@ namespace LWAssets
                     
                     // 检查是否过期
                     var daysSinceAccess = (DateTime.Now - entry.LastAccessTime).TotalDays;
-                    if (daysSinceAccess > _config.CacheExpirationDays || freedSpace < targetFreeSpace)
+                    if (daysSinceAccess > m_Config.CacheExpirationDays || freedSpace < targetFreeSpace)
                     {
                         toRemove.Add(entry);
                         freedSpace += entry.Size;
@@ -386,7 +386,7 @@ namespace LWAssets
             {
                 try
                 {
-                    var filePath = Path.Combine(_cachePath, entry.FileName);
+                    var filePath = Path.Combine(m_CachePath, entry.FileName);
                     if (File.Exists(filePath))
                     {
                         File.Delete(filePath);
@@ -410,12 +410,12 @@ namespace LWAssets
         /// </summary>
         public void ClearAll()
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
                 // 删除所有缓存文件
-                if (Directory.Exists(_cachePath))
+                if (Directory.Exists(m_CachePath))
                 {
-                    var files = Directory.GetFiles(_cachePath);
+                    var files = Directory.GetFiles(m_CachePath);
                     foreach (var file in files)
                     {
                         try
@@ -429,10 +429,10 @@ namespace LWAssets
                     }
                 }
                 
-                _cacheIndex.Entries.Clear();
-                _entryDict.Clear();
-                _cacheIndex.TotalSize = 0;
-                _isDirty = true;
+                m_CacheIndex.Entries.Clear();
+                m_EntryDict.Clear();
+                m_CacheIndex.TotalSize = 0;
+                m_IsDirty = true;
                 SaveIndex();
             }
             
@@ -448,7 +448,7 @@ namespace LWAssets
             foreach (var bundle in bundles)
             {
                 var fileName = bundle.GetFileName();
-                var filePath = Path.Combine(_cachePath, fileName);
+                var filePath = Path.Combine(m_CachePath, fileName);
                 
                 if (File.Exists(filePath))
                 {
@@ -472,18 +472,18 @@ namespace LWAssets
         /// </summary>
         public CacheStatistics GetStatistics()
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
                 return new CacheStatistics
                 {
-                    TotalSize = _cacheIndex.TotalSize,
-                    EntryCount = _cacheIndex.Entries.Count,
-                    MaxSize = _config.MaxCacheSize,
-                    OldestAccessTime = _cacheIndex.Entries.Count > 0 
-                        ? _cacheIndex.Entries.Min(e => e.LastAccessTime) 
+                    TotalSize = m_CacheIndex.TotalSize,
+                    EntryCount = m_CacheIndex.Entries.Count,
+                    MaxSize = m_Config.MaxCacheSize,
+                    OldestAccessTime = m_CacheIndex.Entries.Count > 0 
+                        ? m_CacheIndex.Entries.Min(e => e.LastAccessTime) 
                         : DateTime.Now,
-                    NewestAccessTime = _cacheIndex.Entries.Count > 0 
-                        ? _cacheIndex.Entries.Max(e => e.LastAccessTime) 
+                    NewestAccessTime = m_CacheIndex.Entries.Count > 0 
+                        ? m_CacheIndex.Entries.Max(e => e.LastAccessTime) 
                         : DateTime.Now
                 };
             }

@@ -9,16 +9,16 @@ namespace LWAssets
     /// </summary>
     public abstract class HandleBase : IDisposable
     {
-        protected string _path;
-        protected bool _isDisposed;
+        protected string m_Path;
+        protected bool m_IsDisposed;
 
-        protected bool _isDone;
-        protected float _progress;
-        protected Exception _error;
+        protected bool m_IsDone;
+        protected float m_Progress;
+        protected Exception m_Error;
 
-        private long _fileSizeBytes;
-        private double _lastLoadTimeMs;
-        private double _totalLoadTimeMs;
+        private long m_FileSizeBytes;
+        private double m_LastLoadTimeMs;
+        private double m_TotalLoadTimeMs;
 
 
 
@@ -26,27 +26,27 @@ namespace LWAssets
 
         public string BundleName { get; internal set; }
         public int RefCount { get; protected set; }
-        public bool IsDisposed => _isDisposed;
-        public string Path => _path;
-        public bool IsDone => _isDone;
-        public float Progress => _progress;
-        public Exception Error => _error;
-        public bool HasError => _error != null;
-        public long FileSizeBytes => _fileSizeBytes;
-        public double LastLoadTimeMs => _lastLoadTimeMs;
-        public double TotalLoadTimeMs => _totalLoadTimeMs;
+        public bool IsDisposed => m_IsDisposed;
+        public string Path => m_Path;
+        public bool IsDone => m_IsDone;
+        public float Progress => m_Progress;
+        public Exception Error => m_Error;
+        public bool HasError => m_Error != null;
+        public long FileSizeBytes => m_FileSizeBytes;
+        public double LastLoadTimeMs => m_LastLoadTimeMs;
+        public double TotalLoadTimeMs => m_TotalLoadTimeMs;
         public event Action OnComplete;
 
         protected HandleBase(string path)
         {
-            _path = path;
+            m_Path = path;
         }
 
         internal void SetLoadInfo(long fileSizeBytes, double loadTimeMs)
         {
-            _fileSizeBytes = fileSizeBytes;
-            _lastLoadTimeMs = loadTimeMs;
-            _totalLoadTimeMs += loadTimeMs;
+            m_FileSizeBytes = fileSizeBytes;
+            m_LastLoadTimeMs = loadTimeMs;
+            m_TotalLoadTimeMs += loadTimeMs;
         }
 
         /// <summary>
@@ -62,9 +62,9 @@ namespace LWAssets
         /// </summary>
         public void Retain()
         {
-            if (_isDisposed)
+            if (m_IsDisposed)
             {
-                Debug.LogWarning($"[LWAssets] Cannot retain disposed handle: {_path}");
+                Debug.LogWarning($"[LWAssets] Cannot retain disposed handle: {m_Path}");
                 return;
             }
             RefCount++;
@@ -75,7 +75,7 @@ namespace LWAssets
         /// </summary>
         public void Release()
         {
-            if (_isDisposed) return;
+            if (m_IsDisposed) return;
 
             RefCount--;
             if (RefCount <= 0)
@@ -87,11 +87,11 @@ namespace LWAssets
 
         public void Dispose()
         {
-            if (_isDisposed) return;
-            _isDisposed = true;
-            _fileSizeBytes = 0;
-            _lastLoadTimeMs = 0;
-            _totalLoadTimeMs = 0;
+            if (m_IsDisposed) return;
+            m_IsDisposed = true;
+            m_FileSizeBytes = 0;
+            m_LastLoadTimeMs = 0;
+            m_TotalLoadTimeMs = 0;
 
             OnDispose();
         }
@@ -104,15 +104,15 @@ namespace LWAssets
     /// </summary>
     public class AssetHandle : HandleBase
     {
-        protected UnityEngine.Object _asset;
+        protected UnityEngine.Object m_Asset;
         public string AssetType { get; internal set; }
-        public UnityEngine.Object AssetObject => _asset;
-        public override bool IsValid => _asset != null;
+        public UnityEngine.Object AssetObject => m_Asset;
+        public override bool IsValid => m_Asset != null;
 
         public AssetHandle(string assetPath) : base(assetPath)
         {
-            _progress = 0f;
-            _isDone = true;
+            m_Progress = 0f;
+            m_IsDone = true;
         }
 
         /// <summary>
@@ -120,9 +120,9 @@ namespace LWAssets
         /// </summary>
         internal void SetAssetObject(UnityEngine.Object asset, string bundleName, double loadTimeMs)
         {
-            _asset = asset;
-            _progress = 1f;
-            _isDone = true;
+            m_Asset = asset;
+            m_Progress = 1f;
+            m_IsDone = true;
             BundleName = bundleName;
             AssetType = asset != null ? asset.GetType().Name : null;
             SetLoadInfo(0, loadTimeMs);
@@ -135,7 +135,7 @@ namespace LWAssets
         /// </summary>
         internal void SetProgress(float progress)
         {
-            _progress = Mathf.Clamp01(progress);
+            m_Progress = Mathf.Clamp01(progress);
         }
 
         /// <summary>
@@ -143,14 +143,14 @@ namespace LWAssets
         /// </summary>
         internal void SetError(Exception error)
         {
-            _error = error;
-            _isDone = true;
+            m_Error = error;
+            m_IsDone = true;
             InvokeComplete();
         }
 
         protected override void OnDispose()
         {
-            _asset = null;
+            m_Asset = null;
         }
     }
 
@@ -159,7 +159,7 @@ namespace LWAssets
     /// </summary>
     public class AssetHandle<T> : AssetHandle where T : UnityEngine.Object
     {
-        public T Asset => _asset as T;
+        public T Asset => m_Asset as T;
 
         public AssetHandle(string assetPath) : base(assetPath)
         {
@@ -187,10 +187,10 @@ namespace LWAssets
     /// </summary>
     public class SceneHandle : HandleBase
     {
-        private UnityEngine.SceneManagement.Scene _scene;
+        private UnityEngine.SceneManagement.Scene m_Scene;
         public string AssetType { get; internal set; }
-        public UnityEngine.SceneManagement.Scene Scene => _scene;
-        public override bool IsValid => _scene.IsValid();
+        public UnityEngine.SceneManagement.Scene Scene => m_Scene;
+        public override bool IsValid => m_Scene.IsValid();
 
 
         public SceneHandle(string scenePath) : base(scenePath)
@@ -199,9 +199,9 @@ namespace LWAssets
 
         internal void SetScene(UnityEngine.SceneManagement.Scene scene, string bundleName = null, double loadTimeMs = 0)
         {
-            _scene = scene;
-            _progress = 1f;
-            _isDone = true;
+            m_Scene = scene;
+            m_Progress = 1f;
+            m_IsDone = true;
             BundleName = bundleName;
             AssetType = "Scene";
             SetLoadInfo(0, loadTimeMs);
@@ -210,13 +210,13 @@ namespace LWAssets
 
         internal void SetProgress(float progress)
         {
-            _progress = Mathf.Clamp01(progress);
+            m_Progress = Mathf.Clamp01(progress);
         }
 
         internal void SetError(Exception error)
         {
-            _error = error;
-            _isDone = true;
+            m_Error = error;
+            m_IsDone = true;
             InvokeComplete();
         }
 
@@ -225,8 +225,8 @@ namespace LWAssets
         /// </summary>
         public async UniTask UnloadAsync()
         {
-            if (!_scene.IsValid()) return;
-            var op = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_scene);
+            if (!m_Scene.IsValid()) return;
+            var op = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(m_Scene);
             if (op != null)
             {
                 await op;
@@ -241,11 +241,11 @@ namespace LWAssets
 
     public class RawFileHandle : HandleBase
     {
-        private byte[] _data;
+        private byte[] m_Data;
 
-        public byte[] Data => _data;
-        public string Text => _data != null ? System.Text.Encoding.UTF8.GetString(_data) : null;
-        public override bool IsValid => _data != null;
+        public byte[] Data => m_Data;
+        public string Text => m_Data != null ? System.Text.Encoding.UTF8.GetString(m_Data) : null;
+        public override bool IsValid => m_Data != null;
 
         public RawFileHandle(string assetPath) : base(assetPath)
         {
@@ -253,9 +253,9 @@ namespace LWAssets
 
         internal void SetData(byte[] data, string bundleName, long fileSizeBytes, double loadTimeMs)
         {
-            _data = data;
-            _progress = 1f;
-            _isDone = true;
+            m_Data = data;
+            m_Progress = 1f;
+            m_IsDone = true;
             BundleName = bundleName;
             SetLoadInfo(fileSizeBytes, loadTimeMs);
             InvokeComplete();
@@ -263,14 +263,14 @@ namespace LWAssets
 
         internal void SetError(Exception error)
         {
-            _error = error;
-            _isDone = true;
+            m_Error = error;
+            m_IsDone = true;
             InvokeComplete();
         }
 
         protected override void OnDispose()
         {
-            _data = null;
+            m_Data = null;
         }
     }
 }

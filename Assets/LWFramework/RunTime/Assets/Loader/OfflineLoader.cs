@@ -13,19 +13,19 @@ namespace LWAssets
     /// </summary>
     public class OfflineLoader : AssetLoaderBase
     {
-        protected CacheManager _cacheManager;
-        protected DownloadManager _downloadManager;
+        protected CacheManager m_CacheManager;
+        protected DownloadManager m_DownloadManager;
 
         public OfflineLoader(LWAssetsConfig config, CacheManager cacheManager, DownloadManager downloadManager)
             : base(config)
         {
-            _cacheManager = cacheManager;
-            _downloadManager = downloadManager;
+            m_CacheManager = cacheManager;
+            m_DownloadManager = downloadManager;
         }
 
         public override async UniTask InitializeAsync(BundleManifest manifest)
         {
-            _manifest = manifest;
+            m_Manifest = manifest;
             await UniTask.CompletedTask;
             UnityEngine.Debug.Log("[LWAssets] OfflineLoader initialized");
         }
@@ -40,16 +40,16 @@ namespace LWAssets
                 return null;
             }
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_handleBaseCache.TryGetValue(assetPath, out var cached) && cached is AssetHandle ah && ah.IsValid)
+                if (m_HandleBaseCache.TryGetValue(assetPath, out var cached) && cached is AssetHandle ah && ah.IsValid)
                 {
                     cached.Retain();
                     return ah.AssetObject as T;
                 }
             }
 
-            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
@@ -85,7 +85,7 @@ namespace LWAssets
                 return cached;
             }
 
-            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
@@ -126,13 +126,13 @@ namespace LWAssets
                 return null;
             }
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_bundleHandleCache.TryGetValue(bundleName, out var cached))
+                if (m_BundleHandleCache.TryGetValue(bundleName, out var cached))
                 {
                     if (cached == null || cached.IsDisposed || !cached.IsValid)
                     {
-                        _bundleHandleCache.Remove(bundleName);
+                        m_BundleHandleCache.Remove(bundleName);
                     }
                     else
                     {
@@ -146,7 +146,7 @@ namespace LWAssets
                 }
             }
 
-            var bundleInfo = _manifest.GetBundleInfo(bundleName);
+            var bundleInfo = m_Manifest.GetBundleInfo(bundleName);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Bundle not found: {bundleName}");
@@ -180,9 +180,9 @@ namespace LWAssets
                 bundleHandle.Retain();
             }
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                _bundleHandleCache[bundleName] = bundleHandle;
+                m_BundleHandleCache[bundleName] = bundleHandle;
             }
 
             return bundleHandle;
@@ -198,7 +198,7 @@ namespace LWAssets
         public override async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
         {
             // 直接通过 manifest 获取 Bundle 信息
-            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
@@ -242,7 +242,7 @@ namespace LWAssets
                 return cached;
             }
 
-            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
@@ -276,7 +276,7 @@ namespace LWAssets
             var sw = Stopwatch.StartNew();
             try
             {
-                var bundleInfo = _manifest.GetBundleByAsset(scenePath);
+                var bundleInfo = m_Manifest.GetBundleByAsset(scenePath);
                 if (bundleInfo == null)
                 {
                     sceneHandle.SetError(new FileNotFoundException($"Scene not found: {scenePath}"));
@@ -308,9 +308,9 @@ namespace LWAssets
                 sw.Stop();
                 sceneHandle.SetScene(SceneManager.GetSceneByName(sceneName), bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
                 sceneHandle.Retain();
-                lock (_lockObj)
+                lock (m_LockObj)
                 {
-                    _handleBaseCache[scenePath] = sceneHandle;
+                    m_HandleBaseCache[scenePath] = sceneHandle;
                 }
             }
             catch (Exception ex)
@@ -348,14 +348,14 @@ namespace LWAssets
         protected virtual string GetBundlePath(BundleInfo bundleInfo)
         {
             // 优先从缓存目录加载
-            var cachePath = Path.Combine(_config.GetPersistentDataPath(), bundleInfo.GetFileName());
+            var cachePath = Path.Combine(m_Config.GetPersistentDataPath(), bundleInfo.GetFileName());
             if (File.Exists(cachePath))
             {
                 return cachePath;
             }
 
             // 其次从StreamingAssets加载
-            var streamingPath = Path.Combine(_config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
+            var streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
             return streamingPath;
         }
 

@@ -13,41 +13,47 @@ public class LWDebug
     public static void Log(object info, LogColor color = LogColor._default)
     {
         if (IsSelectLogType(LogType.Log))
-        {          
-            Debug.Log(GetLogInfo(info, color, m_LwGuiLog && m_WriteLog ? new StackFrame(1).GetMethod() : null));
+        {
+            MethodBase member = m_LwGuiLog && m_WriteLog ? new StackFrame(1).GetMethod() : null;
+            Debug.Log(GetLogInfo(info, color, member));
         }
     }
 
     public static void LogError(object info, LogColor color = LogColor._default)
     {
-        if (IsSelectLogType(LogType.Error)) {
-            Debug.LogError(GetLogInfo(info, color, m_LwGuiLog && m_WriteLog ? new StackFrame(1).GetMethod() : null));
+        if (IsSelectLogType(LogType.Error))
+        {
+            MethodBase member = m_LwGuiLog && m_WriteLog ? new StackFrame(1).GetMethod() : null;
+            Debug.LogError(GetLogInfo(info, color, member));
         }
-           
+
     }
     public static void LogWarning(object info, LogColor color = LogColor._default)
     {
-        if (IsSelectLogType(LogType.Warning)) {
+        if (IsSelectLogType(LogType.Warning))
+        {
             MethodBase member = m_LwGuiLog && m_WriteLog ? new StackFrame(1).GetMethod() : null;
-            Debug.LogWarning(GetLogInfo(info, color, m_LwGuiLog && m_WriteLog ? new StackFrame(1).GetMethod() : null));
+            Debug.LogWarning(GetLogInfo(info, color, member));
         }
     }
-    static string GetLogInfo(object info, LogColor color, MethodBase member=null) {
+    static string GetLogInfo(object info, LogColor color, MethodBase member = null)
+    {
         string retInfo = "";
-        if (member!=null)
+        if (member != null)
         {
 
-            if (LWDebugMono.GetInstance().writeLog)
+            if (LWDebugMono.Instance.writeLog)
             {
-                retInfo = $"[{ member.ReflectedType}]:::{info}";
+                retInfo = $"[{member.ReflectedType}]:::{info}";
             }
             else
             {
                 retInfo = $"[{member.ReflectedType}]:::{string.Format(GetHexByColor(color), info)}";
             }
         }
-        else {
-            if (LWDebugMono.GetInstance().writeLog)
+        else
+        {
+            if (LWDebugMono.Instance.writeLog)
             {
                 retInfo = info.ToString();
             }
@@ -64,15 +70,16 @@ public class LWDebug
         m_WriteLog = writeLog;
         m_LwGuiLog = lwGuiLog;
         m_LogLevel = logLevel;
-        LWDebugMono.GetInstance().lwGuiLog = lwGuiLog;
-        LWDebugMono.GetInstance().logLevel = logLevel;
-        LWDebugMono.GetInstance().writeLog = writeLog;
+        LWDebugMono.Instance.lwGuiLog = lwGuiLog;
+        LWDebugMono.Instance.logLevel = logLevel;
+        LWDebugMono.Instance.writeLog = writeLog;
     }
     //判断是否选择了该枚举值
     static bool IsSelectLogType(LogType _logType)
     {
 
-        if ((int)_logType <= m_LogLevel)
+        int logTypeValue = _logType == LogType.Exception ? (int)LogType.Error : (int)_logType;
+        if (logTypeValue <= m_LogLevel)
         {
             return true;
         }

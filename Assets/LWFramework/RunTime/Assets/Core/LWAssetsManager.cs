@@ -4,6 +4,7 @@ using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
+using LWCore;
 
 namespace LWAssets
 {
@@ -14,16 +15,16 @@ namespace LWAssets
     {
         #region 属性与字段
 
-        private IAssetLoader _loader;
-        private LWAssetsConfig _config;
-        private DownloadManager _downloadManager;
-        private CacheManager _cacheManager;
-        private PreloadManager _preloadManager;
-        private VersionManager _versionManager;
-        private BundleManifest _manifest;
+        private IAssetLoader m_Loader;
+        private LWAssetsConfig m_Config;
+        private DownloadManager m_DownloadManager;
+        private CacheManager m_CacheManager;
+        private PreloadManager m_PreloadManager;
+        private VersionManager m_VersionManager;
+        private BundleManifest m_Manifest;
 
-        private bool _isInitialized;
-        private readonly object _lockObj = new object();
+        private bool m_IsInitialized;
+        private readonly object m_LockObj = new object();
 
         /// <summary>
         /// 创建资源系统实例
@@ -35,38 +36,49 @@ namespace LWAssets
         /// <summary>
         /// 是否已初始化
         /// </summary>
-        public bool IsInitialized => _isInitialized;
+        public bool IsInitialized => m_IsInitialized;
 
         /// <summary>
         /// 资源加载器
         /// </summary>
-        public IAssetLoader Loader => _loader;
+        public IAssetLoader Loader => m_Loader;
         /// <summary>
         /// 当前运行模式
         /// </summary>
-        public PlayMode CurrentPlayMode => _config?.PlayMode ?? PlayMode.EditorSimulate;
+        public PlayMode CurrentPlayMode => m_Config?.PlayMode ?? PlayMode.EditorSimulate;
 
         /// <summary>
         /// 下载管理器
         /// </summary>
-        public DownloadManager Downloader => _downloadManager;
+        public DownloadManager Downloader => m_DownloadManager;
 
         /// <summary>
         /// 缓存管理器
         /// </summary>
-        public CacheManager Cache => _cacheManager;
+        public CacheManager Cache => m_CacheManager;
 
         /// <summary>
         /// 预加载管理器
         /// </summary>
-        public PreloadManager Preloader => _preloadManager;
+        public PreloadManager Preloader => m_PreloadManager;
 
         /// <summary>
         /// 版本管理器
         /// </summary>
-        public VersionManager Version => _versionManager;
+        public VersionManager Version => m_VersionManager;
 
         #endregion
+
+
+        public void Init()
+        {
+
+        }
+
+        public void Update()
+        {
+
+        }
 
         #region 初始化
 
@@ -75,45 +87,45 @@ namespace LWAssets
         /// </summary>
         public async UniTask InitializeAsync(LWAssetsConfig config = null)
         {
-            if (_isInitialized)
+            if (m_IsInitialized)
             {
                 Debug.LogWarning("[LWAssets] Already initialized!");
                 return;
             }
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_isInitialized) return;
+                if (m_IsInitialized) return;
 
-                _config = config ?? LWAssetsConfig.Load();
+                m_Config = config ?? LWAssetsConfig.Load();
 
                 // 初始化各子系统
-                _cacheManager = new CacheManager(_config);
-                _versionManager = new VersionManager(_config, _cacheManager);
-                _downloadManager = new DownloadManager(_config);
-                _preloadManager = new PreloadManager(_config);
+                m_CacheManager = new CacheManager(m_Config);
+                m_VersionManager = new VersionManager(m_Config, m_CacheManager);
+                m_DownloadManager = new DownloadManager(m_Config);
+                m_PreloadManager = new PreloadManager(m_Config);
 
                 // 根据运行模式创建加载器
-                _loader = CreateLoader(_config.PlayMode);
+                m_Loader = CreateLoader(m_Config.PlayMode);
             }
 
             // 初始化版本信息
-            await _versionManager.InitializeAsync();
+            await m_VersionManager.InitializeAsync();
 
             // 加载清单文件
-            _manifest = await LoadManifestAsync();
+            m_Manifest = await LoadManifestAsync();
 
             // 初始化加载器
-            await _loader.InitializeAsync(_manifest);
+            await m_Loader.InitializeAsync(m_Manifest);
 
-            _isInitialized = true;
-            Debug.Log($"[LWAssets] Initialized with {_config.PlayMode} mode");
+            m_IsInitialized = true;
+            Debug.Log($"[LWAssets] Initialized with {m_Config.PlayMode} mode");
         }
 
         public async UniTask WarmupShadersAsync(CancellationToken token = default)
         {
             CheckInitialized();
-            var svc = await _loader.LoadAssetAsync<ShaderVariantCollection>("shaders/variant_collection", token);
+            var svc = await m_Loader.LoadAssetAsync<ShaderVariantCollection>("shaders/variant_collection", token);
             if (svc != null)
                 svc.WarmUp();
         }
@@ -126,20 +138,20 @@ namespace LWAssets
             {
                 case PlayMode.EditorSimulate:
 #if UNITY_EDITOR
-                    return new EditorSimulateLoader(_config);
+                    return new EditorSimulateLoader(m_Config);
 #else
                     Debug.LogWarning("[LWAssets] EditorSimulate mode not available in build, fallback to Offline");
-                    return new OfflineLoader(_config, _cacheManager, _downloadManager);
+                    return new OfflineLoader(m_Config, m_CacheManager, m_DownloadManager);
 #endif
 
                 case PlayMode.Offline:
-                    return new OfflineLoader(_config, _cacheManager, _downloadManager);
+                    return new OfflineLoader(m_Config, m_CacheManager, m_DownloadManager);
 
                 case PlayMode.Online:
-                    return new OnlineLoader(_config, _cacheManager, _downloadManager, _versionManager);
+                    return new OnlineLoader(m_Config, m_CacheManager, m_DownloadManager, m_VersionManager);
 
                 case PlayMode.WebGL:
-                    return new WebGLLoader(_config, _cacheManager, _downloadManager);
+                    return new WebGLLoader(m_Config, m_CacheManager, m_DownloadManager);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode));
@@ -151,14 +163,14 @@ namespace LWAssets
         /// </summary>
         public async UniTask<BundleManifest> LoadManifestAsync()
         {
-            if (_config.PlayMode == PlayMode.EditorSimulate)
+            if (m_Config.PlayMode == PlayMode.EditorSimulate)
             {
 #if UNITY_EDITOR
                 return await EditorManifestBuilder.BuildAsync();
 #endif
             }
 
-            return await _versionManager.LoadManifestAsync();
+            return await m_VersionManager.LoadManifestAsync();
         }
 
         #endregion
@@ -171,7 +183,7 @@ namespace LWAssets
         public T LoadAsset<T>(string assetPath) where T : UnityEngine.Object
         {
             CheckInitialized();
-            return _loader.LoadAsset<T>(assetPath);
+            return m_Loader.LoadAsset<T>(assetPath);
         }
 
         /// <summary>
@@ -180,7 +192,7 @@ namespace LWAssets
         public byte[] LoadRawFile(string assetPath)
         {
             CheckInitialized();
-            return _loader.LoadRawFile(assetPath);
+            return m_Loader.LoadRawFile(assetPath);
         }
 
         /// <summary>
@@ -189,21 +201,21 @@ namespace LWAssets
         public string LoadRawFileText(string assetPath)
         {
             CheckInitialized();
-            return _loader.LoadRawFileText(assetPath);
+            return m_Loader.LoadRawFileText(assetPath);
         }
 
-        public GameObject Instantiate(string testPrefabPath, Transform spawnPoint)
+        public GameObject Instantiate(string testPrefabPath, Transform spawnPoint = null)
         {
             CheckInitialized();
-            return _loader.Instantiate(testPrefabPath, spawnPoint);
+            return m_Loader.Instantiate(testPrefabPath, spawnPoint);
         }
         #endregion
 
         #region 异步加载API (UniTask)
-        public async UniTask<GameObject> InstantiateAsync(string testPrefabPath, Transform spawnPoint)
+        public async UniTask<GameObject> InstantiateAsync(string testPrefabPath, Transform spawnPoint = null)
         {
             CheckInitialized();
-            return await _loader.InstantiateAsync(testPrefabPath, spawnPoint);
+            return await m_Loader.InstantiateAsync(testPrefabPath, spawnPoint);
         }
 
         /// <summary>
@@ -213,7 +225,7 @@ namespace LWAssets
             CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
             CheckInitialized();
-            return await _loader.LoadAssetAsync<T>(assetPath, cancellationToken);
+            return await m_Loader.LoadAssetAsync<T>(assetPath, cancellationToken);
         }
 
 
@@ -225,7 +237,7 @@ namespace LWAssets
             CancellationToken cancellationToken = default)
         {
             CheckInitialized();
-            return await _loader.LoadRawFileAsync(assetPath, cancellationToken);
+            return await m_Loader.LoadRawFileAsync(assetPath, cancellationToken);
         }
 
         /// <summary>
@@ -235,7 +247,7 @@ namespace LWAssets
             CancellationToken cancellationToken = default)
         {
             CheckInitialized();
-            return await _loader.LoadRawFileTextAsync(assetPath, cancellationToken);
+            return await m_Loader.LoadRawFileTextAsync(assetPath, cancellationToken);
         }
 
         /// <summary>
@@ -247,7 +259,7 @@ namespace LWAssets
             CancellationToken cancellationToken = default)
         {
             CheckInitialized();
-            return await _loader.LoadSceneAsync(scenePath, mode, activateOnLoad, cancellationToken);
+            return await m_Loader.LoadSceneAsync(scenePath, mode, activateOnLoad, cancellationToken);
         }
 
         /// <summary>
@@ -290,13 +302,13 @@ namespace LWAssets
         public void Release(UnityEngine.Object asset)
         {
             CheckInitialized();
-            _loader.Release(asset);
+            m_Loader.Release(asset);
         }
 
         public void Release(string assetPath)
         {
             CheckInitialized();
-            _loader.Release(assetPath);
+            m_Loader.Release(assetPath);
         }
         /// <summary>
         /// 释放所有未使用资源
@@ -304,7 +316,7 @@ namespace LWAssets
         public async UniTask UnloadUnusedAssetsAsync()
         {
             CheckInitialized();
-            await _loader.UnloadUnusedAssetsAsync();
+            await m_Loader.UnloadUnusedAssetsAsync();
             await Resources.UnloadUnusedAssets();
             GC.Collect();
         }
@@ -315,7 +327,7 @@ namespace LWAssets
         public void ForceUnloadAll()
         {
             CheckInitialized();
-            _loader.ForceReleaseAll();
+            m_Loader.ForceReleaseAll();
         }
 
         #endregion
@@ -328,7 +340,7 @@ namespace LWAssets
         public async UniTask<long> GetDownloadSizeAsync(string[] tags = null)
         {
             CheckInitialized();
-            return await _versionManager.GetDownloadSizeAsync(tags);
+            return await m_VersionManager.GetDownloadSizeAsync(tags);
         }
 
         /// <summary>
@@ -340,8 +352,8 @@ namespace LWAssets
         {
             CheckInitialized();
 
-            var bundles = await _versionManager.GetBundlesToDownloadAsync(tags);
-            await _downloadManager.DownloadAsync(bundles, progress, cancellationToken);
+            var bundles = await m_VersionManager.GetBundlesToDownloadAsync(tags);
+            await m_DownloadManager.DownloadAsync(bundles, progress, cancellationToken);
         }
 
         #endregion
@@ -350,7 +362,7 @@ namespace LWAssets
 
         private void CheckInitialized()
         {
-            if (!_isInitialized)
+            if (!m_IsInitialized)
             {
                 throw new InvalidOperationException("[LWAssets] Not initialized! Call InitializeAsync first.");
             }
@@ -361,35 +373,26 @@ namespace LWAssets
         /// </summary>
         public void Destroy()
         {
-            if (!_isInitialized) return;
+            if (!m_IsInitialized) return;
 
-            _loader?.Dispose();
-            _downloadManager?.Dispose();
-            _cacheManager?.Dispose();
-            _preloadManager?.Dispose();
+            m_Loader?.Dispose();
+            m_DownloadManager?.Dispose();
+            m_CacheManager?.Dispose();
+            m_PreloadManager?.Dispose();
 
-            _loader = null;
-            _downloadManager = null;
-            _cacheManager = null;
-            _preloadManager = null;
-            _versionManager = null;
-            _manifest = null;
-            _config = null;
+            m_Loader = null;
+            m_DownloadManager = null;
+            m_CacheManager = null;
+            m_PreloadManager = null;
+            m_VersionManager = null;
+            m_Manifest = null;
+            m_Config = null;
 
-            _isInitialized = false;
+            m_IsInitialized = false;
 
             Debug.Log("[LWAssets] Destroyed");
         }
 
-        public void Init()
-        {
-
-        }
-
-        public void Update()
-        {
-
-        }
 
 
         #endregion

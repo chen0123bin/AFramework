@@ -20,8 +20,8 @@ namespace LWAssets
             public List<string> NextAssets = new List<string>(); // 之后访问的资源
         }
         
-        private readonly Dictionary<string, AccessRecord> _records = new Dictionary<string, AccessRecord>();
-        private readonly List<string> _recentAccesses = new List<string>();
+        private readonly Dictionary<string, AccessRecord> m_Records = new Dictionary<string, AccessRecord>();
+        private readonly List<string> m_RecentAccesses = new List<string>();
         private const int MaxRecentAccesses = 100;
         private const int MaxNextAssets = 20;
         
@@ -33,20 +33,20 @@ namespace LWAssets
             if (string.IsNullOrEmpty(assetPath)) return;
             
             // 更新访问记录
-            if (!_records.TryGetValue(assetPath, out var record))
+            if (!m_Records.TryGetValue(assetPath, out var record))
             {
                 record = new AccessRecord { AssetPath = assetPath };
-                _records[assetPath] = record;
+                m_Records[assetPath] = record;
             }
             
             record.LastAccessTime = DateTime.Now;
             record.AccessCount++;
             
             // 更新之前资源的"下一个访问"
-            if (_recentAccesses.Count > 0)
+            if (m_RecentAccesses.Count > 0)
             {
-                var lastAccess = _recentAccesses[_recentAccesses.Count - 1];
-                if (_records.TryGetValue(lastAccess, out var lastRecord))
+                var lastAccess = m_RecentAccesses[m_RecentAccesses.Count - 1];
+                if (m_Records.TryGetValue(lastAccess, out var lastRecord))
                 {
                     if (!lastRecord.NextAssets.Contains(assetPath))
                     {
@@ -60,10 +60,10 @@ namespace LWAssets
             }
             
             // 添加到最近访问
-            _recentAccesses.Add(assetPath);
-            if (_recentAccesses.Count > MaxRecentAccesses)
+            m_RecentAccesses.Add(assetPath);
+            if (m_RecentAccesses.Count > MaxRecentAccesses)
             {
-                _recentAccesses.RemoveAt(0);
+                m_RecentAccesses.RemoveAt(0);
             }
         }
         
@@ -74,7 +74,7 @@ namespace LWAssets
         {
             var predictions = new Dictionary<string, float>();
             
-            if (!string.IsNullOrEmpty(currentAsset) && _records.TryGetValue(currentAsset, out var record))
+            if (!string.IsNullOrEmpty(currentAsset) && m_Records.TryGetValue(currentAsset, out var record))
             {
                 // 基于访问模式预测
                 foreach (var next in record.NextAssets)
@@ -88,7 +88,7 @@ namespace LWAssets
             }
             
             // 基于访问频率补充
-            var frequentAssets = _records.Values
+            var frequentAssets = m_Records.Values
                 .OrderByDescending(r => r.AccessCount)
                 .Take(maxCount * 2);
             
@@ -105,9 +105,9 @@ namespace LWAssets
             
             // 基于时间衰减的最近访问
             var recentWeight = 1.0f;
-            for (int i = _recentAccesses.Count - 1; i >= 0 && i >= _recentAccesses.Count - 10; i--)
+            for (int i = m_RecentAccesses.Count - 1; i >= 0 && i >= m_RecentAccesses.Count - 10; i--)
             {
-                var asset = _recentAccesses[i];
+                var asset = m_RecentAccesses[i];
                 if (asset == currentAsset) continue;
                 
                 if (!predictions.ContainsKey(asset))
@@ -131,8 +131,8 @@ namespace LWAssets
         /// </summary>
         public void Clear()
         {
-            _records.Clear();
-            _recentAccesses.Clear();
+            m_Records.Clear();
+            m_RecentAccesses.Clear();
         }
     }
 }

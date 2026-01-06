@@ -14,21 +14,21 @@ namespace LWAssets
     /// </summary>
     public abstract class AssetLoaderBase : IAssetLoader
     {
-        protected LWAssetsConfig _config;
-        protected BundleManifest _manifest;
+        protected LWAssetsConfig m_Config;
+        protected BundleManifest m_Manifest;
 
         // Bundle缓存
-        protected readonly Dictionary<string, BundleHandle> _bundleHandleCache = new Dictionary<string, BundleHandle>();
+        protected readonly Dictionary<string, BundleHandle> m_BundleHandleCache = new Dictionary<string, BundleHandle>();
         // 资源引用计数
-        protected readonly Dictionary<string, HandleBase> _handleBaseCache = new Dictionary<string, HandleBase>();
+        protected readonly Dictionary<string, HandleBase> m_HandleBaseCache = new Dictionary<string, HandleBase>();
         // 加载中的Bundle
-        protected readonly Dictionary<string, UniTask<BundleHandle>> _loadingBundles = new Dictionary<string, UniTask<BundleHandle>>();
+        protected readonly Dictionary<string, UniTask<BundleHandle>> m_LoadingBundles = new Dictionary<string, UniTask<BundleHandle>>();
 
-        protected readonly object _lockObj = new object();
+        protected readonly object m_LockObj = new object();
 
         public AssetLoaderBase(LWAssetsConfig config)
         {
-            _config = config;
+            m_Config = config;
         }
 
         public abstract UniTask InitializeAsync(BundleManifest manifest);
@@ -56,7 +56,7 @@ namespace LWAssets
             }
 
             var releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
-            releaseComp.Path = assetPath;
+            releaseComp.m_Path = assetPath;
             return instance;
         }
         /// <summary>
@@ -146,7 +146,7 @@ namespace LWAssets
             }
             // 挂上自动释放组件
             var releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
-            releaseComp.Path = assetPath;
+            releaseComp.m_Path = assetPath;
             return instance;
         }
 
@@ -160,7 +160,7 @@ namespace LWAssets
         /// </summary>
         public virtual void ForceReleaseAll()
         {
-            var toRemove = _handleBaseCache.Values.ToList();
+            var toRemove = m_HandleBaseCache.Values.ToList();
             for (int i = 0; i < toRemove.Count; i++)
             {
                 var handle = toRemove[i];
@@ -186,7 +186,7 @@ namespace LWAssets
         {
             if (asset == null) return;
 
-            var info = _handleBaseCache.FirstOrDefault(x => x.Value is AssetHandle ah && ah.AssetObject == asset);
+            var info = m_HandleBaseCache.FirstOrDefault(x => x.Value is AssetHandle ah && ah.AssetObject == asset);
             ReleaseAsset(info.Key);
         }
         /// <summary>
@@ -206,9 +206,9 @@ namespace LWAssets
         public virtual void ForceUnloadBundle(string bundleName)
         {
             if (string.IsNullOrEmpty(bundleName)) return;
-            if (_bundleHandleCache.TryGetValue(bundleName, out var bundleHandle))
+            if (m_BundleHandleCache.TryGetValue(bundleName, out var bundleHandle))
             {
-                var toRemove = _handleBaseCache
+                var toRemove = m_HandleBaseCache
                     .Where(kvp => kvp.Value != null && kvp.Value.BundleName == bundleName)
                     .Select(kvp => kvp.Key)
                     .ToList();
@@ -229,10 +229,10 @@ namespace LWAssets
         /// <returns></returns>
         public virtual async UniTask UnloadUnusedAssetsAsync()
         {
-            lock (_lockObj)
+            lock (m_LockObj)
             {
                 var toRemove = new List<HandleBase>();
-                foreach (var kvp in _handleBaseCache)
+                foreach (var kvp in m_HandleBaseCache)
                 {
                     if (kvp.Value == null)
                     {
@@ -248,16 +248,16 @@ namespace LWAssets
 
                 foreach (var handleBase in toRemove)
                 {
-                    _handleBaseCache.Remove(handleBase.Path);
+                    m_HandleBaseCache.Remove(handleBase.Path);
                     handleBase.Dispose();
                 }
             }
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
 
                 var toRemove = new List<BundleHandle>();
-                foreach (var kvp in _bundleHandleCache)
+                foreach (var kvp in m_BundleHandleCache)
                 {
                     if (kvp.Value == null)
                     {
@@ -273,7 +273,7 @@ namespace LWAssets
 
                 foreach (var bundleHandle in toRemove)
                 {
-                    _bundleHandleCache.Remove(bundleHandle.BundleName);
+                    m_BundleHandleCache.Remove(bundleHandle.BundleName);
                     bundleHandle.Dispose();
                 }
             }
@@ -300,13 +300,13 @@ namespace LWAssets
             UniTask<BundleHandle> taskToAwait = default;
             bool createdTask = false;
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_bundleHandleCache.TryGetValue(bundleName, out var cached))
+                if (m_BundleHandleCache.TryGetValue(bundleName, out var cached))
                 {
                     if (cached == null || cached.IsDisposed || !cached.IsValid)
                     {
-                        _bundleHandleCache.Remove(bundleName);
+                        m_BundleHandleCache.Remove(bundleName);
                     }
                     else
                     {
@@ -320,10 +320,10 @@ namespace LWAssets
                     }
                 }
 
-                if (!_loadingBundles.TryGetValue(bundleName, out taskToAwait))
+                if (!m_LoadingBundles.TryGetValue(bundleName, out taskToAwait))
                 {
                     taskToAwait = LoadBundleInternalAsync(bundleName, CancellationToken.None, isDepend);
-                    _loadingBundles[bundleName] = taskToAwait;
+                    m_LoadingBundles[bundleName] = taskToAwait;
                     createdTask = true;
                 }
             }
@@ -336,9 +336,9 @@ namespace LWAssets
             {
                 if (createdTask)
                 {
-                    lock (_lockObj)
+                    lock (m_LockObj)
                     {
-                        _loadingBundles.Remove(bundleName);
+                        m_LoadingBundles.Remove(bundleName);
                     }
                 }
             }
@@ -350,7 +350,7 @@ namespace LWAssets
         protected virtual async UniTask<BundleHandle> LoadBundleInternalAsync(string bundleName,
             CancellationToken cancellationToken = default, bool isDepend = false)
         {
-            var bundleInfo = _manifest.GetBundleInfo(bundleName);
+            var bundleInfo = m_Manifest.GetBundleInfo(bundleName);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Bundle not found: {bundleName}");
@@ -378,9 +378,9 @@ namespace LWAssets
                 bundleHandle.Retain();
             }
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                _bundleHandleCache[bundleName] = bundleHandle;
+                m_BundleHandleCache[bundleName] = bundleHandle;
             }
 
             return bundleHandle;
@@ -397,7 +397,7 @@ namespace LWAssets
         {
             if (string.IsNullOrEmpty(assetPath)) return;
 
-            if (_handleBaseCache.TryGetValue(assetPath, out var handleBase))
+            if (m_HandleBaseCache.TryGetValue(assetPath, out var handleBase))
             {
 
                 if (force)
@@ -428,7 +428,7 @@ namespace LWAssets
         {
             if (string.IsNullOrEmpty(bundleName)) return;
 
-            if (_bundleHandleCache.TryGetValue(bundleName, out var bundleHandle) && bundleHandle != null)
+            if (m_BundleHandleCache.TryGetValue(bundleName, out var bundleHandle) && bundleHandle != null)
             {
 
                 if (force)
@@ -460,9 +460,9 @@ namespace LWAssets
         {
             if (asset == null) return;
 
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_handleBaseCache.TryGetValue(assetPath, out var handle) && handle != null)
+                if (m_HandleBaseCache.TryGetValue(assetPath, out var handle) && handle != null)
                 {
                     handle.Retain();
                 }
@@ -474,7 +474,7 @@ namespace LWAssets
                     };
                     ((AssetHandle)handle).SetAssetObject(asset, bundleName, loadTimeMs);
                     handle.Retain();
-                    _handleBaseCache[assetPath] = handle;
+                    m_HandleBaseCache[assetPath] = handle;
                 }
             }
         }
@@ -485,9 +485,9 @@ namespace LWAssets
         protected void TrackRawFileHandle(string assetPath, byte[] data, string bundleName, long fileSizeBytes, double loadTimeMs)
         {
             if (data == null) return;
-            lock (_lockObj)
+            lock (m_LockObj)
             {
-                if (_handleBaseCache.TryGetValue(assetPath, out var handle) && handle is RawFileHandle raw)
+                if (m_HandleBaseCache.TryGetValue(assetPath, out var handle) && handle is RawFileHandle raw)
                 {
                     raw.Retain();
                 }
@@ -496,7 +496,7 @@ namespace LWAssets
                     var rawHandle = new RawFileHandle(assetPath);
                     rawHandle.SetData(data, bundleName, fileSizeBytes, loadTimeMs);
                     rawHandle.Retain();
-                    _handleBaseCache[assetPath] = rawHandle;
+                    m_HandleBaseCache[assetPath] = rawHandle;
                 }
             }
         }
@@ -511,7 +511,7 @@ namespace LWAssets
         {
             data = null;
             if (string.IsNullOrEmpty(assetPath)) return false;
-            if (_handleBaseCache.TryGetValue(assetPath, out var handle) && handle is RawFileHandle raw && raw.IsValid)
+            if (m_HandleBaseCache.TryGetValue(assetPath, out var handle) && handle is RawFileHandle raw && raw.IsValid)
             {
                 raw.Retain();
                 data = raw.Data;

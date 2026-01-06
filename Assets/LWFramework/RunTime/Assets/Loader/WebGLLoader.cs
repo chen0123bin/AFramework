@@ -14,22 +14,22 @@ namespace LWAssets
     /// </summary>
     public class WebGLLoader : AssetLoaderBase
     {
-        private CacheManager _cacheManager;
-        private DownloadManager _downloadManager;
+        private CacheManager m_CacheManager;
+        private DownloadManager m_DownloadManager;
 
         // WebGL缓存
-        private readonly Dictionary<string, byte[]> _webglCache = new Dictionary<string, byte[]>();
+        private readonly Dictionary<string, byte[]> m_WebglCache = new Dictionary<string, byte[]>();
 
         public WebGLLoader(LWAssetsConfig config, CacheManager cacheManager, DownloadManager downloadManager)
             : base(config)
         {
-            _cacheManager = cacheManager;
-            _downloadManager = downloadManager;
+            m_CacheManager = cacheManager;
+            m_DownloadManager = downloadManager;
         }
 
         public override async UniTask InitializeAsync(BundleManifest manifest)
         {
-            _manifest = manifest;
+            m_Manifest = manifest;
             await UniTask.CompletedTask;
             UnityEngine.Debug.Log("[LWAssets] WebGLLoader initialized");
         }
@@ -42,7 +42,7 @@ namespace LWAssets
         public override async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
         {
             // 直接通过 manifest 获取 Bundle 信息
-            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
@@ -78,7 +78,7 @@ namespace LWAssets
             return asset;
         }
 
-      
+
 
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
@@ -88,7 +88,7 @@ namespace LWAssets
             }
 
             // 直接通过 manifest 获取 Bundle 信息
-            var bundleInfo = _manifest.GetBundleByAsset(assetPath);
+            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
@@ -98,13 +98,13 @@ namespace LWAssets
 
             // WebGL从缓存或远程加载
             var cacheKey = bundleInfo.GetFileName();
-            if (_webglCache.TryGetValue(cacheKey, out var cachedData))
+            if (m_WebglCache.TryGetValue(cacheKey, out var cachedData))
             {
                 return cachedData;
             }
 
             var sw = Stopwatch.StartNew();
-            var url = _config.GetRemoteURL() + bundleInfo.GetFileName();
+            var url = m_Config.GetRemoteURL() + bundleInfo.GetFileName();
             using (var request = UnityWebRequest.Get(url))
             {
                 await request.SendWebRequest();
@@ -112,7 +112,7 @@ namespace LWAssets
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     var data = request.downloadHandler.data;
-                    _webglCache[cacheKey] = data;
+                    m_WebglCache[cacheKey] = data;
                     sw.Stop();
                     TrackRawFileHandle(assetPath, data, bundleInfo.BundleName, bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
                     return data;
@@ -134,7 +134,7 @@ namespace LWAssets
             try
             {
                 // 直接通过 manifest 获取 Bundle 信息
-                var bundleInfo = _manifest.GetBundleByAsset(scenePath);
+                var bundleInfo = m_Manifest.GetBundleByAsset(scenePath);
                 if (bundleInfo == null)
                 {
                     sceneHandle.SetError(new System.IO.FileNotFoundException($"Scene not found: {scenePath}"));
@@ -170,9 +170,9 @@ namespace LWAssets
 
                 sceneHandle.SetScene(SceneManager.GetSceneByName(sceneName), bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
                 sceneHandle.Retain();
-                lock (_lockObj)
+                lock (m_LockObj)
                 {
-                    _handleBaseCache[scenePath] = sceneHandle;
+                    m_HandleBaseCache[scenePath] = sceneHandle;
                 }
             }
             catch (Exception ex)
@@ -186,11 +186,11 @@ namespace LWAssets
         #endregion
 
         #region Bundle加载
-        
+
         protected override async UniTask<AssetBundle> LoadBundleFromSourceAsync(BundleInfo bundleInfo,
             CancellationToken cancellationToken = default)
         {
-            var url = _config.GetRemoteURL() + bundleInfo.GetFileName();
+            var url = m_Config.GetRemoteURL() + bundleInfo.GetFileName();
 
             // WebGL使用UnityWebRequest加载Bundle
             using (var request = UnityWebRequestAssetBundle.GetAssetBundle(url, bundleInfo.CRC))
@@ -214,7 +214,7 @@ namespace LWAssets
         public override void ForceReleaseAll()
         {
             base.ForceReleaseAll();
-            _webglCache.Clear();
+            m_WebglCache.Clear();
         }
     }
 }

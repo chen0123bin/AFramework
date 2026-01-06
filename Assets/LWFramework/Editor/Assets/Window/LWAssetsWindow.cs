@@ -10,12 +10,12 @@ namespace LWAssets.Editor
     /// </summary>
     public class LWAssetsWindow : EditorWindow
     {
-        private int _selectedTab;
-        private readonly string[] _tabs = { "Dashboard", "Build", "Settings" };
+        private int m_SelectedTab;
+        private readonly string[] m_Tabs = { "Dashboard", "Build", "Settings" };
 
-        private LWAssetsBuildConfig _buildConfig;
-        private LWAssetsConfig _runtimeConfig;
-        private Vector2 _scrollPos;
+        private LWAssetsBuildConfig m_BuildConfig;
+        private LWAssetsConfig m_RuntimeConfig;
+        private Vector2 m_ScrollPos;
 
         [MenuItem("LWAssets/Dashboard")]
         public static void ShowWindow()
@@ -36,21 +36,21 @@ namespace LWAssets.Editor
             if (buildConfigGuids.Length > 0)
             {
                 var path = AssetDatabase.GUIDToAssetPath(buildConfigGuids[0]);
-                _buildConfig = AssetDatabase.LoadAssetAtPath<LWAssetsBuildConfig>(path);
+                m_BuildConfig = AssetDatabase.LoadAssetAtPath<LWAssetsBuildConfig>(path);
             }
 
             // 加载运行时配置
-            _runtimeConfig = LWAssetsConfig.Load();
+            m_RuntimeConfig = LWAssetsConfig.Load();
         }
 
         private void OnGUI()
         {
-            _selectedTab = GUILayout.Toolbar(_selectedTab, _tabs, GUILayout.Height(30));
+            m_SelectedTab = GUILayout.Toolbar(m_SelectedTab, m_Tabs, GUILayout.Height(30));
             EditorGUILayout.Space();
 
-            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
+            m_ScrollPos = EditorGUILayout.BeginScrollView(m_ScrollPos);
 
-            switch (_selectedTab)
+            switch (m_SelectedTab)
             {
                 case 0:
                     DrawDashboard();
@@ -95,9 +95,9 @@ namespace LWAssets.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Build AssetBundles", GUILayout.Height(40)))
             {
-                if (_buildConfig != null)
+                if (m_BuildConfig != null)
                 {
-                    LWAssetsBuildPipeline.Build(_buildConfig);
+                    LWAssetsBuildPipeline.Build(m_BuildConfig);
                 }
                 else
                 {
@@ -133,9 +133,9 @@ namespace LWAssets.Editor
 
             if (GUILayout.Button("Open Build Folder", GUILayout.Height(40)))
             {
-                if (_buildConfig != null)
+                if (m_BuildConfig != null)
                 {
-                    var path = Path.Combine(Application.dataPath, "..", _buildConfig.OutputPath);
+                    var path = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
                     if (Directory.Exists(path))
                     {
                         EditorUtility.RevealInFinder(path);
@@ -148,7 +148,7 @@ namespace LWAssets.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Open Download Folder", GUILayout.Height(40)))
             {
-                EditorUtility.RevealInFinder(_runtimeConfig.GetPersistentDataPath());
+                EditorUtility.RevealInFinder(m_RuntimeConfig.GetPersistentDataPath());
             }
 
             if (GUILayout.Button("Copy to StreamingAssets", GUILayout.Height(40)))
@@ -178,8 +178,8 @@ namespace LWAssets.Editor
 
             // 构建配置对象
             EditorGUILayout.BeginHorizontal();
-            _buildConfig = (LWAssetsBuildConfig)EditorGUILayout.ObjectField(
-                "Build Config", _buildConfig, typeof(LWAssetsBuildConfig), false);
+            m_BuildConfig = (LWAssetsBuildConfig)EditorGUILayout.ObjectField(
+                "Build Config", m_BuildConfig, typeof(LWAssetsBuildConfig), false);
 
             if (GUILayout.Button("Create New", GUILayout.Width(100)))
             {
@@ -189,9 +189,9 @@ namespace LWAssets.Editor
 
             EditorGUILayout.Space();
 
-            if (_buildConfig != null)
+            if (m_BuildConfig != null)
             {
-                var editor = UnityEditor.Editor.CreateEditor(_buildConfig);
+                var editor = UnityEditor.Editor.CreateEditor(m_BuildConfig);
                 editor.OnInspectorGUI();
 
                 EditorGUILayout.Space();
@@ -202,13 +202,13 @@ namespace LWAssets.Editor
                 GUI.backgroundColor = Color.green;
                 if (GUILayout.Button("Build", GUILayout.Height(40)))
                 {
-                    LWAssetsBuildPipeline.Build(_buildConfig);
+                    LWAssetsBuildPipeline.Build(m_BuildConfig);
                 }
                 GUI.backgroundColor = Color.white;
 
                 if (GUILayout.Button("Build & Copy to StreamingAssets", GUILayout.Height(40)))
                 {
-                    LWAssetsBuildPipeline.Build(_buildConfig);
+                    LWAssetsBuildPipeline.Build(m_BuildConfig);
                     CopyToStreamingAssets();
                 }
 
@@ -227,8 +227,8 @@ namespace LWAssets.Editor
 
             // 运行时配置对象
             EditorGUILayout.BeginHorizontal();
-            _runtimeConfig = (LWAssetsConfig)EditorGUILayout.ObjectField(
-                "Runtime Config", _runtimeConfig, typeof(LWAssetsConfig), false);
+            m_RuntimeConfig = (LWAssetsConfig)EditorGUILayout.ObjectField(
+                "Runtime Config", m_RuntimeConfig, typeof(LWAssetsConfig), false);
 
             if (GUILayout.Button("Create New", GUILayout.Width(100)))
             {
@@ -238,9 +238,9 @@ namespace LWAssets.Editor
 
             EditorGUILayout.Space();
 
-            if (_runtimeConfig != null)
+            if (m_RuntimeConfig != null)
             {
-                var editor = UnityEditor.Editor.CreateEditor(_runtimeConfig);
+                var editor = UnityEditor.Editor.CreateEditor(m_RuntimeConfig);
                 editor.OnInspectorGUI();
             }
             else
@@ -254,13 +254,13 @@ namespace LWAssets.Editor
             EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("Recent Builds", EditorStyles.boldLabel);
 
-            if (_buildConfig == null)
+            if (m_BuildConfig == null)
             {
                 EditorGUILayout.LabelField("No build config selected.");
             }
             else
             {
-                var buildPath = Path.Combine(Application.dataPath, "..", _buildConfig.OutputPath);
+                var buildPath = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
 
                 if (Directory.Exists(buildPath))
                 {
@@ -303,7 +303,7 @@ namespace LWAssets.Editor
                 var config = CreateInstance<LWAssetsBuildConfig>();
                 AssetDatabase.CreateAsset(config, path);
                 AssetDatabase.SaveAssets();
-                _buildConfig = config;
+                m_BuildConfig = config;
             }
         }
 
@@ -320,14 +320,14 @@ namespace LWAssets.Editor
             var config = CreateInstance<LWAssetsConfig>();
             AssetDatabase.CreateAsset(config, path);
             AssetDatabase.SaveAssets();
-            _runtimeConfig = config;
+            m_RuntimeConfig = config;
         }
 
         private void ClearBuildCache()
         {
-            if (_buildConfig != null)
+            if (m_BuildConfig != null)
             {
-                var path = Path.Combine(Application.dataPath, "..", _buildConfig.OutputPath);
+                var path = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
                 if (Directory.Exists(path))
                 {
                     Directory.Delete(path, true);
@@ -338,12 +338,12 @@ namespace LWAssets.Editor
 
         private void CopyToStreamingAssets()
         {
-            if (_buildConfig == null) return;
+            if (m_BuildConfig == null) return;
 
             var sourcePath = Path.Combine(Application.dataPath, "..",
-                _buildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
+                m_BuildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
             var destPath = Path.Combine(Application.streamingAssetsPath,
-                _buildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
+                m_BuildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
 
             if (!Directory.Exists(sourcePath))
             {

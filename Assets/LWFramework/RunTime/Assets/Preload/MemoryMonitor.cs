@@ -20,13 +20,13 @@ namespace LWAssets
     /// </summary>
     public class MemoryMonitor : IDisposable
     {
-        private readonly LWAssetsConfig _config;
-        private MemoryState _currentState = MemoryState.Normal;
-        private long _lastUsedMemory;
-        private DateTime _lastCheckTime;
+        private readonly LWAssetsConfig m_Config;
+        private MemoryState m_CurrentState = MemoryState.Normal;
+        private long m_LastUsedMemory;
+        private DateTime m_LastCheckTime;
 
-        public MemoryState CurrentState => _currentState;
-        public long UsedMemory => _lastUsedMemory;
+        public MemoryState CurrentState => m_CurrentState;
+        public long UsedMemory => m_LastUsedMemory;
 
         public event Action<MemoryState> OnMemoryStateChanged;
         public event Action OnMemoryWarning;
@@ -34,9 +34,9 @@ namespace LWAssets
 
         public MemoryMonitor(LWAssetsConfig config)
         {
-            _config = config;
+            m_Config = config;
 
-            if (_config.EnableAutoUnload)
+            if (m_Config.EnableAutoUnload)
             {
                 StartMonitoring().Forget();
             }
@@ -48,7 +48,7 @@ namespace LWAssets
         public MemoryState GetMemoryState()
         {
             UpdateMemoryState();
-            return _currentState;
+            return m_CurrentState;
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace LWAssets
                 MonoHeapSize = Profiler.GetMonoHeapSizeLong(),
                 TempAllocatorSize = Profiler.GetTempAllocatorSize(),
                 GraphicsMemory = Profiler.GetAllocatedMemoryForGraphicsDriver(),
-                State = _currentState
+                State = m_CurrentState
             };
         }
 
@@ -78,23 +78,23 @@ namespace LWAssets
             {
                 await UniTask.Delay(1000);
 
-                var previousState = _currentState;
+                var previousState = m_CurrentState;
                 UpdateMemoryState();
 
-                if (_currentState != previousState)
+                if (m_CurrentState != previousState)
                 {
-                    OnMemoryStateChanged?.Invoke(_currentState);
+                    OnMemoryStateChanged?.Invoke(m_CurrentState);
 
-                    if (_currentState == MemoryState.Warning)
+                    if (m_CurrentState == MemoryState.Warning)
                     {
                         OnMemoryWarning?.Invoke();
                     }
-                    else if (_currentState == MemoryState.Critical)
+                    else if (m_CurrentState == MemoryState.Critical)
                     {
                         OnMemoryCritical?.Invoke();
 
                         // 自动卸载
-                        if (_config.EnableAutoUnload)
+                        if (m_Config.EnableAutoUnload)
                         {
                             await LWAssetsService.Assets.UnloadUnusedAssetsAsync();
                         }
@@ -108,20 +108,20 @@ namespace LWAssets
         /// </summary>
         private void UpdateMemoryState()
         {
-            _lastUsedMemory = Profiler.GetTotalAllocatedMemoryLong();
-            _lastCheckTime = DateTime.Now;
+            m_LastUsedMemory = Profiler.GetTotalAllocatedMemoryLong();
+            m_LastCheckTime = DateTime.Now;
 
-            if (_lastUsedMemory >= _config.MemoryCriticalThreshold)
+            if (m_LastUsedMemory >= m_Config.MemoryCriticalThreshold)
             {
-                _currentState = MemoryState.Critical;
+                m_CurrentState = MemoryState.Critical;
             }
-            else if (_lastUsedMemory >= _config.MemoryWarningThreshold)
+            else if (m_LastUsedMemory >= m_Config.MemoryWarningThreshold)
             {
-                _currentState = MemoryState.Warning;
+                m_CurrentState = MemoryState.Warning;
             }
             else
             {
-                _currentState = MemoryState.Normal;
+                m_CurrentState = MemoryState.Normal;
             }
         }
 

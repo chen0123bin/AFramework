@@ -23,7 +23,7 @@ namespace LWAssets
         
         public override async UniTask InitializeAsync(BundleManifest manifest)
         {
-            _manifest = manifest;
+            m_Manifest = manifest;
             await UniTask.CompletedTask;
             UnityEngine.Debug.Log("[LWAssets] EditorSimulateLoader initialized");
         }

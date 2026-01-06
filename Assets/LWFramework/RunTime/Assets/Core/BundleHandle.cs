@@ -9,46 +9,46 @@ namespace LWAssets
     /// </summary>
     public class BundleHandle : HandleBase
     {
-        private AssetBundle _bundle;
-        private readonly List<BundleHandle> _dependencies = new List<BundleHandle>();
-        internal bool UnloadAllLoadedObjectsOnDispose = false;
-        public bool IsDependLoad = false;
-        public AssetBundle Bundle => _bundle;
-        public override bool IsValid => _bundle != null;
-        public IReadOnlyList<BundleHandle> Dependencies => _dependencies;
+        private AssetBundle m_Bundle;
+        private readonly List<BundleHandle> m_Dependencies = new List<BundleHandle>();
+        internal bool UnloadAllLoadedObjectsOnDispose { get; set; }
+        public bool IsDependLoad { get; set; }
+        public AssetBundle Bundle => m_Bundle;
+        public override bool IsValid => m_Bundle != null;
+        public IReadOnlyList<BundleHandle> Dependencies => m_Dependencies;
         
         public BundleHandle(string bundleName) : base(bundleName)
         {
             BundleName = bundleName;
-            _progress = 0f;
-            _isDone = false;
+            m_Progress = 0f;
+            m_IsDone = false;
         }
         
         internal void SetBundle(AssetBundle bundle)
         {
-            _bundle = bundle;
-            _progress = 1f;
-            _isDone = true;
+            m_Bundle = bundle;
+            m_Progress = 1f;
+            m_IsDone = true;
             InvokeComplete();
         }
         
         internal void AddDependency(BundleHandle dependency)
         {
-            if (dependency != null && !_dependencies.Contains(dependency))
+            if (dependency != null && !m_Dependencies.Contains(dependency))
             {
-                _dependencies.Add(dependency);              
+                m_Dependencies.Add(dependency);
             }
         }
 
         protected override void OnDispose()
         {
-           
-            _dependencies.Clear();
 
-            if (_bundle != null)
+            m_Dependencies.Clear();
+
+            if (m_Bundle != null)
             {
-                _bundle.Unload(false);
-                _bundle = null;
+                m_Bundle.Unload(false);
+                m_Bundle = null;
             }
         }
     }
