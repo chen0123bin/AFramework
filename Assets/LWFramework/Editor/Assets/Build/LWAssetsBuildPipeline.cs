@@ -54,13 +54,12 @@ namespace LWAssets.Editor
                 {
                     Directory.CreateDirectory(outputPath);
                 }
-
+               
                 var manifest = BuildPipeline.BuildAssetBundles(
                     outputPath,
                     bundleBuilds.ToArray(),
                     config.BuildOptions,
                     config.BuildTarget);
-
                 if (manifest == null)
                 {
                     Debug.LogError("[LWAssets] Build failed!");
@@ -116,9 +115,12 @@ namespace LWAssets.Editor
                     .Select(f => f.Replace("\\", "/"))
                     .ToList();
 
-                var ruleBuilds = new List<AssetBundleBuild>();  
+                var ruleBuilds = new List<AssetBundleBuild>();
                 switch (rule.Strategy)
                 {
+                    case PackageStrategy.ByTopFolder:
+                        ruleBuilds = PackageByTopFolder(rule, assets);
+                        break;
                     case PackageStrategy.ByFolder:
                         ruleBuilds = PackageByFolder(rule, assets);
                         break;
@@ -128,7 +130,7 @@ namespace LWAssets.Editor
                         break;
 
                     case PackageStrategy.BySize:
-                      ruleBuilds = PackageBySize(rule, assets);
+                        ruleBuilds = PackageBySize(rule, assets);
                         break;
 
                     case PackageStrategy.RawFile:
@@ -149,7 +151,24 @@ namespace LWAssets.Editor
 
             return builds;
         }
-
+        /// <summary>
+        /// 按最顶层文件夹分包
+        /// </summary>
+        /// <param name="rule"></param>
+        /// <param name="assets"></param>
+        /// <returns></returns>
+        private static List<AssetBundleBuild> PackageByTopFolder(PackageRule rule, List<string> assets)
+        {
+            var builds = new List<AssetBundleBuild>();
+            var topFolder = Path.GetFileName(rule.FolderPath);
+            var bundleName = $"{rule.Name}_{topFolder}".ToLower().Replace(" ", "_");
+            builds.Add(new AssetBundleBuild
+            {
+                assetBundleName = bundleName,
+                assetNames = assets.ToArray()
+            });
+            return builds;
+        }
         /// <summary>
         /// 按文件夹分包
         /// </summary>
@@ -419,18 +438,41 @@ namespace LWAssets.Editor
         }
 
         /// <summary>
-        /// 应用标签规则
+        /// 应用标签规则：根据构建配置中的 TagRules，为当前 BundleInfo 追加标签。
+        /// 
+        /// 规则逻辑：
+        /// 1) 遍历 config.TagRules；
+        /// 2) 遍历 bundleInfo.Assets 中的每个资源路径；
+        /// 3) 若资源路径位于 rule.FolderPath 目录下（以“路径前缀匹配”的方式判断），则将 rule.Tags 合并到 bundleInfo.Tags；
+        /// 4) 合并时会去重，避免重复标签。
+        /// 
+        /// 注意：
+        /// - 本方法会将 rule.FolderPath 中的 "\\" 统一替换为 "/"，以适配 Unity 资源路径常用格式。
+        /// - StartsWith 属于前缀匹配，若 FolderPath 未以 "/" 结尾，可能出现“Assets/A”匹配到“Assets/AB”的情况；
+        ///   这属于配置规范问题，建议在配置侧确保 FolderPath 是一个标准目录前缀（例如以 "/" 结尾）。
+        /// - 本方法有副作用：会直接修改 bundleInfo.Tags。
         /// </summary>
+        /// <param name="config">构建配置，包含 TagRules。</param>
+        /// <param name="bundleInfo">待应用标签规则的 Bundle 信息（会被原地修改）。</param>
         private static void ApplyTagRules(LWAssetsBuildConfig config, BundleInfo bundleInfo)
         {
+            // 遍历所有标签规则，将符合条件的标签合并到当前 Bundle。
             foreach (var rule in config.TagRules)
             {
+                // 逐个资源路径检查是否命中该规则的目录范围。
                 foreach (var asset in bundleInfo.Assets)
                 {
-                    if (asset.StartsWith(rule.FolderPath.Replace("\\", "/")))
+                    // 统一路径分隔符，确保前缀匹配行为与资源路径格式一致。
+                    var normalizedFolderPath = rule.FolderPath.Replace("\\", "/");
+
+                    // 使用“目录前缀”判断该资源是否位于规则目录下。
+                    // 例如：asset = "Assets/Prefabs/A.prefab"，FolderPath = "Assets/Prefabs/" => 命中。
+                    if (asset.StartsWith(normalizedFolderPath))
                     {
+                        // 命中规则后，将规则标签合并进 Bundle 标签列表（去重）。
                         foreach (var tag in rule.Tags)
                         {
+                            // 避免重复添加同名 Tag。
                             if (!bundleInfo.Tags.Contains(tag))
                             {
                                 bundleInfo.Tags.Add(tag);

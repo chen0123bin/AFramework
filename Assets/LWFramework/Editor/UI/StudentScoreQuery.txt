@@ -1,0 +1,581 @@
+{
+  "Root": {
+    "name": "View",
+    "rectTransform": {
+      "anchorMin": [0, 0],
+      "anchorMax": [1, 1],
+      "pivot": [0.5, 0.5],
+      "anchoredPosition": [0, 0],
+      "sizeDelta": [0, 0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    "children": [
+      {
+        "type": "Image",
+        "name": "ImgBackground",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0, 0],
+          "anchorMax": [1, 1],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, 0],
+          "sizeDelta": [0, 0],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "image": {
+          "sprite": "UI/Skin/Background.psd",
+          "color": [0, 0, 0, 0.8],
+          "material": null,
+          "raycastTarget": true,
+          "imageType": "Sliced",
+          "fillCenter": true
+        }
+      },
+      {
+        "type": "Image",
+        "name": "PnlMain",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.1, 0.1],
+          "anchorMax": [0.9, 0.9],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, 0],
+          "sizeDelta": [0, 0],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "image": {
+          "sprite": "UI/Skin/Background.psd",
+          "color": [1, 1, 1, 1],
+          "material": null,
+          "raycastTarget": true,
+          "imageType": "Sliced"
+        },
+        "children": [
+          {
+            "type": "Text",
+            "name": "TxtTitle",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0.92],
+              "anchorMax": [1, 1],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "text": {
+              "content": "学生成绩查询",
+              "font": "Arial.ttf",
+              "fontSize": 32,
+              "fontStyle": "Bold",
+              "color": [0.2, 0.2, 0.2, 1],
+              "alignment": "MiddleCenter",
+              "horizontalOverflow": "Wrap",
+              "verticalOverflow": "Truncate",
+              "raycastTarget": true
+            }
+          },
+          {
+            "type": "InputField",
+            "name": "IpfSearch",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.05, 0.82],
+              "anchorMax": [0.75, 0.9],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/InputFieldBackground.psd",
+              "color": [0.9, 0.9, 0.9, 1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "inputField": {
+              "interactable": true,
+              "textComponent": "Text",
+              "text": "",
+              "characterLimit": 50,
+              "contentType": "Standard",
+              "lineType": "SingleLine",
+              "placeholder": "Placeholder",
+              "caretBlinkRate": 0.85,
+              "selectionColor": [0.659, 0.808, 1, 0.502]
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "Placeholder",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [10, 0],
+                  "sizeDelta": [-20, 0],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "请输入学生姓名或学号...",
+                  "font": "Arial.ttf",
+                  "fontSize": 20,
+                  "fontStyle": "Italic",
+                  "color": [0.5, 0.5, 0.5, 1],
+                  "alignment": "MiddleLeft",
+                  "raycastTarget": false
+                }
+              },
+              {
+                "type": "Text",
+                "name": "Text",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [10, 0],
+                  "sizeDelta": [-20, 0],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "",
+                  "font": "Arial.ttf",
+                  "fontSize": 20,
+                  "fontStyle": "Normal",
+                  "color": [0.2, 0.2, 0.2, 1],
+                  "alignment": "MiddleLeft",
+                  "raycastTarget": false
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "name": "BtnSearch",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.77, 0.82],
+              "anchorMax": [0.95, 0.9],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/UISprite.psd",
+              "color": [0.3, 0.6, 1, 1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "button": {
+              "interactable": true,
+              "transition": "ColorTint",
+              "colors": {
+                "normalColor": [1, 1, 1, 1],
+                "highlightedColor": [0.9, 0.9, 0.9, 1],
+                "pressedColor": [0.7, 0.7, 0.7, 1],
+                "selectedColor": [0.9, 0.9, 0.9, 1],
+                "disabledColor": [0.7, 0.7, 0.7, 0.5],
+                "colorMultiplier": 1,
+                "fadeDuration": 0.1
+              }
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtSearch",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [0, 0],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "搜索",
+                  "font": "Arial.ttf",
+                  "fontSize": 24,
+                  "fontStyle": "Bold",
+                  "color": [1, 1, 1, 1],
+                  "alignment": "MiddleCenter",
+                  "raycastTarget": true
+                }
+              }
+            ]
+          },
+          {
+            "type": "Image",
+            "name": "PnlListHeader",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.05, 0.73],
+              "anchorMax": [0.95, 0.8],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/Background.psd",
+              "color": [0.9, 0.9, 0.9, 1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtHeaderName",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [0.2, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [0, 0]
+                },
+                "text": {
+                  "content": "姓名",
+                  "font": "Arial.ttf",
+                  "fontSize": 20,
+                  "fontStyle": "Bold",
+                  "color": [0.2, 0.2, 0.2, 1],
+                  "alignment": "MiddleCenter"
+                }
+              },
+              {
+                "type": "Text",
+                "name": "TxtHeaderClass",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.2, 0],
+                  "anchorMax": [0.4, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [0, 0]
+                },
+                "text": {
+                  "content": "班级",
+                  "font": "Arial.ttf",
+                  "fontSize": 20,
+                  "fontStyle": "Bold",
+                  "color": [0.2, 0.2, 0.2, 1],
+                  "alignment": "MiddleCenter"
+                }
+              },
+              {
+                "type": "Text",
+                "name": "TxtHeaderGender",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.4, 0],
+                  "anchorMax": [0.6, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [0, 0]
+                },
+                "text": {
+                  "content": "性别",
+                  "font": "Arial.ttf",
+                  "fontSize": 20,
+                  "fontStyle": "Bold",
+                  "color": [0.2, 0.2, 0.2, 1],
+                  "alignment": "MiddleCenter"
+                }
+              },
+              {
+                "type": "Text",
+                "name": "TxtHeaderAge",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.6, 0],
+                  "anchorMax": [0.8, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [0, 0]
+                },
+                "text": {
+                  "content": "年龄",
+                  "font": "Arial.ttf",
+                  "fontSize": 20,
+                  "fontStyle": "Bold",
+                  "color": [0.2, 0.2, 0.2, 1],
+                  "alignment": "MiddleCenter"
+                }
+              },
+              {
+                "type": "Text",
+                "name": "TxtHeaderScore",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.8, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [0, 0]
+                },
+                "text": {
+                  "content": "总分数",
+                  "font": "Arial.ttf",
+                  "fontSize": 20,
+                  "fontStyle": "Bold",
+                  "color": [0.2, 0.2, 0.2, 1],
+                  "alignment": "MiddleCenter"
+                }
+              }
+            ]
+          },
+          {
+            "type": "ScrollRect",
+            "name": "ScrList",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.05, 0.05],
+              "anchorMax": [0.95, 0.72],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/Background.psd",
+              "color": [1, 1, 1, 0.5],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "scrollRect": {
+              "content": "Content",
+              "horizontal": false,
+              "vertical": true,
+              "movementType": "Clamped",
+              "viewport": "Viewport",
+              "verticalScrollbar": "Scrollbar"
+            },
+            "children": [
+              {
+                "type": "Mask",
+                "name": "Viewport",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [-20, 0],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/UIMask.psd",
+                  "color": [1, 1, 1, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "children": [
+                  {
+                    "type": "RectTransform",
+                    "name": "Content",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 1],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 1],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [0, 300],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "children": [
+                      {
+                        "type": "Image",
+                        "name": "ItemStudent",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0, 1],
+                          "anchorMax": [1, 1],
+                          "pivot": [0.5, 1],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [0, 60],
+                          "rotation": [0, 0, 0],
+                          "scale": [1, 1, 1]
+                        },
+                        "image": {
+                          "sprite": "UI/Skin/Background.psd",
+                          "color": [1, 1, 1, 1],
+                          "material": null,
+                          "raycastTarget": true,
+                          "imageType": "Sliced"
+                        },
+                        "children": [
+                          {
+                            "type": "Text",
+                            "name": "TxtName",
+                            "active": true,
+                            "rectTransform": { "anchorMin": [0, 0], "anchorMax": [0.2, 1], "sizeDelta": [0, 0] },
+                            "text": { "content": "张三", "font": "Arial.ttf", "fontSize": 18, "color": [0.2, 0.2, 0.2, 1], "alignment": "MiddleCenter" }
+                          },
+                          {
+                            "type": "Text",
+                            "name": "TxtClass",
+                            "active": true,
+                            "rectTransform": { "anchorMin": [0.2, 0], "anchorMax": [0.4, 1], "sizeDelta": [0, 0] },
+                            "text": { "content": "三年二班", "font": "Arial.ttf", "fontSize": 18, "color": [0.2, 0.2, 0.2, 1], "alignment": "MiddleCenter" }
+                          },
+                          {
+                            "type": "Text",
+                            "name": "TxtGender",
+                            "active": true,
+                            "rectTransform": { "anchorMin": [0.4, 0], "anchorMax": [0.6, 1], "sizeDelta": [0, 0] },
+                            "text": { "content": "男", "font": "Arial.ttf", "fontSize": 18, "color": [0.2, 0.2, 0.2, 1], "alignment": "MiddleCenter" }
+                          },
+                          {
+                            "type": "Text",
+                            "name": "TxtAge",
+                            "active": true,
+                            "rectTransform": { "anchorMin": [0.6, 0], "anchorMax": [0.8, 1], "sizeDelta": [0, 0] },
+                            "text": { "content": "12", "font": "Arial.ttf", "fontSize": 18, "color": [0.2, 0.2, 0.2, 1], "alignment": "MiddleCenter" }
+                          },
+                          {
+                            "type": "Text",
+                            "name": "TxtScore",
+                            "active": true,
+                            "rectTransform": { "anchorMin": [0.8, 0], "anchorMax": [1, 1], "sizeDelta": [0, 0] },
+                            "text": { "content": "285", "font": "Arial.ttf", "fontSize": 18, "color": [0.2, 0.2, 0.2, 1], "alignment": "MiddleCenter" }
+                          },
+                          {
+                            "type": "Image",
+                            "name": "ImgLine",
+                            "active": true,
+                            "rectTransform": { "anchorMin": [0, 0], "anchorMax": [1, 0], "sizeDelta": [0, 2], "pivot": [0.5, 0], "anchoredPosition": [0, 0] },
+                            "image": { "color": [0.9, 0.9, 0.9, 1] }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Scrollbar",
+                "name": "Scrollbar",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [1, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [1, 1],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [20, 0],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/Background.psd",
+                  "color": [1, 1, 1, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "scrollbar": {
+                  "handleRect": "Sliding Area/Handle",
+                  "direction": "BottomToTop",
+                  "value": 1,
+                  "size": 0.1
+                },
+                "children": [
+                  {
+                    "type": "RectTransform",
+                    "name": "Sliding Area",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [-20, -20]
+                    },
+                    "children": [
+                      {
+                        "type": "Image",
+                        "name": "Handle",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0, 0],
+                          "anchorMax": [1, 0],
+                          "pivot": [0.5, 0.5],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [20, 20]
+                        },
+                        "image": {
+                          "sprite": "UI/Skin/UISprite.psd",
+                          "color": [0.8, 0.8, 0.8, 1],
+                          "material": null,
+                          "raycastTarget": true,
+                          "imageType": "Sliced"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+             "type": "Button",
+             "name": "BtnClose",
+             "active": true,
+             "rectTransform": {
+               "anchorMin": [1, 1],
+               "anchorMax": [1, 1],
+               "pivot": [1, 1],
+               "anchoredPosition": [-10, -10],
+               "sizeDelta": [40, 40]
+             },
+             "image": {
+               "sprite": "UI/Skin/UISprite.psd",
+               "color": [0.9, 0.3, 0.3, 1],
+               "material": null,
+               "raycastTarget": true
+             },
+             "children": [
+               {
+                 "type": "Text",
+                 "name": "TxtClose",
+                 "active": true,
+                 "rectTransform": {
+                   "anchorMin": [0, 0],
+                   "anchorMax": [1, 1],
+                   "sizeDelta": [0, 0]
+                 },
+                 "text": {
+                   "content": "X",
+                   "fontSize": 24,
+                   "color": [1, 1, 1, 1],
+                   "alignment": "MiddleCenter"
+                 }
+               }
+             ]
+          }
+        ]
+      }
+    ]
+  }
+}

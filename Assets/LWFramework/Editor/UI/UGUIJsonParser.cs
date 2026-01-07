@@ -27,7 +27,7 @@ public class UGUIJsonParser : EditorWindow
     private const string TypeScrollRect = "ScrollRect";
     private const string TypeScrollbar = "Scrollbar";
     private const string TypeToggle = "Toggle";
-    private const string TypeRectMask2D = "RectMask2D";
+    private const string TypeMask = "Mask";
 
     private const string KeyImage = "image";
     private const string KeyRawImage = "rawImage";
@@ -182,8 +182,8 @@ public class UGUIJsonParser : EditorWindow
                 return CreateScrollbar(data, parent);
             case TypeToggle:
                 return CreateToggle(data, parent);
-            case TypeRectMask2D:
-                return CreateRectMask2D(data, parent);
+            case TypeMask:
+                return CreateMask(data, parent);
             case TypeContainer:
             default:
                 return CreateContainer(data, parent);
@@ -415,13 +415,17 @@ public class UGUIJsonParser : EditorWindow
     }
 
     /// <summary>
-    /// 创建 RectMask2D 节点。
+    /// 创建 Mask 节点。
     /// </summary>
-    private GameObject CreateRectMask2D(JsonData data, Transform parent)
+    private GameObject CreateMask(JsonData data, Transform parent)
     {
-        GameObject obj = CreateUIObject(data, parent, "Viewport");
-        obj.AddComponent<RectMask2D>();
-
+        GameObject obj = CreateUIObject(data, parent, "Viewport");       
+        Image image = obj.AddComponent<Image>();
+        if (data.ContainsKey(KeyImage))
+        {
+            ApplyImage(image, data[KeyImage]);
+        }
+        obj.AddComponent<Mask>();
         return obj;
     }
 

@@ -2,6 +2,7 @@
 alwaysApply: false
 globs: UGUITemp.txt
 ---
+UGUITemp.txt是一份存储unity ugui描述的文件，开源根据这份规则，在TestUIData文件夹生成新的json文件
 对象命名 (Object Naming)
 规则:使用 驼峰命名法 (CamelCase)。
 举例:

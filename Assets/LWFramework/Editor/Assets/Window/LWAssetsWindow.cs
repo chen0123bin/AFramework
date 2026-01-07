@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
@@ -17,6 +18,9 @@ namespace LWAssets.Editor
         private LWAssetsConfig m_RuntimeConfig;
         private Vector2 m_ScrollPos;
 
+        private bool m_IsBuilding;
+        private bool m_CopyToStreamingAssetsAfterBuild;
+
         [MenuItem("LWAssets/Dashboard")]
         public static void ShowWindow()
         {
@@ -27,6 +31,11 @@ namespace LWAssets.Editor
         private void OnEnable()
         {
             LoadConfigs();
+        }
+
+        private void OnDisable()
+        {
+            EditorApplication.delayCall -= ExecuteBuild;
         }
 
         private void LoadConfigs()
@@ -49,21 +58,73 @@ namespace LWAssets.Editor
             EditorGUILayout.Space();
 
             m_ScrollPos = EditorGUILayout.BeginScrollView(m_ScrollPos);
-
-            switch (m_SelectedTab)
+            try
             {
-                case 0:
-                    DrawDashboard();
-                    break;
-                case 1:
-                    DrawBuildPanel();
-                    break;
-                case 2:
-                    DrawSettings();
-                    break;
+                switch (m_SelectedTab)
+                {
+                    case 0:
+                        DrawDashboard();
+                        break;
+                    case 1:
+                        DrawBuildPanel();
+                        break;
+                    case 2:
+                        DrawSettings();
+                        break;
+                }
+            }
+            finally
+            {
+                EditorGUILayout.EndScrollView();
+            }
+        }
+        /// <summary>
+        /// 请求构建
+        /// </summary>
+        /// <param name="copyToStreamingAssets"></param>
+        private void RequestBuild(bool copyToStreamingAssets)
+        {
+            if (m_BuildConfig == null)
+            {
+                Debug.LogError("[LWAssets] Build config not found!");
+                return;
             }
 
-            EditorGUILayout.EndScrollView();
+            if (m_IsBuilding) return;
+
+            m_IsBuilding = true;
+            m_CopyToStreamingAssetsAfterBuild = copyToStreamingAssets;
+
+            EditorApplication.delayCall -= ExecuteBuild;
+            EditorApplication.delayCall += ExecuteBuild;
+            Repaint();
+        }
+        /// <summary>
+        /// 执行构建
+        /// </summary>
+        private void ExecuteBuild()
+        {
+            EditorApplication.delayCall -= ExecuteBuild;
+
+            try
+            {
+                LWAssetsBuildPipeline.Build(m_BuildConfig);
+
+                if (m_CopyToStreamingAssetsAfterBuild)
+                {
+                    CopyToStreamingAssets();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+            finally
+            {
+                m_IsBuilding = false;
+                m_CopyToStreamingAssetsAfterBuild = false;
+                Repaint();
+            }
         }
 
         private void DrawDashboard()
@@ -95,14 +156,7 @@ namespace LWAssets.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Build AssetBundles", GUILayout.Height(40)))
             {
-                if (m_BuildConfig != null)
-                {
-                    LWAssetsBuildPipeline.Build(m_BuildConfig);
-                }
-                else
-                {
-                    Debug.LogError("[LWAssets] Build config not found!");
-                }
+                RequestBuild(false);
             }
 
             if (GUILayout.Button("Open Bundle Viewer", GUILayout.Height(40)))
@@ -202,14 +256,13 @@ namespace LWAssets.Editor
                 GUI.backgroundColor = Color.green;
                 if (GUILayout.Button("Build", GUILayout.Height(40)))
                 {
-                    LWAssetsBuildPipeline.Build(m_BuildConfig);
+                    RequestBuild(false);
                 }
                 GUI.backgroundColor = Color.white;
 
                 if (GUILayout.Button("Build & Copy to StreamingAssets", GUILayout.Height(40)))
                 {
-                    LWAssetsBuildPipeline.Build(m_BuildConfig);
-                    CopyToStreamingAssets();
+                    RequestBuild(true);
                 }
 
                 EditorGUILayout.EndHorizontal();

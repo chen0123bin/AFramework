@@ -1,6 +1,6 @@
 {
   "Root": {
-    "name": "View",
+    "name": "TempView",
     "rectTransform": {
       "anchorMin": [0, 0],
       "anchorMax": [1, 1],
@@ -776,7 +776,7 @@
         },
         "children": [
           {
-            "type": "RectMask2D",
+            "type": "Mask",
             "name": "Viewport",
             "active": true,
             "rectTransform": {
@@ -787,6 +787,13 @@
               "sizeDelta": [-17, 0],
               "rotation": [0, 0, 0],
               "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/Background.psd",
+              "color": [1, 1, 1, 0.1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
             },
             "children": [
               {

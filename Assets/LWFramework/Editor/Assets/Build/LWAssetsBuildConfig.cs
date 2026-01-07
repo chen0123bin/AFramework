@@ -56,6 +56,10 @@ namespace LWAssets.Editor
     public enum PackageStrategy
     {
         /// <summary>
+        /// 按最顶层文件夹打包
+        /// </summary>
+        ByTopFolder,
+        /// <summary>
         /// 按文件夹打包
         /// </summary>
         ByFolder,

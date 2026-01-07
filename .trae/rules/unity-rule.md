@@ -1,6 +1,6 @@
 ---
 alwaysApply: false
-description: 变量命名规则、常量命名规则、布尔值命名规则、集合/数组命名规则。
+description: C#代码、脚本、变量命名规则、常量命名规则、布尔值命名规则、集合/数组命名规则。
 ---
 变量命名 (Variable Naming)
 规则:
