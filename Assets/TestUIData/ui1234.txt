@@ -1,0 +1,763 @@
+{
+  "Root": {
+    "name": "DigitalTwinView",
+    "rectTransform": {
+      "anchorMin": [0, 0],
+      "anchorMax": [1, 1],
+      "pivot": [0.5, 0.5],
+      "anchoredPosition": [0, 0],
+      "sizeDelta": [0, 0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    "children": [
+      {
+        "type": "Container",
+        "name": "TopBar",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0, 1],
+          "anchorMax": [1, 1],
+          "pivot": [0.5, 1],
+          "anchoredPosition": [0, 0],
+          "sizeDelta": [0, 80],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "children": [
+          {
+            "type": "Image",
+            "name": "ImgDecor",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [1, 1],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/TechHeaderBg.psd",
+              "color": [0, 0.8, 1, 0.8],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            }
+          },
+          {
+            "type": "Text",
+            "name": "TxtTitle",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.5, 0.5],
+              "anchorMax": [0.5, 0.5],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [400, 50],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "text": {
+              "content": "桥梁健康监测平台",
+              "font": "Arial.ttf",
+              "fontSize": 32,
+              "fontStyle": "Bold",
+              "color": [1, 1, 1, 1],
+              "alignment": "MiddleCenter",
+              "horizontalOverflow": "Overflow",
+              "verticalOverflow": "Truncate",
+              "raycastTarget": false
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "name": "LeftPanel",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0, 0],
+          "anchorMax": [0.25, 1],
+          "pivot": [0, 0.5],
+          "anchoredPosition": [20, -40],
+          "sizeDelta": [0, -100],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "children": [
+          {
+            "type": "Image",
+            "name": "PnlDeviceStats",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0.7],
+              "anchorMax": [1, 1],
+              "pivot": [0.5, 1],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, -10],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/TechPanelBg.psd",
+              "color": [0, 0.2, 0.4, 0.6],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 1],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [10, -5],
+                  "sizeDelta": [-20, 30],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "设备种类统计",
+                  "font": "Arial.ttf",
+                  "fontSize": 18,
+                  "fontStyle": "Bold",
+                  "color": [0, 0.8, 1, 1],
+                  "alignment": "MiddleLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              },
+              {
+                "type": "Image",
+                "name": "ImgChartDonut",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, -20],
+                  "sizeDelta": [-20, -40],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Charts/DonutChart.png",
+                  "color": [1, 1, 1, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Simple",
+                  "preserveAspect": true
+                }
+              },
+              {
+                "type": "Text",
+                "name": "TxtLegend",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, -20],
+                  "sizeDelta": [-20, -40],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "■ 风速风向 120\n■ 静力水准仪 150\n■ 振动传感器 100\n■ 应变计 79",
+                  "font": "Arial.ttf",
+                  "fontSize": 14,
+                  "fontStyle": "Normal",
+                  "color": [1, 1, 1, 1],
+                  "alignment": "MiddleLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false,
+                  "lineSpacing": 1.5
+                }
+              }
+            ]
+          },
+          {
+            "type": "Image",
+            "name": "PnlDeflection",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0.35],
+              "anchorMax": [1, 0.65],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/TechPanelBg.psd",
+              "color": [0, 0.2, 0.4, 0.6],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 1],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [10, -5],
+                  "sizeDelta": [-20, 30],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "挠度趋势图",
+                  "font": "Arial.ttf",
+                  "fontSize": 18,
+                  "fontStyle": "Bold",
+                  "color": [0, 0.8, 1, 1],
+                  "alignment": "MiddleLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              },
+              {
+                "type": "Image",
+                "name": "ImgChartLine",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, -20],
+                  "sizeDelta": [-20, -40],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Charts/LineChart.png",
+                  "color": [0, 1, 0.8, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Simple",
+                  "preserveAspect": false
+                }
+              }
+            ]
+          },
+          {
+            "type": "Image",
+            "name": "PnlAlarmLog",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [1, 0.3],
+              "pivot": [0.5, 0],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 10],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/TechPanelBg.psd",
+              "color": [0, 0.2, 0.4, 0.6],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 1],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [10, -5],
+                  "sizeDelta": [-20, 30],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "告警日志",
+                  "font": "Arial.ttf",
+                  "fontSize": 18,
+                  "fontStyle": "Bold",
+                  "color": [0, 0.8, 1, 1],
+                  "alignment": "MiddleLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              },
+              {
+                "type": "ScrollRect",
+                "name": "ScvLogs",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, -20],
+                  "sizeDelta": [-10, -40],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/Background.psd",
+                  "color": [0, 0, 0, 0],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "scrollRect": {
+                  "content": "Content",
+                  "horizontal": false,
+                  "vertical": true,
+                  "movementType": "Elastic",
+                  "elasticity": 0.1,
+                  "inertia": true,
+                  "decelerationRate": 0.135,
+                  "scrollSensitivity": 1,
+                  "viewport": "Viewport",
+                  "horizontalScrollbar": null,
+                  "verticalScrollbar": "Scrollbar Vertical"
+                },
+                "children": [
+                  {
+                    "type": "RectMask2D",
+                    "name": "Viewport",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0, 1],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [-10, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "children": [
+                      {
+                        "type": "Container",
+                        "name": "Content",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0, 1],
+                          "anchorMax": [1, 1],
+                          "pivot": [0, 1],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [0, 300],
+                          "rotation": [0, 0, 0],
+                          "scale": [1, 1, 1]
+                        },
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Scrollbar",
+                    "name": "Scrollbar Vertical",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [1, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [1, 1],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [10, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Skin/Background.psd",
+                      "color": [0, 0.1, 0.2, 0.5],
+                      "material": null,
+                      "raycastTarget": true,
+                      "imageType": "Sliced"
+                    },
+                    "scrollbar": {
+                      "handleRect": "Handle",
+                      "direction": "BottomToTop",
+                      "value": 1,
+                      "size": 0.5
+                    },
+                    "children": [
+                      {
+                        "type": "Image",
+                        "name": "Handle",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0, 0],
+                          "anchorMax": [1, 1],
+                          "pivot": [0.5, 0.5],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [0, 0],
+                          "rotation": [0, 0, 0],
+                          "scale": [1, 1, 1]
+                        },
+                        "image": {
+                          "sprite": "UI/Skin/UISprite.psd",
+                          "color": [0, 0.8, 1, 0.8],
+                          "material": null,
+                          "raycastTarget": true,
+                          "imageType": "Sliced"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "name": "RightPanel",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.75, 0],
+          "anchorMax": [1, 1],
+          "pivot": [1, 0.5],
+          "anchoredPosition": [-20, -40],
+          "sizeDelta": [0, -100],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "children": [
+          {
+            "type": "Image",
+            "name": "PnlWind",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0.7],
+              "anchorMax": [1, 1],
+              "pivot": [0.5, 1],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, -10],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/TechPanelBg.psd",
+              "color": [0, 0.2, 0.4, 0.6],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 1],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [10, -5],
+                  "sizeDelta": [-20, 30],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "风速风向",
+                  "font": "Arial.ttf",
+                  "fontSize": 18,
+                  "fontStyle": "Bold",
+                  "color": [0, 0.8, 1, 1],
+                  "alignment": "MiddleLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              },
+              {
+                "type": "Image",
+                "name": "ImgChartRadar",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, -20],
+                  "sizeDelta": [-20, -40],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Charts/RadarChart.png",
+                  "color": [1, 1, 1, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Simple",
+                  "preserveAspect": true
+                }
+              }
+            ]
+          },
+          {
+            "type": "Image",
+            "name": "PnlVibration",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0.35],
+              "anchorMax": [1, 0.65],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/TechPanelBg.psd",
+              "color": [0, 0.2, 0.4, 0.6],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 1],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [10, -5],
+                  "sizeDelta": [-20, 30],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "振动",
+                  "font": "Arial.ttf",
+                  "fontSize": 18,
+                  "fontStyle": "Bold",
+                  "color": [0, 0.8, 1, 1],
+                  "alignment": "MiddleLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              },
+              {
+                "type": "Image",
+                "name": "ImgChartWave",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, -20],
+                  "sizeDelta": [-20, -40],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Charts/WaveChart.png",
+                  "color": [0, 1, 0, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Simple",
+                  "preserveAspect": false
+                }
+              }
+            ]
+          },
+          {
+            "type": "Image",
+            "name": "PnlStress",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [1, 0.3],
+              "pivot": [0.5, 0],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 10],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/TechPanelBg.psd",
+              "color": [0, 0.2, 0.4, 0.6],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 1],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [10, -5],
+                  "sizeDelta": [-20, 30],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "应力应变",
+                  "font": "Arial.ttf",
+                  "fontSize": 18,
+                  "fontStyle": "Bold",
+                  "color": [0, 0.8, 1, 1],
+                  "alignment": "MiddleLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              },
+              {
+                "type": "Image",
+                "name": "ImgChartStress",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, -20],
+                  "sizeDelta": [-20, -40],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Charts/StressChart.png",
+                  "color": [1, 0.8, 0, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Simple",
+                  "preserveAspect": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "name": "FloatingLabels",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0, 0],
+          "anchorMax": [1, 1],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, 0],
+          "sizeDelta": [0, 0],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "children": [
+          {
+            "type": "Image",
+            "name": "ImgLabelWind",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.4, 0.7],
+              "anchorMax": [0.4, 0.7],
+              "pivot": [0.5, 0],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [150, 60],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/LabelBg.png",
+              "color": [0, 0.8, 1, 0.8],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtContent",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [-10, -10],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "风速\n8 米/秒",
+                  "font": "Arial.ttf",
+                  "fontSize": 14,
+                  "fontStyle": "Normal",
+                  "color": [1, 1, 1, 1],
+                  "alignment": "MiddleCenter",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              }
+            ]
+          },
+          {
+            "type": "Image",
+            "name": "ImgLabelPressure",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.35, 0.5],
+              "anchorMax": [0.35, 0.5],
+              "pivot": [0.5, 0],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [150, 60],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/LabelBg.png",
+              "color": [0, 0.8, 1, 0.8],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtContent",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [-10, -10],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "压力监测\n97 MPa",
+                  "font": "Arial.ttf",
+                  "fontSize": 14,
+                  "fontStyle": "Normal",
+                  "color": [1, 1, 1, 1],
+                  "alignment": "MiddleCenter",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -36,7 +36,7 @@
       },
       {
         "type": "Button",
-        "name": "SubmitButton",
+        "name": "BtnSubmit",
         "active": true,
         "rectTransform": {
           "anchorMin": [0.5, 0.5],
@@ -106,7 +106,7 @@
       },
       {
         "type": "InputField",
-        "name": "UsernameInput",
+        "name": "IpfUsername",
         "active": true,
         "rectTransform": {
           "anchorMin": [0.5, 0.5],
@@ -191,9 +191,9 @@
           }
         ]
       },
-      {
+     {
         "type": "Dropdown",
-        "name": "OptionDropdown",
+        "name": "DpdOption",
         "active": true,
         "rectTransform": {
           "anchorMin": [0.5, 0.5],
@@ -213,9 +213,10 @@
         },
         "dropdown": {
           "interactable": true,
+          "targetGraphic": "DpdOption",
           "template": "Template",
           "captionText": "Label",
-          "itemText": "Item/Label",
+          "itemText": "Item/Item Label",
           "value": 0,
           "options": [
             {"text": "Option A", "image": null},
@@ -248,12 +249,275 @@
               "verticalOverflow": "Truncate",
               "raycastTarget": false
             }
+          },
+          {
+            "type": "Image",
+            "name": "Arrow",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [1, 0.5],
+              "anchorMax": [1, 0.5],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [-20, 0],
+              "sizeDelta": [20, 20],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "Assets/Arts/Imgs/Base/下拉.png",
+              "color": [0.196, 0.196, 0.196, 1],
+              "material": null,
+              "raycastTarget": false,
+              "imageType": "Simple"
+            }
+          },
+          {
+            "type": "ScrollRect",
+            "name": "Template",
+            "active": false,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [1, 0],
+              "pivot": [0.5, 1],
+              "anchoredPosition": [0, 2],
+              "sizeDelta": [0, 150],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "UI/Skin/Background.psd",
+              "color": [1, 1, 1, 1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Sliced"
+            },
+            "scrollRect": {
+              "content": "Content",
+              "horizontal": false,
+              "vertical": true,
+              "movementType": "Clamped",
+              "elasticity": 0.1,
+              "inertia": false,
+              "decelerationRate": 0.135,
+              "scrollSensitivity": 1,
+              "viewport": "Viewport",
+              "horizontalScrollbar": null,
+              "verticalScrollbar": "Scrollbar"
+            },
+            "children": [
+              {
+                "type": "Mask",
+                "name": "Viewport",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [0, 1],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [-18, 0],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/UIMask.psd",
+                  "color": [1, 1, 1, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "children": [
+                  {
+                    "type": "RectTransform",
+                    "name": "Content",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 1],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 1],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [0, 28],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "children": [
+                      {
+                        "type": "Toggle",
+                        "name": "Item",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0, 0.5],
+                          "anchorMax": [1, 0.5],
+                          "pivot": [0.5, 0.5],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [0, 24],
+                          "rotation": [0, 0, 0],
+                          "scale": [1, 1, 1]
+                        },
+                        "toggle": {
+                          "interactable": true,
+                          "targetGraphic": "Item Background",
+                          "transition": "ColorTint",
+                          "isOn": true,
+                          "toggleTransition": "Fade",
+                          "graphic": "Item Checkmark",
+                          "colors": {
+                            "normalColor": [1, 1, 1, 1],
+                            "highlightedColor": [0.96, 0.96, 0.96, 1],
+                            "pressedColor": [0.87, 0.87, 0.87, 1],
+                            "selectedColor": [0.96, 0.96, 0.96, 1],
+                            "disabledColor": [0.78, 0.78, 0.78, 0.5],
+                            "colorMultiplier": 1,
+                            "fadeDuration": 0.1
+                          }
+                        },
+                        "children": [
+                          {
+                            "type": "Image",
+                            "name": "Item Background",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [0, 0],
+                              "anchorMax": [1, 1],
+                              "pivot": [0.5, 0.5],
+                              "anchoredPosition": [0, 0],
+                              "sizeDelta": [0, 0],
+                              "rotation": [0, 0, 0],
+                              "scale": [1, 1, 1]
+                            },
+                            "image": {
+                              "sprite": "UI/Skin/Background.psd",
+                              "color": [1, 1, 1, 1],
+                              "material": null,
+                              "raycastTarget": true,
+                              "imageType": "Sliced"
+                            }
+                          },
+                          {
+                            "type": "Image",
+                            "name": "Item Checkmark",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [0, 0.5],
+                              "anchorMax": [0, 0.5],
+                              "pivot": [0.5, 0.5],
+                              "anchoredPosition": [10, 0],
+                              "sizeDelta": [16, 16],
+                              "rotation": [0, 0, 0],
+                              "scale": [1, 1, 1]
+                            },
+                            "image": {
+                              "sprite": "Assets/Arts/Imgs/Base/勾选.png",
+                              "color": [0.196, 0.196, 0.196, 1],
+                              "material": null,
+                              "raycastTarget": true,
+                              "imageType": "Simple"
+                            }
+                          },
+                          {
+                            "type": "Text",
+                            "name": "Item Label",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [0, 0],
+                              "anchorMax": [1, 1],
+                              "pivot": [0.5, 0.5],
+                              "anchoredPosition": [25, 0],
+                              "sizeDelta": [-50, 0],
+                              "rotation": [0, 0, 0],
+                              "scale": [1, 1, 1]
+                            },
+                            "text": {
+                              "content": "Option A",
+                              "font": "Arial.ttf",
+                              "fontSize": 18,
+                              "fontStyle": "Normal",
+                              "color": [0.196, 0.196, 0.196, 1],
+                              "alignment": "MiddleLeft",
+                              "horizontalOverflow": "Wrap",
+                              "verticalOverflow": "Truncate",
+                              "raycastTarget": true
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Scrollbar",
+                "name": "Scrollbar",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [1, 0],
+                  "anchorMax": [1, 1],
+                  "pivot": [1, 1],
+                  "anchoredPosition": [0, 0],
+                  "sizeDelta": [20, 0],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/Background.psd",
+                  "color": [1, 1, 1, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "scrollbar": {
+                  "handleRect": "Sliding Area/Handle",
+                  "direction": "BottomToTop",
+                  "value": 0,
+                  "size": 1,
+                  "numberOfSteps": 0
+                },
+                "children": [
+                  {
+                    "type": "RectTransform",
+                    "name": "Sliding Area",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [-20, -20],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "children": [
+                      {
+                        "type": "Image",
+                        "name": "Handle",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0, 0],
+                          "anchorMax": [1, 0],
+                          "pivot": [0.5, 0.5],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [20, 20],
+                          "rotation": [0, 0, 0],
+                          "scale": [1, 1, 1]
+                        },
+                        "image": {
+                          "sprite": "UI/Skin/UISprite.psd",
+                          "color": [1, 1, 1, 1],
+                          "material": null,
+                          "raycastTarget": true,
+                          "imageType": "Sliced"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
       {
         "type": "Slider",
-        "name": "VolumeSlider",
+        "name": "SldVolume",
         "active": true,
         "rectTransform": {
           "anchorMin": [0.5, 0.5],
@@ -343,7 +607,7 @@
       },
       {
         "type": "Toggle",
-        "name": "AcceptToggle",
+        "name": "TglAccept",
         "active": true,
         "rectTransform": {
           "anchorMin": [0.5, 0.5],
@@ -356,6 +620,7 @@
         },
         "toggle": {
           "interactable": true,
+          "targetGraphic": "Background",
           "transition": "ColorTint",
           "isOn": false,
           "toggleTransition": "Fade",
@@ -411,7 +676,7 @@
                   "scale": [1, 1, 1]
                 },
                 "image": {
-                  "sprite": "UI/Skin/Checkmark.psd",
+                  "sprite": "Assets/Arts/Imgs/Base/勾选.png",
                   "color": [0.196, 0.196, 0.196, 1],
                   "material": null,
                   "raycastTarget": true,
@@ -452,7 +717,7 @@
       },
       {
         "type": "RawImage",
-        "name": "AvatarRawImage",
+        "name": "RImgAvatar",
         "active": true,
         "rectTransform": {
           "anchorMin": [0.5, 0.5],
@@ -478,7 +743,7 @@
       },
       {
         "type": "ScrollRect",
-        "name": "ScrollView",
+        "name": "ScvChilds",
         "active": true,
         "rectTransform": {
           "anchorMin": [0.5, 0.5],

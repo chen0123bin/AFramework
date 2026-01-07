@@ -75,13 +75,13 @@ public class Startup : MonoBehaviour
         {
             ManagerUtility.EventMgr.DispatchEvent("TestEvent", 100);
         }
-      
+
         MainManager.Instance.Update();
     }
 
 
     void OnDestroy()
-    {      
+    {
         WaitDestroy();
     }
     async void WaitDestroy()
@@ -90,7 +90,7 @@ public class Startup : MonoBehaviour
         // ManagerUtility.HotfixMgr.Destroy();
         //SqliteHelp.Instance.Close();
         MainManager.Instance.ClearManager();
-        Debug.Log("@@@@@@@@@@@@@@@@@@@@@@@@OnDestroy");
+        Debug.Log("Startup OnDestroy");
     }
 
 

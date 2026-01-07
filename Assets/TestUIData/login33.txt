@@ -1,0 +1,801 @@
+{
+  "Root": {
+    "name": "LoginView",
+    "rectTransform": {
+      "anchorMin": [0, 0],
+      "anchorMax": [1, 1],
+      "pivot": [0.5, 0.5],
+      "anchoredPosition": [0, 0],
+      "sizeDelta": [0, 0],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    },
+    "children": [
+      {
+        "type": "Image",
+        "name": "Background",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0, 0],
+          "anchorMax": [1, 1],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, 0],
+          "sizeDelta": [0, 0],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "image": {
+          "sprite": "UI/Skin/Background.psd",
+          "color": [1, 1, 1, 1],
+          "material": null,
+          "raycastTarget": true,
+          "imageType": "Sliced",
+          "fillCenter": true,
+          "pixelsPerUnitMultiplier": 1
+        }
+      },
+      {
+        "type": "Image",
+        "name": "ContentPanel",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.5],
+          "anchorMax": [0.5, 0.5],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0, 0],
+          "sizeDelta": [900, 550],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "image": {
+          "sprite": "UI/Skin/Background.psd",
+          "color": [1, 1, 1, 1],
+          "material": null,
+          "raycastTarget": true,
+          "imageType": "Sliced",
+          "fillCenter": true
+        },
+        "children": [
+          {
+            "type": "Image",
+            "name": "ImgIllustration",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0, 0],
+              "anchorMax": [0.5, 1],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "image": {
+              "sprite": "Textures/LoginIllustration.png",
+              "color": [1, 1, 1, 1],
+              "material": null,
+              "raycastTarget": true,
+              "imageType": "Simple",
+              "preserveAspect": true
+            }
+          },
+          {
+            "type": "Container",
+            "name": "LoginForm",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.5, 0],
+              "anchorMax": [1, 1],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0, 0],
+              "sizeDelta": [0, 0],
+              "rotation": [0, 0, 0],
+              "scale": [1, 1, 1]
+            },
+            "children": [
+              {
+                "type": "Text",
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 1],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 1],
+                  "anchoredPosition": [0, -60],
+                  "sizeDelta": [200, 50],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "text": {
+                  "content": "登录账号",
+                  "font": "Arial.ttf",
+                  "fontSize": 28,
+                  "fontStyle": "Bold",
+                  "color": [0.0, 0.48, 1.0, 1],
+                  "alignment": "MiddleCenter",
+                  "horizontalOverflow": "Overflow",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": true
+                }
+              },
+              {
+                "type": "InputField",
+                "name": "IpfUsername",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 1],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 1],
+                  "anchoredPosition": [0, -150],
+                  "sizeDelta": [350, 50],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/InputFieldBackground.psd",
+                  "color": [0, 0, 0, 0],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "inputField": {
+                  "interactable": true,
+                  "textComponent": "Text",
+                  "text": "",
+                  "characterLimit": 0,
+                  "contentType": "Standard",
+                  "lineType": "SingleLine",
+                  "placeholder": "Placeholder",
+                  "caretBlinkRate": 0.85,
+                  "caretWidth": 1,
+                  "selectionColor": [0.659, 0.808, 1, 0.502],
+                  "readOnly": false
+                },
+                "children": [
+                  {
+                    "type": "Image",
+                    "name": "ImgIcon",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0.5],
+                      "anchorMax": [0, 0.5],
+                      "pivot": [0, 0.5],
+                      "anchoredPosition": [20, 0],
+                      "sizeDelta": [24, 24],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Icons/User.png",
+                      "color": [0.8, 0.8, 0.8, 1],
+                      "material": null,
+                      "raycastTarget": false,
+                      "imageType": "Simple"
+                    }
+                  },
+                  {
+                    "type": "Text",
+                    "name": "Placeholder",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [50, 0],
+                      "sizeDelta": [-60, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "输入用户名",
+                      "font": "Arial.ttf",
+                      "fontSize": 18,
+                      "fontStyle": "Normal",
+                      "color": [0.6, 0.6, 0.6, 1],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false
+                    }
+                  },
+                  {
+                    "type": "Text",
+                    "name": "Text",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [50, 0],
+                      "sizeDelta": [-60, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "",
+                      "font": "Arial.ttf",
+                      "fontSize": 18,
+                      "fontStyle": "Normal",
+                      "color": [0.2, 0.2, 0.2, 1],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false
+                    }
+                  },
+                  {
+                    "type": "Image",
+                    "name": "ImgLine",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 0],
+                      "pivot": [0.5, 0],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [0, 1],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Skin/UISprite.psd",
+                      "color": [0.9, 0.9, 0.9, 1],
+                      "material": null,
+                      "raycastTarget": false,
+                      "imageType": "Sliced"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "InputField",
+                "name": "IpfPassword",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 1],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 1],
+                  "anchoredPosition": [0, -220],
+                  "sizeDelta": [350, 50],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/InputFieldBackground.psd",
+                  "color": [0, 0, 0, 0],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "inputField": {
+                  "interactable": true,
+                  "textComponent": "Text",
+                  "text": "",
+                  "characterLimit": 0,
+                  "contentType": "Password",
+                  "lineType": "SingleLine",
+                  "placeholder": "Placeholder",
+                  "caretBlinkRate": 0.85,
+                  "caretWidth": 1,
+                  "selectionColor": [0.659, 0.808, 1, 0.502],
+                  "readOnly": false
+                },
+                "children": [
+                  {
+                    "type": "Image",
+                    "name": "ImgIcon",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0.5],
+                      "anchorMax": [0, 0.5],
+                      "pivot": [0, 0.5],
+                      "anchoredPosition": [20, 0],
+                      "sizeDelta": [24, 24],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Icons/Lock.png",
+                      "color": [0.8, 0.8, 0.8, 1],
+                      "material": null,
+                      "raycastTarget": false,
+                      "imageType": "Simple"
+                    }
+                  },
+                  {
+                    "type": "Text",
+                    "name": "Placeholder",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [50, 0],
+                      "sizeDelta": [-60, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "输入密码",
+                      "font": "Arial.ttf",
+                      "fontSize": 18,
+                      "fontStyle": "Normal",
+                      "color": [0.6, 0.6, 0.6, 1],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false
+                    }
+                  },
+                  {
+                    "type": "Text",
+                    "name": "Text",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [50, 0],
+                      "sizeDelta": [-60, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "",
+                      "font": "Arial.ttf",
+                      "fontSize": 18,
+                      "fontStyle": "Normal",
+                      "color": [0.2, 0.2, 0.2, 1],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false
+                    }
+                  },
+                  {
+                    "type": "Image",
+                    "name": "ImgLine",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 0],
+                      "pivot": [0.5, 0],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [0, 1],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Skin/UISprite.psd",
+                      "color": [0.9, 0.9, 0.9, 1],
+                      "material": null,
+                      "raycastTarget": false,
+                      "imageType": "Sliced"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "InputField",
+                "name": "IpfCaptcha",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 1],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 1],
+                  "anchoredPosition": [0, -290],
+                  "sizeDelta": [350, 50],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/InputFieldBackground.psd",
+                  "color": [0, 0, 0, 0],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced"
+                },
+                "inputField": {
+                  "interactable": true,
+                  "textComponent": "Text",
+                  "text": "",
+                  "characterLimit": 6,
+                  "contentType": "Alphanumeric",
+                  "lineType": "SingleLine",
+                  "placeholder": "Placeholder",
+                  "caretBlinkRate": 0.85,
+                  "caretWidth": 1,
+                  "selectionColor": [0.659, 0.808, 1, 0.502],
+                  "readOnly": false
+                },
+                "children": [
+                  {
+                    "type": "Image",
+                    "name": "ImgIcon",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0.5],
+                      "anchorMax": [0, 0.5],
+                      "pivot": [0, 0.5],
+                      "anchoredPosition": [20, 0],
+                      "sizeDelta": [24, 24],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Icons/Shield.png",
+                      "color": [0.8, 0.8, 0.8, 1],
+                      "material": null,
+                      "raycastTarget": false,
+                      "imageType": "Simple"
+                    }
+                  },
+                  {
+                    "type": "Text",
+                    "name": "Placeholder",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [50, 0],
+                      "sizeDelta": [-180, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "输入验证码",
+                      "font": "Arial.ttf",
+                      "fontSize": 18,
+                      "fontStyle": "Normal",
+                      "color": [0.6, 0.6, 0.6, 1],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false
+                    }
+                  },
+                  {
+                    "type": "Text",
+                    "name": "Text",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [50, 0],
+                      "sizeDelta": [-180, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "",
+                      "font": "Arial.ttf",
+                      "fontSize": 18,
+                      "fontStyle": "Normal",
+                      "color": [0.2, 0.2, 0.2, 1],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "name": "BtnGetCaptcha",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [1, 0.5],
+                      "anchorMax": [1, 0.5],
+                      "pivot": [1, 0.5],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [120, 36],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Skin/UISprite.psd",
+                      "color": [0.0, 0.48, 1.0, 1],
+                      "material": null,
+                      "raycastTarget": true,
+                      "imageType": "Sliced",
+                      "fillCenter": true
+                    },
+                    "button": {
+                      "interactable": true,
+                      "transition": "ColorTint",
+                      "colors": {
+                        "normalColor": [1, 1, 1, 1],
+                        "highlightedColor": [0.9, 0.9, 1, 1],
+                        "pressedColor": [0.7, 0.7, 0.7, 1],
+                        "selectedColor": [0.9, 0.9, 1, 1],
+                        "disabledColor": [0.7, 0.7, 0.7, 0.5],
+                        "colorMultiplier": 1,
+                        "fadeDuration": 0.1
+                      },
+                      "navigation": { "mode": "Automatic" }
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "name": "Text",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0, 0],
+                          "anchorMax": [1, 1],
+                          "pivot": [0.5, 0.5],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [0, 0],
+                          "rotation": [0, 0, 0],
+                          "scale": [1, 1, 1]
+                        },
+                        "text": {
+                          "content": "获取验证码",
+                          "font": "Arial.ttf",
+                          "fontSize": 14,
+                          "fontStyle": "Normal",
+                          "color": [1, 1, 1, 1],
+                          "alignment": "MiddleCenter",
+                          "horizontalOverflow": "Wrap",
+                          "verticalOverflow": "Truncate",
+                          "raycastTarget": true
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Image",
+                    "name": "ImgLine",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 0],
+                      "pivot": [0.5, 0],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [0, 1],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Skin/UISprite.psd",
+                      "color": [0.9, 0.9, 0.9, 1],
+                      "material": null,
+                      "raycastTarget": false,
+                      "imageType": "Sliced"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Toggle",
+                "name": "TglRememberMe",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 1],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 1],
+                  "anchoredPosition": [-125, -340],
+                  "sizeDelta": [100, 20],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "toggle": {
+                  "interactable": true,
+                  "targetGraphic": "Background",
+                  "transition": "ColorTint",
+                  "isOn": false,
+                  "toggleTransition": "Fade",
+                  "graphic": "Checkmark",
+                  "colors": {
+                    "normalColor": [1, 1, 1, 1],
+                    "highlightedColor": [0.96, 0.96, 0.96, 1],
+                    "pressedColor": [0.78, 0.78, 0.78, 1],
+                    "selectedColor": [0.96, 0.96, 0.96, 1],
+                    "disabledColor": [0.78, 0.78, 0.78, 0.5],
+                    "colorMultiplier": 1,
+                    "fadeDuration": 0.1
+                  }
+                },
+                "children": [
+                  {
+                    "type": "Image",
+                    "name": "Background",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0.5],
+                      "anchorMax": [0, 0.5],
+                      "pivot": [0, 0.5],
+                      "anchoredPosition": [10, 0],
+                      "sizeDelta": [16, 16],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "image": {
+                      "sprite": "UI/Skin/Background.psd",
+                      "color": [1, 1, 1, 1],
+                      "material": null,
+                      "raycastTarget": true,
+                      "imageType": "Sliced"
+                    },
+                    "children": [
+                      {
+                        "type": "Image",
+                        "name": "Checkmark",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0.5, 0.5],
+                          "anchorMax": [0.5, 0.5],
+                          "pivot": [0.5, 0.5],
+                          "anchoredPosition": [0, 0],
+                          "sizeDelta": [12, 12],
+                          "rotation": [0, 0, 0],
+                          "scale": [1, 1, 1]
+                        },
+                        "image": {
+                          "sprite": "UI/Skin/Checkmark.psd",
+                          "color": [0.0, 0.48, 1.0, 1],
+                          "material": null,
+                          "raycastTarget": true,
+                          "imageType": "Simple"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Text",
+                    "name": "Label",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [25, 0],
+                      "sizeDelta": [-25, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "记住密码",
+                      "font": "Arial.ttf",
+                      "fontSize": 14,
+                      "fontStyle": "Normal",
+                      "color": [0.6, 0.6, 0.6, 1],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": true
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Button",
+                "name": "BtnLogin",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 1],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 1],
+                  "anchoredPosition": [0, -390],
+                  "sizeDelta": [350, 45],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/UISprite.psd",
+                  "color": [0.0, 0.48, 1.0, 1],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced",
+                  "fillCenter": true
+                },
+                "button": {
+                  "interactable": true,
+                  "transition": "ColorTint",
+                  "colors": {
+                    "normalColor": [1, 1, 1, 1],
+                    "highlightedColor": [0.9, 0.9, 1, 1],
+                    "pressedColor": [0.8, 0.8, 0.8, 1],
+                    "selectedColor": [1, 1, 1, 1],
+                    "disabledColor": [0.8, 0.8, 0.8, 0.5],
+                    "colorMultiplier": 1,
+                    "fadeDuration": 0.1
+                  },
+                  "navigation": { "mode": "Automatic" }
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "name": "Text",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [0, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "登录",
+                      "font": "Arial.ttf",
+                      "fontSize": 18,
+                      "fontStyle": "Bold",
+                      "color": [1, 1, 1, 1],
+                      "alignment": "MiddleCenter",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": true
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Button",
+                "name": "BtnForgetPassword",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 1],
+                  "anchorMax": [0.5, 1],
+                  "pivot": [0.5, 1],
+                  "anchoredPosition": [0, -450],
+                  "sizeDelta": [150, 30],
+                  "rotation": [0, 0, 0],
+                  "scale": [1, 1, 1]
+                },
+                "image": {
+                  "sprite": "UI/Skin/Background.psd",
+                  "color": [1, 1, 1, 0],
+                  "material": null,
+                  "raycastTarget": true,
+                  "imageType": "Sliced",
+                  "fillCenter": true
+                },
+                "button": {
+                  "interactable": true,
+                  "transition": "ColorTint",
+                  "colors": {
+                    "normalColor": [1, 1, 1, 1],
+                    "highlightedColor": [0.9, 0.9, 0.9, 1],
+                    "pressedColor": [0.8, 0.8, 0.8, 1],
+                    "selectedColor": [1, 1, 1, 1],
+                    "disabledColor": [0.8, 0.8, 0.8, 0.5],
+                    "colorMultiplier": 1,
+                    "fadeDuration": 0.1
+                  },
+                  "navigation": { "mode": "Automatic" }
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "name": "Text",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0, 0],
+                      "anchorMax": [1, 1],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0, 0],
+                      "sizeDelta": [0, 0],
+                      "rotation": [0, 0, 0],
+                      "scale": [1, 1, 1]
+                    },
+                    "text": {
+                      "content": "忘记账号密码?",
+                      "font": "Arial.ttf",
+                      "fontSize": 14,
+                      "fontStyle": "Normal",
+                      "color": [0.6, 0.6, 0.6, 1],
+                      "alignment": "MiddleCenter",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": true
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
