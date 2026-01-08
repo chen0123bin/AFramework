@@ -13,7 +13,7 @@ namespace LWAssets.Editor
     /// 构建管线
     /// </summary>
     public static class LWAssetsBuildPipeline
-    { 
+    {
         // 存储构建时的原始资源路径映射
         private static Dictionary<string, List<string>> _bundleAssetMap;
         /// <summary>
@@ -54,12 +54,12 @@ namespace LWAssets.Editor
                 {
                     Directory.CreateDirectory(outputPath);
                 }
-               
+
                 var manifest = BuildPipeline.BuildAssetBundles(
                     outputPath,
                     bundleBuilds.ToArray(),
                     config.BuildOptions,
-                    config.BuildTarget);
+                    EditorUserBuildSettings.activeBuildTarget);
                 if (manifest == null)
                 {
                     Debug.LogError("[LWAssets] Build failed!");
@@ -343,7 +343,7 @@ namespace LWAssets.Editor
                     Dependencies = unityManifest.GetAllDependencies(bundleName).ToList()
                 };
 
-                 // 使用保存的原始路径，而不是从Bundle获取
+                // 使用保存的原始路径，而不是从Bundle获取
                 if (_bundleAssetMap.TryGetValue(bundleName, out var originalAssets))
                 {
                     bundleInfo.Assets = new List<string>(originalAssets);
@@ -541,7 +541,7 @@ namespace LWAssets.Editor
 
             report.AppendLine("=== LWAssets Build Report ===");
             report.AppendLine($"Build Time: {DateTime.Now}");
-            report.AppendLine($"Platform: {config.BuildTarget}");
+            report.AppendLine($"Platform: {EditorUserBuildSettings.activeBuildTarget}");
             report.AppendLine($"Version: {PlayerSettings.bundleVersion}");
             report.AppendLine();
 
@@ -584,7 +584,7 @@ namespace LWAssets.Editor
         /// </summary>
         private static string GetOutputPath(LWAssetsBuildConfig config)
         {
-            var platform = config.BuildTarget switch
+            var platform = EditorUserBuildSettings.activeBuildTarget switch
             {
                 BuildTarget.Android => "Android",
                 BuildTarget.iOS => "iOS",
