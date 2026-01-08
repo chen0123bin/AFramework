@@ -88,6 +88,35 @@ internal sealed class UguiJsonReader
 
         return new Vector2(ToFloat(list[0], defaultValue.x), ToFloat(list[1], defaultValue.y));
     }
+    /// <summary>
+    /// 从数组节点读取 Vector2Int。
+    /// </summary>
+    public Vector2Int GetVector2Int(JsonData list, Vector2Int defaultValue)
+    {
+        if (list == null || !list.IsArray || list.Count < 2)
+            return defaultValue;
+
+        return new Vector2Int(ToInt(list[0], defaultValue.x), ToInt(list[1], defaultValue.y));
+    }
+
+    private int ToInt(JsonData jsonData, int defaultValue)
+    {
+        if (jsonData == null)
+            return defaultValue;
+
+        try
+        {
+            if (jsonData.IsInt)
+                return (int)jsonData;
+            if (jsonData.IsLong)
+                return (int)(long)jsonData;
+            return Convert.ToInt32(jsonData);
+        }
+        catch
+        {
+            return defaultValue;
+        }
+    }
 
     /// <summary>
     /// 从数组节点读取 Vector3。

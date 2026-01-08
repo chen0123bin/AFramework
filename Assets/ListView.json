@@ -1,0 +1,273 @@
+
+{
+  "Root" : {
+    "name" : "ListView",
+    "rectTransform" : {
+      "anchorMin" : [
+        0.0,
+        0.0
+      ],
+      "anchorMax" : [
+        1.0,
+        1.0
+      ],
+      "pivot"     : [
+        0.5,
+        0.5
+      ],
+      "anchoredPosition" : [
+        0.0,
+        0.0
+      ],
+      "sizeDelta"        : [
+        0.0,
+        0.0
+      ],
+      "rotation"         : [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale"            : [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "children"      : [
+      {
+        "type" : "Image",
+        "name" : "Background",
+        "active" : true,
+        "rectTransform" : {
+          "anchorMin" : [
+            0.0,
+            0.0
+          ],
+          "anchorMax" : [
+            1.0,
+            1.0
+          ],
+          "pivot"     : [
+            0.5,
+            0.5
+          ],
+          "anchoredPosition" : [
+            0.0,
+            0.0
+          ],
+          "sizeDelta"        : [
+            0.0,
+            0.0
+          ],
+          "rotation"         : [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale"            : [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "image"         : {
+          "sprite" : null,
+          "color"  : [
+            1.0,
+            1.0,
+            1.0,
+            0.391999989748001
+          ],
+          "material" : "Default UI Material",
+          "raycastTarget" : true,
+          "imageType"     : "Sliced",
+          "fillCenter"    : true,
+          "pixelsPerUnitMultiplier" : 1.0
+        }
+      },
+      {
+        "name" : "GameObject",
+        "active" : true,
+        "rectTransform" : {
+          "anchorMin" : [
+            0.5,
+            0.5
+          ],
+          "anchorMax" : [
+            0.5,
+            0.5
+          ],
+          "pivot"     : [
+            0.0,
+            1.0
+          ],
+          "anchoredPosition" : [
+            -562.0,
+            287.0
+          ],
+          "sizeDelta"        : [
+            459.100006103516,
+            100.0
+          ],
+          "rotation"         : [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale"            : [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "children"      : [
+          {
+            "name" : "RawImage",
+            "active" : true,
+            "rectTransform" : {
+              "anchorMin" : [
+                0.0,
+                1.0
+              ],
+              "anchorMax" : [
+                0.0,
+                1.0
+              ],
+              "pivot"     : [
+                0.5,
+                0.5
+              ],
+              "anchoredPosition" : [
+                50.0,
+                -50.0
+              ],
+              "sizeDelta"        : [
+                100.0,
+                100.0
+              ],
+              "rotation"         : [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale"            : [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "name" : "RawImage (1)",
+            "active" : true,
+            "rectTransform" : {
+              "anchorMin" : [
+                0.0,
+                1.0
+              ],
+              "anchorMax" : [
+                0.0,
+                1.0
+              ],
+              "pivot"     : [
+                0.5,
+                0.5
+              ],
+              "anchoredPosition" : [
+                169.699996948242,
+                -50.0
+              ],
+              "sizeDelta"        : [
+                100.0,
+                100.0
+              ],
+              "rotation"         : [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale"            : [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "name" : "RawImage (2)",
+            "active" : true,
+            "rectTransform" : {
+              "anchorMin" : [
+                0.0,
+                1.0
+              ],
+              "anchorMax" : [
+                0.0,
+                1.0
+              ],
+              "pivot"     : [
+                0.5,
+                0.5
+              ],
+              "anchoredPosition" : [
+                289.399993896484,
+                -50.0
+              ],
+              "sizeDelta"        : [
+                100.0,
+                100.0
+              ],
+              "rotation"         : [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale"            : [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "name" : "RawImage (3)",
+            "active" : true,
+            "rectTransform" : {
+              "anchorMin" : [
+                0.0,
+                1.0
+              ],
+              "anchorMax" : [
+                0.0,
+                1.0
+              ],
+              "pivot"     : [
+                0.5,
+                0.5
+              ],
+              "anchoredPosition" : [
+                409.100006103516,
+                -50.0
+              ],
+              "sizeDelta"        : [
+                100.0,
+                100.0
+              ],
+              "rotation"         : [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale"            : [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

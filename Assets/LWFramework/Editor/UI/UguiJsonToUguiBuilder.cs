@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using LitJson;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+#if TMPRO
+using TMPro;
+#endif
 
 /// <summary>
 /// 将约定格式的 UGUI JSON 转换为场景中的 UGUI 树。
@@ -10,6 +14,7 @@ using UnityEngine.UI;
 internal sealed class UguiJsonToUguiBuilder
 {
     private readonly UguiJsonReader m_Reader;
+    private readonly Dictionary<string, Action<GameObject, JsonData>> m_ComponentAppliers;
 
     /// <summary>
     /// 创建一个默认的构建器实例。
@@ -22,6 +27,8 @@ internal sealed class UguiJsonToUguiBuilder
     private UguiJsonToUguiBuilder(UguiJsonReader reader)
     {
         m_Reader = reader;
+        m_ComponentAppliers = new Dictionary<string, Action<GameObject, JsonData>>(StringComparer.OrdinalIgnoreCase);
+        RegisterDefaultComponentAppliers();
     }
 
     /// <summary>
@@ -95,66 +102,24 @@ internal sealed class UguiJsonToUguiBuilder
     /// </summary>
     private void ApplyComponents(GameObject go, JsonData elementData)
     {
-        string typeName = m_Reader.GetString(elementData, UguiJsonSchema.KEY_TYPE, string.Empty);
-
-        if (typeName == "Text")
-        {
-            ApplyText(go, elementData);
+        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_COMPONENTS, out JsonData componentsData) || componentsData == null || !componentsData.IsArray)
             return;
-        }
 
-        if (typeName == "Image")
+        for (int i = 0; i < componentsData.Count; i++)
         {
-            ApplyImage(go, elementData);
-            return;
-        }
+            JsonData componentData = componentsData[i];
+            if (componentData == null || !componentData.IsObject)
+                continue;
 
-        if (typeName == "Button")
-        {
-            ApplyImage(go, elementData);
-            ApplyButton(go, elementData);
-            return;
-        }
+            string componentType = m_Reader.GetString(componentData, UguiJsonSchema.KEY_TYPE, string.Empty);
+            if (string.IsNullOrEmpty(componentType))
+                continue;
 
-        if (typeName == "Toggle")
-        {
-            ApplyImage(go, elementData);
-            ApplyToggle(go, elementData);
-            return;
-        }
+            JsonData data;
+            if (!m_Reader.TryGetValue(componentData, UguiJsonSchema.KEY_DATA, out data))
+                data = null;
 
-        if (typeName == "Slider")
-        {
-            ApplyImage(go, elementData);
-            ApplySlider(go, elementData);
-            return;
-        }
-
-        if (typeName == "InputField")
-        {
-            ApplyImage(go, elementData);
-            ApplyInputField(go, elementData);
-            return;
-        }
-
-        if (typeName == "ScrollRect")
-        {
-            ApplyImage(go, elementData);
-            ApplyScrollRect(go, elementData);
-            return;
-        }
-
-        if (typeName == "Mask")
-        {
-            ApplyImage(go, elementData);
-            ApplyMask(go, elementData);
-            return;
-        }
-
-        if (typeName == "Dropdown")
-        {
-            ApplyImage(go, elementData);
-            ApplyDropdown(go, elementData);
+            ApplyComponent(go, componentType, data);
         }
     }
 
@@ -166,17 +131,25 @@ internal sealed class UguiJsonToUguiBuilder
         if (go == null)
             return;
 
-        if (m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_INPUT_FIELD, out JsonData inputFieldData))
-            ResolveInputFieldReferences(go, inputFieldData);
+        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_COMPONENTS, out JsonData componentsData) || componentsData == null || !componentsData.IsArray)
+            return;
 
-        if (m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_SCROLL_RECT, out JsonData scrollRectData))
-            ResolveScrollRectReferences(go, scrollRectData);
+        for (int i = 0; i < componentsData.Count; i++)
+        {
+            JsonData componentData = componentsData[i];
+            if (componentData == null || !componentData.IsObject)
+                continue;
 
-        if (m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_TOGGLE, out JsonData toggleData))
-            ResolveToggleReferences(go, toggleData);
+            string componentType = m_Reader.GetString(componentData, UguiJsonSchema.KEY_TYPE, string.Empty);
+            if (string.IsNullOrEmpty(componentType))
+                continue;
 
-        if (m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_SLIDER, out JsonData sliderData))
-            ResolveSliderReferences(go, sliderData);
+            JsonData data;
+            if (!m_Reader.TryGetValue(componentData, UguiJsonSchema.KEY_DATA, out data))
+                data = null;
+
+            ResolveComponentReferences(go, componentType, data);
+        }
     }
 
     /// <summary>
@@ -207,9 +180,9 @@ internal sealed class UguiJsonToUguiBuilder
     /// <summary>
     /// 为节点添加并配置 Image。
     /// </summary>
-    private void ApplyImage(GameObject go, JsonData elementData)
+    private void ApplyImage(GameObject go, JsonData imageData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_IMAGE, out JsonData imageData))
+        if (imageData == null)
             return;
 
         Image image = GetOrAddComponent<Image>(go);
@@ -218,7 +191,7 @@ internal sealed class UguiJsonToUguiBuilder
         if (m_Reader.TryGetValue(imageData, "color", out JsonData colorData))
             image.color = m_Reader.GetColor(colorData, image.color);
 
-        string spritePath = m_Reader.GetString(imageData, "sprite", string.Empty);
+        string spritePath = NormalizeNullableString(m_Reader.GetString(imageData, "sprite", string.Empty));
         if (!string.IsNullOrEmpty(spritePath))
             image.sprite = LoadSprite(spritePath);
 
@@ -228,8 +201,17 @@ internal sealed class UguiJsonToUguiBuilder
 
         image.fillCenter = m_Reader.GetBool(imageData, "fillCenter", image.fillCenter);
         image.pixelsPerUnitMultiplier = m_Reader.GetFloat(imageData, "pixelsPerUnitMultiplier", image.pixelsPerUnitMultiplier);
+        image.preserveAspect = m_Reader.GetBool(imageData, "preserveAspect", image.preserveAspect);
 
-        string materialPath = m_Reader.GetString(imageData, "material", string.Empty);
+        string fillMethod = m_Reader.GetString(imageData, "fillMethod", string.Empty);
+        if (!string.IsNullOrEmpty(fillMethod))
+            image.fillMethod = ParseEnumSafe(fillMethod, image.fillMethod);
+
+        image.fillAmount = m_Reader.GetFloat(imageData, "fillAmount", image.fillAmount);
+        image.fillClockwise = m_Reader.GetBool(imageData, "fillClockwise", image.fillClockwise);
+        image.fillOrigin = m_Reader.GetInt(imageData, "fillOrigin", image.fillOrigin);
+
+        string materialPath = NormalizeNullableString(m_Reader.GetString(imageData, "material", string.Empty));
         if (!string.IsNullOrEmpty(materialPath))
             image.material = LoadMaterial(materialPath);
     }
@@ -237,21 +219,21 @@ internal sealed class UguiJsonToUguiBuilder
     /// <summary>
     /// 为节点添加并配置 Text。
     /// </summary>
-    private void ApplyText(GameObject go, JsonData elementData)
+    private void ApplyText(GameObject go, JsonData textData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_TEXT, out JsonData textData))
+        if (textData == null)
             return;
 
         Text text = GetOrAddComponent<Text>(go);
         text.text = m_Reader.GetString(textData, "content", text.text);
         text.fontSize = m_Reader.GetInt(textData, "fontSize", text.fontSize);
         text.raycastTarget = m_Reader.GetBool(textData, "raycastTarget", text.raycastTarget);
-        text.supportRichText = m_Reader.GetBool(textData, "supportRichText", text.supportRichText);
+        text.supportRichText = m_Reader.GetBool(textData, "supportRichText", m_Reader.GetBool(textData, "richText", text.supportRichText));
 
         if (m_Reader.TryGetValue(textData, "color", out JsonData colorData))
             text.color = m_Reader.GetColor(colorData, text.color);
 
-        string fontNameOrPath = m_Reader.GetString(textData, "font", string.Empty);
+        string fontNameOrPath = NormalizeNullableString(m_Reader.GetString(textData, "font", string.Empty));
         if (!string.IsNullOrEmpty(fontNameOrPath))
             text.font = LoadFont(fontNameOrPath);
 
@@ -270,14 +252,48 @@ internal sealed class UguiJsonToUguiBuilder
         string verticalOverflow = m_Reader.GetString(textData, "verticalOverflow", string.Empty);
         if (!string.IsNullOrEmpty(verticalOverflow))
             text.verticalOverflow = ParseEnumSafe(verticalOverflow, text.verticalOverflow);
+
+        text.lineSpacing = m_Reader.GetFloat(textData, "lineSpacing", text.lineSpacing);
     }
 
-    /// <summary>
-    /// 为节点添加并配置 Button。
-    /// </summary>
-    private void ApplyButton(GameObject go, JsonData elementData)
+    private void ApplyTextMeshProUGUI(GameObject go, JsonData textData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_BUTTON, out JsonData buttonData))
+        if (textData == null)
+            return;
+
+#if TMPRO
+        TextMeshProUGUI tmp = GetOrAddComponent<TextMeshProUGUI>(go);
+        tmp.text = m_Reader.GetString(textData, "content", tmp.text);
+        tmp.fontSize = m_Reader.GetFloat(textData, "fontSize", tmp.fontSize);
+        tmp.raycastTarget = m_Reader.GetBool(textData, "raycastTarget", tmp.raycastTarget);
+        tmp.richText = m_Reader.GetBool(textData, "richText", m_Reader.GetBool(textData, "supportRichText", tmp.richText));
+
+        if (m_Reader.TryGetValue(textData, "color", out JsonData colorData))
+            tmp.color = m_Reader.GetColor(colorData, tmp.color);
+
+        string fontNameOrPath = NormalizeNullableString(m_Reader.GetString(textData, "font", string.Empty));
+        if (!string.IsNullOrEmpty(fontNameOrPath))
+        {
+            TMP_FontAsset font = LoadTmpFontAsset(fontNameOrPath);
+            if (font != null)
+                tmp.font = font;
+        }
+
+        string fontStyle = m_Reader.GetString(textData, "fontStyle", string.Empty);
+        if (!string.IsNullOrEmpty(fontStyle))
+            tmp.fontStyle = ParseEnumSafe(fontStyle, tmp.fontStyle);
+
+        string alignment = m_Reader.GetString(textData, "alignment", string.Empty);
+        if (!string.IsNullOrEmpty(alignment))
+            tmp.alignment = ParseEnumSafe(alignment, tmp.alignment);
+#else
+        ApplyText(go, textData);
+#endif
+    }
+
+    private void ApplyButton(GameObject go, JsonData buttonData)
+    {
+        if (buttonData == null)
             return;
 
         Button button = GetOrAddComponent<Button>(go);
@@ -291,12 +307,9 @@ internal sealed class UguiJsonToUguiBuilder
             button.colors = ReadColorBlock(colorsData, button.colors);
     }
 
-    /// <summary>
-    /// 为节点添加并配置 Toggle。
-    /// </summary>
-    private void ApplyToggle(GameObject go, JsonData elementData)
+    private void ApplyToggle(GameObject go, JsonData toggleData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_TOGGLE, out JsonData toggleData))
+        if (toggleData == null)
             return;
 
         Toggle toggle = GetOrAddComponent<Toggle>(go);
@@ -315,12 +328,9 @@ internal sealed class UguiJsonToUguiBuilder
             toggle.colors = ReadColorBlock(colorsData, toggle.colors);
     }
 
-    /// <summary>
-    /// 为节点添加并配置 Slider。
-    /// </summary>
-    private void ApplySlider(GameObject go, JsonData elementData)
+    private void ApplySlider(GameObject go, JsonData sliderData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_SLIDER, out JsonData sliderData))
+        if (sliderData == null)
             return;
 
         Slider slider = GetOrAddComponent<Slider>(go);
@@ -340,12 +350,9 @@ internal sealed class UguiJsonToUguiBuilder
         slider.value = m_Reader.GetFloat(sliderData, "value", slider.value);
     }
 
-    /// <summary>
-    /// 为节点添加并配置 InputField。
-    /// </summary>
-    private void ApplyInputField(GameObject go, JsonData elementData)
+    private void ApplyInputField(GameObject go, JsonData inputFieldData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_INPUT_FIELD, out JsonData inputFieldData))
+        if (inputFieldData == null)
             return;
 
         InputField inputField = GetOrAddComponent<InputField>(go);
@@ -368,12 +375,9 @@ internal sealed class UguiJsonToUguiBuilder
             inputField.lineType = ParseEnumSafe(lineType, inputField.lineType);
     }
 
-    /// <summary>
-    /// 为节点添加并配置 ScrollRect。
-    /// </summary>
-    private void ApplyScrollRect(GameObject go, JsonData elementData)
+    private void ApplyScrollRect(GameObject go, JsonData scrollRectData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_SCROLL_RECT, out JsonData scrollRectData))
+        if (scrollRectData == null)
             return;
 
         ScrollRect scrollRect = GetOrAddComponent<ScrollRect>(go);
@@ -390,26 +394,41 @@ internal sealed class UguiJsonToUguiBuilder
         scrollRect.scrollSensitivity = m_Reader.GetFloat(scrollRectData, "scrollSensitivity", scrollRect.scrollSensitivity);
     }
 
-    /// <summary>
-    /// 为节点添加并配置 Mask。
-    /// </summary>
-    private void ApplyMask(GameObject go, JsonData elementData)
+    private void ApplyMask(GameObject go, JsonData maskData)
     {
+        if (maskData == null)
+            return;
+
         Mask mask = GetOrAddComponent<Mask>(go);
-        if (m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_MASK, out JsonData maskData))
-            mask.showMaskGraphic = m_Reader.GetBool(maskData, "showMaskGraphic", mask.showMaskGraphic);
+        mask.showMaskGraphic = m_Reader.GetBool(maskData, "showMaskGraphic", mask.showMaskGraphic);
     }
 
-    /// <summary>
-    /// 为节点添加并配置 Dropdown（简化版）。
-    /// </summary>
-    private void ApplyDropdown(GameObject go, JsonData elementData)
+    private void ApplyDropdown(GameObject go, JsonData dropdownData)
     {
-        if (!m_Reader.TryGetValue(elementData, UguiJsonSchema.KEY_DROPDOWN, out JsonData dropdownData))
+        if (dropdownData == null)
             return;
 
         Dropdown dropdown = GetOrAddComponent<Dropdown>(go);
         dropdown.interactable = m_Reader.GetBool(dropdownData, "interactable", dropdown.interactable);
+        // 处理 options
+        if (dropdownData.ContainsKey("options") && dropdownData["options"].IsArray)
+        {
+            dropdown.options.Clear();
+            for (int i = 0; i < dropdownData["options"].Count; i++)
+            {
+                JsonData optionData = dropdownData["options"][i];
+                string optionText = m_Reader.GetString(optionData, "text", "");
+
+                Sprite optionSprite = null;
+                string spritePath = NormalizeNullableString(m_Reader.GetString(optionData, "image", ""));
+                if (!string.IsNullOrEmpty(spritePath))
+                    optionSprite = LoadSprite(spritePath);
+
+                dropdown.options.Add(new Dropdown.OptionData(optionText, optionSprite));
+            }
+        }
+
+        dropdown.value = m_Reader.GetInt(dropdownData, "value", 0);
 
         string transition = m_Reader.GetString(dropdownData, "transition", string.Empty);
         if (!string.IsNullOrEmpty(transition))
@@ -417,6 +436,197 @@ internal sealed class UguiJsonToUguiBuilder
 
         if (m_Reader.TryGetValue(dropdownData, "colors", out JsonData colorsData))
             dropdown.colors = ReadColorBlock(colorsData, dropdown.colors);
+    }
+
+    private void ApplyRawImage(GameObject go, JsonData rawImageData)
+    {
+        if (rawImageData == null)
+            return;
+
+        RawImage rawImage = GetOrAddComponent<RawImage>(go);
+        rawImage.raycastTarget = m_Reader.GetBool(rawImageData, "raycastTarget", rawImage.raycastTarget);
+
+        if (m_Reader.TryGetValue(rawImageData, "color", out JsonData colorData))
+            rawImage.color = m_Reader.GetColor(colorData, rawImage.color);
+
+        string texturePath = NormalizeNullableString(m_Reader.GetString(rawImageData, "texture", string.Empty));
+        if (!string.IsNullOrEmpty(texturePath))
+            rawImage.texture = LoadTexture2D(texturePath);
+
+        string materialPath = NormalizeNullableString(m_Reader.GetString(rawImageData, "material", string.Empty));
+        if (!string.IsNullOrEmpty(materialPath))
+            rawImage.material = LoadMaterial(materialPath);
+
+        if (m_Reader.TryGetValue(rawImageData, "uvRect", out JsonData uvRectData))
+            rawImage.uvRect = ReadRect(uvRectData, rawImage.uvRect);
+    }
+
+    private void ApplyContentSizeFitter(GameObject go, JsonData fitterData)
+    {
+        if (fitterData == null)
+            return;
+
+        ContentSizeFitter fitter = GetOrAddComponent<ContentSizeFitter>(go);
+
+        string horizontalFit = m_Reader.GetString(fitterData, "horizontalFit", string.Empty);
+        if (!string.IsNullOrEmpty(horizontalFit))
+            fitter.horizontalFit = ParseEnumSafe(horizontalFit, fitter.horizontalFit);
+
+        string verticalFit = m_Reader.GetString(fitterData, "verticalFit", string.Empty);
+        if (!string.IsNullOrEmpty(verticalFit))
+            fitter.verticalFit = ParseEnumSafe(verticalFit, fitter.verticalFit);
+    }
+
+    private void ApplyHorizontalLayoutGroup(GameObject go, JsonData layoutGroupData)
+    {
+        HorizontalLayoutGroup layoutGroup = GetOrAddComponent<HorizontalLayoutGroup>(go);
+        ApplyLayoutGroupCommon(layoutGroup, layoutGroupData);
+        layoutGroup.reverseArrangement = m_Reader.GetBool(layoutGroupData, "reverseArrangement", layoutGroup.reverseArrangement);
+    }
+
+    private void ApplyVerticalLayoutGroup(GameObject go, JsonData layoutGroupData)
+    {
+        VerticalLayoutGroup layoutGroup = GetOrAddComponent<VerticalLayoutGroup>(go);
+        ApplyLayoutGroupCommon(layoutGroup, layoutGroupData);
+        layoutGroup.reverseArrangement = m_Reader.GetBool(layoutGroupData, "reverseArrangement", layoutGroup.reverseArrangement);
+    }
+
+    private void ApplyGridLayoutGroup(GameObject go, JsonData layoutGroupData)
+    {
+        GridLayoutGroup grid = GetOrAddComponent<GridLayoutGroup>(go);
+        ApplyLayoutGroupCommon(grid, layoutGroupData);
+
+        if (layoutGroupData == null)
+            return;
+
+        if (m_Reader.TryGetValue(layoutGroupData, "cellSize", out JsonData cellSizeData))
+            grid.cellSize = m_Reader.GetVector2(cellSizeData, grid.cellSize);
+        if (m_Reader.TryGetValue(layoutGroupData, "spacing", out JsonData spacingData) && spacingData.IsArray)
+            grid.spacing = m_Reader.GetVector2(spacingData, grid.spacing);
+
+        string startCorner = m_Reader.GetString(layoutGroupData, "startCorner", string.Empty);
+        if (!string.IsNullOrEmpty(startCorner))
+            grid.startCorner = ParseEnumSafe(startCorner, grid.startCorner);
+
+        string startAxis = m_Reader.GetString(layoutGroupData, "startAxis", string.Empty);
+        if (!string.IsNullOrEmpty(startAxis))
+            grid.startAxis = ParseEnumSafe(startAxis, grid.startAxis);
+
+        string constraint = m_Reader.GetString(layoutGroupData, "constraint", string.Empty);
+        if (!string.IsNullOrEmpty(constraint))
+            grid.constraint = ParseEnumSafe(constraint, grid.constraint);
+
+        grid.constraintCount = m_Reader.GetInt(layoutGroupData, "constraintCount", grid.constraintCount);
+    }
+
+    private void ApplyLayoutGroupCommon(LayoutGroup layoutGroup, JsonData layoutGroupData)
+    {
+        if (layoutGroupData == null)
+            return;
+
+        if (m_Reader.TryGetValue(layoutGroupData, "padding", out JsonData paddingData))
+            layoutGroup.padding = ReadRectOffset(paddingData, layoutGroup.padding);
+
+        string childAlignment = m_Reader.GetString(layoutGroupData, "childAlignment", string.Empty);
+        if (!string.IsNullOrEmpty(childAlignment))
+            layoutGroup.childAlignment = ParseEnumSafe(childAlignment, layoutGroup.childAlignment);
+
+        if (layoutGroup is HorizontalOrVerticalLayoutGroup hv)
+        {
+            hv.spacing = m_Reader.GetFloat(layoutGroupData, "spacing", hv.spacing);
+            hv.childControlWidth = m_Reader.GetBool(layoutGroupData, "childControlWidth", hv.childControlWidth);
+            hv.childControlHeight = m_Reader.GetBool(layoutGroupData, "childControlHeight", hv.childControlHeight);
+            hv.childForceExpandWidth = m_Reader.GetBool(layoutGroupData, "childForceExpandWidth", hv.childForceExpandWidth);
+            hv.childForceExpandHeight = m_Reader.GetBool(layoutGroupData, "childForceExpandHeight", hv.childForceExpandHeight);
+            hv.childScaleWidth = m_Reader.GetBool(layoutGroupData, "childScaleWidth", hv.childScaleWidth);
+            hv.childScaleHeight = m_Reader.GetBool(layoutGroupData, "childScaleHeight", hv.childScaleHeight);
+        }
+        else if (layoutGroup is GridLayoutGroup grid)
+        {
+            if (m_Reader.TryGetValue(layoutGroupData, "spacing", out JsonData spacingData) && spacingData.IsArray)
+                grid.spacing = m_Reader.GetVector2(spacingData, grid.spacing);
+        }
+    }
+
+    private void ApplyScrollbar(GameObject go, JsonData scrollbarData)
+    {
+        if (scrollbarData == null)
+            return;
+
+        Scrollbar scrollbar = GetOrAddComponent<Scrollbar>(go);
+        scrollbar.interactable = m_Reader.GetBool(scrollbarData, "interactable", scrollbar.interactable);
+
+        string transition = m_Reader.GetString(scrollbarData, "transition", string.Empty);
+        if (!string.IsNullOrEmpty(transition))
+            scrollbar.transition = ParseEnumSafe(transition, scrollbar.transition);
+
+        if (m_Reader.TryGetValue(scrollbarData, "colors", out JsonData colorsData))
+            scrollbar.colors = ReadColorBlock(colorsData, scrollbar.colors);
+
+        string direction = m_Reader.GetString(scrollbarData, "direction", string.Empty);
+        if (!string.IsNullOrEmpty(direction))
+            scrollbar.direction = ParseEnumSafe(direction, scrollbar.direction);
+
+        scrollbar.value = m_Reader.GetFloat(scrollbarData, "value", scrollbar.value);
+        scrollbar.size = m_Reader.GetFloat(scrollbarData, "size", scrollbar.size);
+        scrollbar.numberOfSteps = m_Reader.GetInt(scrollbarData, "numberOfSteps", scrollbar.numberOfSteps);
+    }
+
+    private RectOffset ReadRectOffset(JsonData data, RectOffset defaultValue)
+    {
+        if (data == null || !data.IsObject)
+            return defaultValue;
+
+        RectOffset offset = defaultValue ?? new RectOffset();
+        offset.left = m_Reader.GetInt(data, "left", offset.left);
+        offset.right = m_Reader.GetInt(data, "right", offset.right);
+        offset.top = m_Reader.GetInt(data, "top", offset.top);
+        offset.bottom = m_Reader.GetInt(data, "bottom", offset.bottom);
+        return offset;
+    }
+    private Vector4 ReadRectOffset(JsonData data, Vector4 defaultValue)
+    {
+        if (data == null || !data.IsObject)
+            return defaultValue;
+
+        Vector4 offset =  new Vector4();
+        offset.x = m_Reader.GetFloat(data, "left", offset.x);
+        offset.y = m_Reader.GetFloat(data, "right", offset.y);
+        offset.z = m_Reader.GetFloat(data, "top", offset.z);
+        offset.w = m_Reader.GetFloat(data, "bottom", offset.w);
+        return offset;
+    }
+    private Rect ReadRect(JsonData list, Rect defaultValue)
+    {
+        if (list == null || !list.IsArray || list.Count < 4)
+            return defaultValue;
+
+        float x = ReadFloat(list[0], defaultValue.x);
+        float y = ReadFloat(list[1], defaultValue.y);
+        float w = ReadFloat(list[2], defaultValue.width);
+        float h = ReadFloat(list[3], defaultValue.height);
+        return new Rect(x, y, w, h);
+    }
+
+    private float ReadFloat(JsonData value, float defaultValue)
+    {
+        if (value == null)
+            return defaultValue;
+
+        try
+        {
+            if (value.IsDouble)
+                return (float)(double)value;
+            if (value.IsInt)
+                return (int)value;
+            if (value.IsLong)
+                return (long)value;
+            return Convert.ToSingle(value);
+        }
+        catch
+        {
+            return defaultValue;
+        }
     }
 
     /// <summary>
@@ -431,7 +641,7 @@ internal sealed class UguiJsonToUguiBuilder
         string targetGraphicName = m_Reader.GetString(toggleData, "targetGraphic", string.Empty);
         if (!string.IsNullOrEmpty(targetGraphicName))
         {
-            Graphic g = FindGraphicByName(go.transform, targetGraphicName);
+            Graphic g = ResolveGraphic(go.transform, targetGraphicName);
             if (g != null)
                 toggle.targetGraphic = g;
         }
@@ -439,10 +649,98 @@ internal sealed class UguiJsonToUguiBuilder
         string graphicName = m_Reader.GetString(toggleData, "graphic", string.Empty);
         if (!string.IsNullOrEmpty(graphicName))
         {
-            Graphic g = FindGraphicByName(go.transform, graphicName);
+            Graphic g = ResolveGraphic(go.transform, graphicName);
             if (g != null)
                 toggle.graphic = g;
         }
+
+        string groupName = m_Reader.GetString(toggleData, "group", string.Empty);
+        if (!string.IsNullOrEmpty(groupName))
+        {
+            ToggleGroup group = ResolveComponent<ToggleGroup>(go.transform, groupName);
+            if (group != null)
+                toggle.group = group;
+        }
+    }
+
+    private void ApplyCanvasGroup(GameObject go, JsonData canvasGroupData)
+    {
+        if (canvasGroupData == null)
+            return;
+
+        CanvasGroup canvasGroup = GetOrAddComponent<CanvasGroup>(go);
+        canvasGroup.alpha = m_Reader.GetFloat(canvasGroupData, "alpha", canvasGroup.alpha);
+        canvasGroup.interactable = m_Reader.GetBool(canvasGroupData, "interactable", canvasGroup.interactable);
+        canvasGroup.blocksRaycasts = m_Reader.GetBool(canvasGroupData, "blocksRaycasts", canvasGroup.blocksRaycasts);
+        canvasGroup.ignoreParentGroups = m_Reader.GetBool(canvasGroupData, "ignoreParentGroups", canvasGroup.ignoreParentGroups);
+    }
+
+    private void ApplyLayoutElement(GameObject go, JsonData layoutElementData)
+    {
+        if (layoutElementData == null)
+            return;
+
+        LayoutElement layoutElement = GetOrAddComponent<LayoutElement>(go);
+        layoutElement.ignoreLayout = m_Reader.GetBool(layoutElementData, "ignoreLayout", layoutElement.ignoreLayout);
+        layoutElement.minWidth = m_Reader.GetFloat(layoutElementData, "minWidth", layoutElement.minWidth);
+        layoutElement.minHeight = m_Reader.GetFloat(layoutElementData, "minHeight", layoutElement.minHeight);
+        layoutElement.preferredWidth = m_Reader.GetFloat(layoutElementData, "preferredWidth", layoutElement.preferredWidth);
+        layoutElement.preferredHeight = m_Reader.GetFloat(layoutElementData, "preferredHeight", layoutElement.preferredHeight);
+        layoutElement.flexibleWidth = m_Reader.GetFloat(layoutElementData, "flexibleWidth", layoutElement.flexibleWidth);
+        layoutElement.flexibleHeight = m_Reader.GetFloat(layoutElementData, "flexibleHeight", layoutElement.flexibleHeight);
+        layoutElement.layoutPriority = m_Reader.GetInt(layoutElementData, "layoutPriority", layoutElement.layoutPriority);
+    }
+
+    private void ApplyAspectRatioFitter(GameObject go, JsonData fitterData)
+    {
+        if (fitterData == null)
+            return;
+
+        AspectRatioFitter fitter = GetOrAddComponent<AspectRatioFitter>(go);
+        string aspectMode = m_Reader.GetString(fitterData, "aspectMode", string.Empty);
+        if (!string.IsNullOrEmpty(aspectMode))
+            fitter.aspectMode = ParseEnumSafe(aspectMode, fitter.aspectMode);
+
+        fitter.aspectRatio = m_Reader.GetFloat(fitterData, "aspectRatio", fitter.aspectRatio);
+    }
+
+    private void ApplyRectMask2D(GameObject go, JsonData rectMask2DData)
+    {
+        if (rectMask2DData == null)
+            return;
+
+        RectMask2D rectMask2D = GetOrAddComponent<RectMask2D>(go);
+        if (m_Reader.TryGetValue(rectMask2DData, "padding", out JsonData paddingData))
+            rectMask2D.padding = ReadRectOffset(paddingData, rectMask2D.padding);
+
+        if (m_Reader.TryGetValue(rectMask2DData, "softness", out JsonData softnessData))
+            rectMask2D.softness = m_Reader.GetVector2Int(softnessData, rectMask2D.softness);
+    }
+
+    private void ApplyShadow(GameObject go, JsonData shadowData)
+    {
+        if (shadowData == null)
+            return;
+
+        Shadow shadow = GetOrAddComponent<Shadow>(go);
+        if (m_Reader.TryGetValue(shadowData, "effectColor", out JsonData effectColor))
+            shadow.effectColor = m_Reader.GetColor(effectColor, shadow.effectColor);
+        if (m_Reader.TryGetValue(shadowData, "effectDistance", out JsonData effectDistance))
+            shadow.effectDistance = m_Reader.GetVector2(effectDistance, shadow.effectDistance);
+        shadow.useGraphicAlpha = m_Reader.GetBool(shadowData, "useGraphicAlpha", shadow.useGraphicAlpha);
+    }
+
+    private void ApplyOutline(GameObject go, JsonData outlineData)
+    {
+        if (outlineData == null)
+            return;
+
+        Outline outline = GetOrAddComponent<Outline>(go);
+        if (m_Reader.TryGetValue(outlineData, "effectColor", out JsonData effectColor))
+            outline.effectColor = m_Reader.GetColor(effectColor, outline.effectColor);
+        if (m_Reader.TryGetValue(outlineData, "effectDistance", out JsonData effectDistance))
+            outline.effectDistance = m_Reader.GetVector2(effectDistance, outline.effectDistance);
+        outline.useGraphicAlpha = m_Reader.GetBool(outlineData, "useGraphicAlpha", outline.useGraphicAlpha);
     }
 
     /// <summary>
@@ -457,7 +755,7 @@ internal sealed class UguiJsonToUguiBuilder
         string fillRectName = m_Reader.GetString(sliderData, "fillRect", string.Empty);
         if (!string.IsNullOrEmpty(fillRectName))
         {
-            RectTransform t = FindRectTransformByName(go.transform, fillRectName);
+            RectTransform t = ResolveRectTransform(go.transform, fillRectName);
             if (t != null)
                 slider.fillRect = t;
         }
@@ -465,7 +763,7 @@ internal sealed class UguiJsonToUguiBuilder
         string handleRectName = m_Reader.GetString(sliderData, "handleRect", string.Empty);
         if (!string.IsNullOrEmpty(handleRectName))
         {
-            RectTransform t = FindRectTransformByName(go.transform, handleRectName);
+            RectTransform t = ResolveRectTransform(go.transform, handleRectName);
             if (t != null)
                 slider.handleRect = t;
         }
@@ -483,7 +781,7 @@ internal sealed class UguiJsonToUguiBuilder
         string textComponentName = m_Reader.GetString(inputFieldData, "textComponent", string.Empty);
         if (!string.IsNullOrEmpty(textComponentName))
         {
-            Text t = FindComponentByName<Text>(go.transform, textComponentName);
+            Text t = ResolveComponent<Text>(go.transform, textComponentName);
             if (t != null)
                 inputField.textComponent = t;
         }
@@ -491,7 +789,7 @@ internal sealed class UguiJsonToUguiBuilder
         string placeholderName = m_Reader.GetString(inputFieldData, "placeholder", string.Empty);
         if (!string.IsNullOrEmpty(placeholderName))
         {
-            Graphic g = FindGraphicByName(go.transform, placeholderName);
+            Graphic g = ResolveGraphic(go.transform, placeholderName);
             if (g != null)
                 inputField.placeholder = g;
         }
@@ -509,7 +807,7 @@ internal sealed class UguiJsonToUguiBuilder
         string contentName = m_Reader.GetString(scrollRectData, "content", string.Empty);
         if (!string.IsNullOrEmpty(contentName))
         {
-            RectTransform t = FindRectTransformByName(go.transform, contentName);
+            RectTransform t = ResolveRectTransform(go.transform, contentName);
             if (t != null)
                 scrollRect.content = t;
         }
@@ -517,7 +815,7 @@ internal sealed class UguiJsonToUguiBuilder
         string viewportName = m_Reader.GetString(scrollRectData, "viewport", string.Empty);
         if (!string.IsNullOrEmpty(viewportName))
         {
-            RectTransform t = FindRectTransformByName(go.transform, viewportName);
+            RectTransform t = ResolveRectTransform(go.transform, viewportName);
             if (t != null)
                 scrollRect.viewport = t;
         }
@@ -525,7 +823,7 @@ internal sealed class UguiJsonToUguiBuilder
         string horizontalScrollbarName = m_Reader.GetString(scrollRectData, "horizontalScrollbar", string.Empty);
         if (!string.IsNullOrEmpty(horizontalScrollbarName))
         {
-            Scrollbar sb = FindComponentByName<Scrollbar>(go.transform, horizontalScrollbarName);
+            Scrollbar sb = ResolveComponent<Scrollbar>(go.transform, horizontalScrollbarName);
             if (sb != null)
                 scrollRect.horizontalScrollbar = sb;
         }
@@ -533,10 +831,187 @@ internal sealed class UguiJsonToUguiBuilder
         string verticalScrollbarName = m_Reader.GetString(scrollRectData, "verticalScrollbar", string.Empty);
         if (!string.IsNullOrEmpty(verticalScrollbarName))
         {
-            Scrollbar sb = FindComponentByName<Scrollbar>(go.transform, verticalScrollbarName);
+            Scrollbar sb = ResolveComponent<Scrollbar>(go.transform, verticalScrollbarName);
             if (sb != null)
                 scrollRect.verticalScrollbar = sb;
         }
+    }
+
+    /// <summary>
+    /// 解析并应用 Slider 中的 RectTransform 引用。
+    /// </summary>
+    private void ResolveDropdownReferences(GameObject go, JsonData dropdownData)
+    {
+        Dropdown dropdown = go.GetComponent<Dropdown>();
+        if (dropdown == null)
+            return;
+
+        string captionTextName = m_Reader.GetString(dropdownData, "captionText", "");
+        if (!string.IsNullOrEmpty(captionTextName))
+        {
+            Text t = ResolveComponent<Text>(dropdown.transform, captionTextName);
+            if (t != null)
+                dropdown.captionText = t;
+        }
+
+        string itemTextName = m_Reader.GetString(dropdownData, "itemText", "");
+        if (!string.IsNullOrEmpty(itemTextName))
+        {
+            Text t = ResolveComponent<Text>(dropdown.transform, itemTextName);
+            if (t != null)
+                dropdown.itemText = t;
+        }
+
+        string templateName = m_Reader.GetString(dropdownData, "template", "");
+        if (!string.IsNullOrEmpty(templateName))
+        {
+            RectTransform t = ResolveRectTransform(dropdown.transform, templateName);
+            if (t != null)
+                dropdown.template = t;
+        }
+
+        string targetGraphicName = m_Reader.GetString(dropdownData, "targetGraphic", "");
+        if (!string.IsNullOrEmpty(targetGraphicName))
+        {
+            Graphic t = ResolveGraphic(dropdown.transform, targetGraphicName);
+            if (t != null)
+                dropdown.targetGraphic = t;
+        }
+    }
+
+    private void ResolveScrollbarReferences(GameObject go, JsonData scrollbarData)
+    {
+        Scrollbar scrollbar = go.GetComponent<Scrollbar>();
+        if (scrollbar == null)
+            return;
+
+        string handleRectName = m_Reader.GetString(scrollbarData, "handleRect", string.Empty);
+        if (!string.IsNullOrEmpty(handleRectName))
+        {
+            RectTransform t = ResolveRectTransform(go.transform, handleRectName);
+            if (t != null)
+                scrollbar.handleRect = t;
+        }
+    }
+
+    private void RegisterDefaultComponentAppliers()
+    {
+        RegisterComponentApplier("Image", ApplyImage);
+        RegisterComponentApplier("Text", ApplyText);
+        RegisterComponentApplier("Button", ApplyButton);
+        RegisterComponentApplier("Toggle", ApplyToggle);
+        RegisterComponentApplier("Slider", ApplySlider);
+        RegisterComponentApplier("InputField", ApplyInputField);
+        RegisterComponentApplier("ScrollRect", ApplyScrollRect);
+        RegisterComponentApplier("Mask", ApplyMask);
+        RegisterComponentApplier("RectMask2D", ApplyRectMask2D);
+        RegisterComponentApplier("Dropdown", ApplyDropdown);
+        RegisterComponentApplier("CanvasGroup", ApplyCanvasGroup);
+        RegisterComponentApplier("RawImage", ApplyRawImage);
+        RegisterComponentApplier("HorizontalLayoutGroup", ApplyHorizontalLayoutGroup);
+        RegisterComponentApplier("VerticalLayoutGroup", ApplyVerticalLayoutGroup);
+        RegisterComponentApplier("GridLayoutGroup", ApplyGridLayoutGroup);
+        RegisterComponentApplier("ContentSizeFitter", ApplyContentSizeFitter);
+        RegisterComponentApplier("LayoutElement", ApplyLayoutElement);
+        RegisterComponentApplier("AspectRatioFitter", ApplyAspectRatioFitter);
+        RegisterComponentApplier("Scrollbar", ApplyScrollbar);
+        RegisterComponentApplier("Shadow", ApplyShadow);
+        RegisterComponentApplier("Outline", ApplyOutline);
+        RegisterComponentApplier("TextMeshProUGUI", ApplyTextMeshProUGUI);
+    }
+
+    private void RegisterComponentApplier(string type, Action<GameObject, JsonData> applier)
+    {
+        if (string.IsNullOrEmpty(type) || applier == null)
+            return;
+
+        m_ComponentAppliers[type] = applier;
+    }
+
+    private void ApplyComponent(GameObject go, string componentType, JsonData data)
+    {
+        if (go == null || string.IsNullOrEmpty(componentType))
+            return;
+
+        if (m_ComponentAppliers.TryGetValue(componentType, out Action<GameObject, JsonData> applier))
+            applier(go, data);
+    }
+
+    private void ResolveComponentReferences(GameObject go, string componentType, JsonData data)
+    {
+        if (string.Equals(componentType, "InputField", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolveInputFieldReferences(go, data);
+            return;
+        }
+
+        if (string.Equals(componentType, "ScrollRect", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolveScrollRectReferences(go, data);
+            return;
+        }
+
+        if (string.Equals(componentType, "Toggle", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolveToggleReferences(go, data);
+            return;
+        }
+
+        if (string.Equals(componentType, "Slider", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolveSliderReferences(go, data);
+            return;
+        }
+
+        if (string.Equals(componentType, "Dropdown", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolveDropdownReferences(go, data);
+            return;
+        }
+
+        if (string.Equals(componentType, "Scrollbar", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolveScrollbarReferences(go, data);
+        }
+    }
+
+    private static string NormalizeNullableString(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
+        return string.Equals(value, "null", StringComparison.OrdinalIgnoreCase) ? string.Empty : value;
+    }
+
+    private static Transform ResolveTransform(Transform root, string pathOrName)
+    {
+        if (root == null || string.IsNullOrEmpty(pathOrName))
+            return null;
+
+        if (pathOrName == ".")
+            return root;
+
+        if (pathOrName.IndexOf('/') >= 0)
+            return root.Find(pathOrName);
+
+        return FindTransformByName(root, pathOrName);
+    }
+
+    private static T ResolveComponent<T>(Transform root, string pathOrName) where T : Component
+    {
+        Transform t = ResolveTransform(root, pathOrName);
+        return t != null ? t.GetComponent<T>() : null;
+    }
+
+    private static Graphic ResolveGraphic(Transform root, string pathOrName)
+    {
+        Transform t = ResolveTransform(root, pathOrName);
+        return t != null ? t.GetComponent<Graphic>() : null;
+    }
+
+    private static RectTransform ResolveRectTransform(Transform root, string pathOrName)
+    {
+        Transform t = ResolveTransform(root, pathOrName);
+        return t as RectTransform;
     }
 
     /// <summary>
@@ -631,6 +1106,30 @@ internal sealed class UguiJsonToUguiBuilder
         return Resources.Load<Material>(StripExtension(path));
     }
 
+    private static Texture2D LoadTexture2D(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return null;
+
+        if (path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+
+        return Resources.Load<Texture2D>(StripExtension(path));
+    }
+
+#if TMPRO
+    private static TMP_FontAsset LoadTmpFontAsset(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return null;
+
+        if (path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
+
+        return Resources.Load<TMP_FontAsset>(StripExtension(path));
+    }
+#endif
+
     /// <summary>
     /// 加载 Font：支持内置字体名/Assets 路径/Resources。
     /// </summary>
@@ -657,33 +1156,6 @@ internal sealed class UguiJsonToUguiBuilder
             return parsed;
 
         return defaultValue;
-    }
-
-    /// <summary>
-    /// 在子节点树中按名字查找指定组件。
-    /// </summary>
-    private static T FindComponentByName<T>(Transform root, string name) where T : Component
-    {
-        Transform t = FindTransformByName(root, name);
-        return t != null ? t.GetComponent<T>() : null;
-    }
-
-    /// <summary>
-    /// 在子节点树中按名字查找 Graphic。
-    /// </summary>
-    private static Graphic FindGraphicByName(Transform root, string name)
-    {
-        Transform t = FindTransformByName(root, name);
-        return t != null ? t.GetComponent<Graphic>() : null;
-    }
-
-    /// <summary>
-    /// 在子节点树中按名字查找 RectTransform。
-    /// </summary>
-    private static RectTransform FindRectTransformByName(Transform root, string name)
-    {
-        Transform t = FindTransformByName(root, name);
-        return t as RectTransform;
     }
 
     /// <summary>

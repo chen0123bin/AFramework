@@ -6,9 +6,12 @@ public static class UguiJsonSchema
     public const string KEY_ROOT = "Root";
 
     public const string KEY_TYPE = "type";
+    public const string KEY_DATA = "data";
     public const string KEY_NAME = "name";
     public const string KEY_ACTIVE = "active";
     public const string KEY_CHILDREN = "children";
+
+    public const string KEY_COMPONENTS = "components";
 
     public const string KEY_RECT_TRANSFORM = "rectTransform";
     public const string KEY_ANCHOR_MIN = "anchorMin";
@@ -28,5 +31,7 @@ public static class UguiJsonSchema
     public const string KEY_SCROLL_RECT = "scrollRect";
     public const string KEY_MASK = "mask";
     public const string KEY_DROPDOWN = "dropdown";
+
+   
 }
 

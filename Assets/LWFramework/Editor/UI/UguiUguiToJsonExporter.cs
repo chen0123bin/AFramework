@@ -4,6 +4,9 @@ using LitJson;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+#if TMPRO
+using TMPro;
+#endif
 
 /// <summary>
 /// 将场景中的 UGUI 树导出为约定格式的 JSON（结构对齐 UGUITemp.txt）。
@@ -90,17 +93,13 @@ internal sealed class UguiUguiToJsonExporter
     }
 
     /// <summary>
-    /// 导出一个元素节点：type/name/active/rectTransform/组件块/children。
+    /// 导出一个元素节点：name/active/rectTransform/components/children。
     /// </summary>
     private JsonData ExportElementNode(GameObject element)
     {
         JsonData node = NewObject();
         if (element == null)
             return node;
-
-        string type = GetElementType(element);
-        if (!string.IsNullOrEmpty(type))
-            node[UguiJsonSchema.KEY_TYPE] = type;
 
         node[UguiJsonSchema.KEY_NAME] = element.name;
         node[UguiJsonSchema.KEY_ACTIVE] = element.activeSelf;
@@ -109,7 +108,9 @@ internal sealed class UguiUguiToJsonExporter
         if (rectTransform != null)
             node[UguiJsonSchema.KEY_RECT_TRANSFORM] = ExportRectTransform(rectTransform);
 
-        ExportComponentBlocks(element, node);
+        JsonData components = ExportComponents(element);
+        if (components != null && components.IsArray && components.Count > 0)
+            node[UguiJsonSchema.KEY_COMPONENTS] = components;
 
         JsonData children = ExportChildren(element.transform);
         if (children != null)
@@ -138,48 +139,119 @@ internal sealed class UguiUguiToJsonExporter
     }
 
     /// <summary>
-    /// 按组件类型导出对应的数据块（image/text/button/toggle/slider/inputField/scrollRect/mask/dropdown）。
+    /// 导出组件数组：每个元素为 {type,data}。
     /// </summary>
-    private void ExportComponentBlocks(GameObject element, JsonData node)
+    private JsonData ExportComponents(GameObject element)
     {
-        if (element == null || node == null)
-            return;
+        if (element == null)
+            return null;
+
+        JsonData list = NewArray();
+
+        CanvasGroup canvasGroup = element.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+            AddComponent(list, "CanvasGroup", ExportCanvasGroup(canvasGroup));
 
         Image image = element.GetComponent<Image>();
         if (image != null)
-            node[UguiJsonSchema.KEY_IMAGE] = ExportImage(image);
+            AddComponent(list, "Image", ExportImage(image));
+
+        RawImage rawImage = element.GetComponent<RawImage>();
+        if (rawImage != null)
+            AddComponent(list, "RawImage", ExportRawImage(rawImage));
 
         Text text = element.GetComponent<Text>();
         if (text != null)
-            node[UguiJsonSchema.KEY_TEXT] = ExportText(text);
+            AddComponent(list, "Text", ExportText(text));
+
+#if TMPRO
+        TextMeshProUGUI tmp = element.GetComponent<TextMeshProUGUI>();
+        if (tmp != null)
+            AddComponent(list, "TextMeshProUGUI", ExportTextMeshProUGUI(tmp));
+#endif
 
         Button button = element.GetComponent<Button>();
         if (button != null)
-            node[UguiJsonSchema.KEY_BUTTON] = ExportButton(button);
+            AddComponent(list, "Button", ExportButton(button));
 
         Toggle toggle = element.GetComponent<Toggle>();
         if (toggle != null)
-            node[UguiJsonSchema.KEY_TOGGLE] = ExportToggle(toggle);
+            AddComponent(list, "Toggle", ExportToggle(toggle));
 
         Slider slider = element.GetComponent<Slider>();
         if (slider != null)
-            node[UguiJsonSchema.KEY_SLIDER] = ExportSlider(slider);
+            AddComponent(list, "Slider", ExportSlider(slider));
 
         InputField inputField = element.GetComponent<InputField>();
         if (inputField != null)
-            node[UguiJsonSchema.KEY_INPUT_FIELD] = ExportInputField(inputField);
+            AddComponent(list, "InputField", ExportInputField(inputField));
 
         ScrollRect scrollRect = element.GetComponent<ScrollRect>();
         if (scrollRect != null)
-            node[UguiJsonSchema.KEY_SCROLL_RECT] = ExportScrollRect(scrollRect);
+            AddComponent(list, "ScrollRect", ExportScrollRect(scrollRect));
 
         Mask mask = element.GetComponent<Mask>();
         if (mask != null)
-            node[UguiJsonSchema.KEY_MASK] = ExportMask(mask);
+            AddComponent(list, "Mask", ExportMask(mask));
+
+        RectMask2D rectMask2D = element.GetComponent<RectMask2D>();
+        if (rectMask2D != null)
+            AddComponent(list, "RectMask2D", ExportRectMask2D(rectMask2D));
 
         Dropdown dropdown = element.GetComponent<Dropdown>();
         if (dropdown != null)
-            node[UguiJsonSchema.KEY_DROPDOWN] = ExportDropdown(dropdown);
+            AddComponent(list, "Dropdown", ExportDropdown(dropdown));
+
+        Scrollbar scrollbar = element.GetComponent<Scrollbar>();
+        if (scrollbar != null)
+            AddComponent(list, "Scrollbar", ExportScrollbar(scrollbar));
+
+        HorizontalLayoutGroup horizontalLayoutGroup = element.GetComponent<HorizontalLayoutGroup>();
+        if (horizontalLayoutGroup != null)
+            AddComponent(list, "HorizontalLayoutGroup", ExportHorizontalLayoutGroup(horizontalLayoutGroup));
+
+        VerticalLayoutGroup verticalLayoutGroup = element.GetComponent<VerticalLayoutGroup>();
+        if (verticalLayoutGroup != null)
+            AddComponent(list, "VerticalLayoutGroup", ExportVerticalLayoutGroup(verticalLayoutGroup));
+
+        GridLayoutGroup gridLayoutGroup = element.GetComponent<GridLayoutGroup>();
+        if (gridLayoutGroup != null)
+            AddComponent(list, "GridLayoutGroup", ExportGridLayoutGroup(gridLayoutGroup));
+
+        ContentSizeFitter contentSizeFitter = element.GetComponent<ContentSizeFitter>();
+        if (contentSizeFitter != null)
+            AddComponent(list, "ContentSizeFitter", ExportContentSizeFitter(contentSizeFitter));
+
+        LayoutElement layoutElement = element.GetComponent<LayoutElement>();
+        if (layoutElement != null)
+            AddComponent(list, "LayoutElement", ExportLayoutElement(layoutElement));
+
+        AspectRatioFitter aspectRatioFitter = element.GetComponent<AspectRatioFitter>();
+        if (aspectRatioFitter != null)
+            AddComponent(list, "AspectRatioFitter", ExportAspectRatioFitter(aspectRatioFitter));
+
+        Outline outline = element.GetComponent<Outline>();
+        if (outline != null)
+            AddComponent(list, "Outline", ExportShadow(outline));
+
+        Shadow shadow = element.GetComponent<Shadow>();
+        if (shadow != null && outline == null)
+            AddComponent(list, "Shadow", ExportShadow(shadow));
+
+        return list;
+    }
+
+    private JsonData ExportCanvasGroup(CanvasGroup canvasGroup)
+    {
+        JsonData data = NewObject();
+        if (canvasGroup == null)
+            return data;
+
+        data["alpha"] = (double)canvasGroup.alpha;
+        data["interactable"] = canvasGroup.interactable;
+        data["blocksRaycasts"] = canvasGroup.blocksRaycasts;
+        data["ignoreParentGroups"] = canvasGroup.ignoreParentGroups;
+        return data;
     }
 
     /// <summary>
@@ -198,6 +270,28 @@ internal sealed class UguiUguiToJsonExporter
         data["imageType"] = image.type.ToString();
         data["fillCenter"] = image.fillCenter;
         data["pixelsPerUnitMultiplier"] = (double)image.pixelsPerUnitMultiplier;
+        data["preserveAspect"] = image.preserveAspect;
+        data["fillMethod"] = image.fillMethod.ToString();
+        data["fillAmount"] = (double)image.fillAmount;
+        data["fillClockwise"] = image.fillClockwise;
+        data["fillOrigin"] = image.fillOrigin;
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 RawImage 数据块。
+    /// </summary>
+    private JsonData ExportRawImage(RawImage rawImage)
+    {
+        JsonData data = NewObject();
+        if (rawImage == null)
+            return data;
+
+        data["texture"] = GetTexturePath(rawImage.texture);
+        data["uvRect"] = NewRect(rawImage.uvRect);
+        data["color"] = NewColor(rawImage.color);
+        data["material"] = GetMaterialPath(rawImage.material);
+        data["raycastTarget"] = rawImage.raycastTarget;
         return data;
     }
 
@@ -220,8 +314,31 @@ internal sealed class UguiUguiToJsonExporter
         data["verticalOverflow"] = text.verticalOverflow.ToString();
         data["raycastTarget"] = text.raycastTarget;
         data["supportRichText"] = text.supportRichText;
+        data["lineSpacing"] = (double)text.lineSpacing;
         return data;
     }
+
+#if TMPRO
+    /// <summary>
+    /// 导出 TextMeshProUGUI 数据块。
+    /// </summary>
+    private JsonData ExportTextMeshProUGUI(TextMeshProUGUI tmp)
+    {
+        JsonData data = NewObject();
+        if (tmp == null)
+            return data;
+
+        data["content"] = tmp.text;
+        data["font"] = GetTmpFontPath(tmp.font);
+        data["fontSize"] = (double)tmp.fontSize;
+        data["fontStyle"] = tmp.fontStyle.ToString();
+        data["color"] = NewColor(tmp.color);
+        data["alignment"] = tmp.alignment.ToString();
+        data["raycastTarget"] = tmp.raycastTarget;
+        data["richText"] = tmp.richText;
+        return data;
+    }
+#endif
 
     /// <summary>
     /// 导出 Button 数据块。
@@ -235,6 +352,7 @@ internal sealed class UguiUguiToJsonExporter
         data["interactable"] = button.interactable;
         data["transition"] = button.transition.ToString();
         data["colors"] = ExportColorBlock(button.colors);
+        data["navigation"] = ExportNavigation(button.navigation, button.transform);
         return data;
     }
 
@@ -248,13 +366,14 @@ internal sealed class UguiUguiToJsonExporter
             return data;
 
         data["interactable"] = toggle.interactable;
-        data["targetGraphic"] = toggle.targetGraphic != null ? toggle.targetGraphic.gameObject.name : null;
+        data["targetGraphic"] = toggle.targetGraphic != null ? GetRelativePathOrDot(toggle.transform, toggle.targetGraphic.transform) : null;
         data["transition"] = toggle.transition.ToString();
         data["isOn"] = toggle.isOn;
         data["toggleTransition"] = toggle.toggleTransition.ToString();
-        data["graphic"] = toggle.graphic != null ? toggle.graphic.gameObject.name : null;
-        data["group"] = toggle.group != null ? toggle.group.gameObject.name : null;
+        data["graphic"] = toggle.graphic != null ? GetRelativePathOrDot(toggle.transform, toggle.graphic.transform) : null;
+        data["group"] = toggle.group != null ? GetRelativePathOrDot(toggle.transform, toggle.group.transform) : null;
         data["colors"] = ExportColorBlock(toggle.colors);
+        data["navigation"] = ExportNavigation(toggle.navigation, toggle.transform);
         return data;
     }
 
@@ -269,13 +388,14 @@ internal sealed class UguiUguiToJsonExporter
 
         data["interactable"] = slider.interactable;
         data["transition"] = slider.transition.ToString();
-        data["fillRect"] = slider.fillRect != null ? slider.fillRect.gameObject.name : null;
-        data["handleRect"] = slider.handleRect != null ? slider.handleRect.gameObject.name : null;
+        data["fillRect"] = slider.fillRect != null ? GetRelativePathOrDot(slider.transform, slider.fillRect.transform) : null;
+        data["handleRect"] = slider.handleRect != null ? GetRelativePathOrDot(slider.transform, slider.handleRect.transform) : null;
         data["direction"] = slider.direction.ToString();
         data["minValue"] = (double)slider.minValue;
         data["maxValue"] = (double)slider.maxValue;
         data["wholeNumbers"] = slider.wholeNumbers;
         data["value"] = (double)slider.value;
+        data["navigation"] = ExportNavigation(slider.navigation, slider.transform);
         return data;
     }
 
@@ -289,16 +409,17 @@ internal sealed class UguiUguiToJsonExporter
             return data;
 
         data["interactable"] = inputField.interactable;
-        data["textComponent"] = inputField.textComponent != null ? inputField.textComponent.gameObject.name : null;
+        data["textComponent"] = inputField.textComponent != null ? GetRelativePathOrDot(inputField.transform, inputField.textComponent.transform) : null;
         data["text"] = inputField.text;
         data["characterLimit"] = inputField.characterLimit;
         data["contentType"] = inputField.contentType.ToString();
         data["lineType"] = inputField.lineType.ToString();
-        data["placeholder"] = inputField.placeholder != null ? inputField.placeholder.gameObject.name : null;
+        data["placeholder"] = inputField.placeholder != null ? GetRelativePathOrDot(inputField.transform, inputField.placeholder.transform) : null;
         data["caretBlinkRate"] = (double)inputField.caretBlinkRate;
         data["caretWidth"] = inputField.caretWidth;
         data["selectionColor"] = NewColor(inputField.selectionColor);
         data["readOnly"] = inputField.readOnly;
+        data["navigation"] = ExportNavigation(inputField.navigation, inputField.transform);
         return data;
     }
 
@@ -311,7 +432,7 @@ internal sealed class UguiUguiToJsonExporter
         if (scrollRect == null)
             return data;
 
-        data["content"] = scrollRect.content != null ? scrollRect.content.gameObject.name : null;
+        data["content"] = scrollRect.content != null ? GetRelativePathOrDot(scrollRect.transform, scrollRect.content.transform) : null;
         data["horizontal"] = scrollRect.horizontal;
         data["vertical"] = scrollRect.vertical;
         data["movementType"] = scrollRect.movementType.ToString();
@@ -319,9 +440,9 @@ internal sealed class UguiUguiToJsonExporter
         data["inertia"] = scrollRect.inertia;
         data["decelerationRate"] = (double)scrollRect.decelerationRate;
         data["scrollSensitivity"] = (double)scrollRect.scrollSensitivity;
-        data["viewport"] = scrollRect.viewport != null ? scrollRect.viewport.gameObject.name : null;
-        data["horizontalScrollbar"] = scrollRect.horizontalScrollbar != null ? scrollRect.horizontalScrollbar.gameObject.name : null;
-        data["verticalScrollbar"] = scrollRect.verticalScrollbar != null ? scrollRect.verticalScrollbar.gameObject.name : null;
+        data["viewport"] = scrollRect.viewport != null ? GetRelativePathOrDot(scrollRect.transform, scrollRect.viewport.transform) : null;
+        data["horizontalScrollbar"] = scrollRect.horizontalScrollbar != null ? GetRelativePathOrDot(scrollRect.transform, scrollRect.horizontalScrollbar.transform) : null;
+        data["verticalScrollbar"] = scrollRect.verticalScrollbar != null ? GetRelativePathOrDot(scrollRect.transform, scrollRect.verticalScrollbar.transform) : null;
         return data;
     }
 
@@ -348,10 +469,10 @@ internal sealed class UguiUguiToJsonExporter
             return data;
 
         data["interactable"] = dropdown.interactable;
-        data["targetGraphic"] = dropdown.targetGraphic != null ? dropdown.targetGraphic.gameObject.name : null;
-        data["template"] = dropdown.template != null ? dropdown.template.gameObject.name : null;
-        data["captionText"] = dropdown.captionText != null ? dropdown.captionText.gameObject.name : null;
-        data["itemText"] = dropdown.itemText != null ? GetRelativePath(dropdown.transform, dropdown.itemText.transform) : null;
+        data["targetGraphic"] = dropdown.targetGraphic != null ? GetRelativePathOrDot(dropdown.transform, dropdown.targetGraphic.transform) : null;
+        data["template"] = dropdown.template != null ? GetRelativePathOrDot(dropdown.transform, dropdown.template.transform) : null;
+        data["captionText"] = dropdown.captionText != null ? GetRelativePathOrDot(dropdown.transform, dropdown.captionText.transform) : null;
+        data["itemText"] = dropdown.itemText != null ? GetRelativePathOrDot(dropdown.transform, dropdown.itemText.transform) : null;
         data["value"] = dropdown.value;
 
         JsonData options = NewArray();
@@ -365,6 +486,160 @@ internal sealed class UguiUguiToJsonExporter
             options.Add(optionData);
         }
         data["options"] = options;
+        data["navigation"] = ExportNavigation(dropdown.navigation, dropdown.transform);
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 Scrollbar 数据块。
+    /// </summary>
+    private JsonData ExportScrollbar(Scrollbar scrollbar)
+    {
+        JsonData data = NewObject();
+        if (scrollbar == null)
+            return data;
+
+        data["interactable"] = scrollbar.interactable;
+        data["transition"] = scrollbar.transition.ToString();
+        data["colors"] = ExportColorBlock(scrollbar.colors);
+        data["targetGraphic"] = scrollbar.targetGraphic != null ? GetRelativePathOrDot(scrollbar.transform, scrollbar.targetGraphic.transform) : null;
+        data["handleRect"] = scrollbar.handleRect != null ? GetRelativePathOrDot(scrollbar.transform, scrollbar.handleRect.transform) : null;
+        data["direction"] = scrollbar.direction.ToString();
+        data["value"] = (double)scrollbar.value;
+        data["size"] = (double)scrollbar.size;
+        data["numberOfSteps"] = scrollbar.numberOfSteps;
+        data["navigation"] = ExportNavigation(scrollbar.navigation, scrollbar.transform);
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 HorizontalLayoutGroup 数据块。
+    /// </summary>
+    private JsonData ExportHorizontalLayoutGroup(HorizontalLayoutGroup layoutGroup)
+    {
+        JsonData data = ExportLayoutGroupCommon(layoutGroup);
+        if (layoutGroup != null)
+            data["reverseArrangement"] = layoutGroup.reverseArrangement;
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 VerticalLayoutGroup 数据块。
+    /// </summary>
+    private JsonData ExportVerticalLayoutGroup(VerticalLayoutGroup layoutGroup)
+    {
+        JsonData data = ExportLayoutGroupCommon(layoutGroup);
+        if (layoutGroup != null)
+            data["reverseArrangement"] = layoutGroup.reverseArrangement;
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 GridLayoutGroup 数据块。
+    /// </summary>
+    private JsonData ExportGridLayoutGroup(GridLayoutGroup grid)
+    {
+        JsonData data = ExportLayoutGroupCommon(grid);
+        if (grid == null)
+            return data;
+
+        data["cellSize"] = NewVector2(grid.cellSize);
+        data["spacing"] = NewVector2(grid.spacing);
+        data["startCorner"] = grid.startCorner.ToString();
+        data["startAxis"] = grid.startAxis.ToString();
+        data["constraint"] = grid.constraint.ToString();
+        data["constraintCount"] = grid.constraintCount;
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 ContentSizeFitter 数据块。
+    /// </summary>
+    private JsonData ExportContentSizeFitter(ContentSizeFitter fitter)
+    {
+        JsonData data = NewObject();
+        if (fitter == null)
+            return data;
+
+        data["horizontalFit"] = fitter.horizontalFit.ToString();
+        data["verticalFit"] = fitter.verticalFit.ToString();
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 LayoutGroup 的通用字段。
+    /// </summary>
+    private JsonData ExportLayoutGroupCommon(LayoutGroup layoutGroup)
+    {
+        JsonData data = NewObject();
+        if (layoutGroup == null)
+            return data;
+
+        data["padding"] = ExportRectOffset(layoutGroup.padding);
+        data["childAlignment"] = layoutGroup.childAlignment.ToString();
+
+        if (layoutGroup is HorizontalOrVerticalLayoutGroup hv)
+        {
+            data["spacing"] = (double)hv.spacing;
+            data["childControlWidth"] = hv.childControlWidth;
+            data["childControlHeight"] = hv.childControlHeight;
+            data["childForceExpandWidth"] = hv.childForceExpandWidth;
+            data["childForceExpandHeight"] = hv.childForceExpandHeight;
+            data["childScaleWidth"] = hv.childScaleWidth;
+            data["childScaleHeight"] = hv.childScaleHeight;
+        }
+
+        return data;
+    }
+
+    private JsonData ExportLayoutElement(LayoutElement layoutElement)
+    {
+        JsonData data = NewObject();
+        if (layoutElement == null)
+            return data;
+
+        data["ignoreLayout"] = layoutElement.ignoreLayout;
+        data["minWidth"] = (double)layoutElement.minWidth;
+        data["minHeight"] = (double)layoutElement.minHeight;
+        data["preferredWidth"] = (double)layoutElement.preferredWidth;
+        data["preferredHeight"] = (double)layoutElement.preferredHeight;
+        data["flexibleWidth"] = (double)layoutElement.flexibleWidth;
+        data["flexibleHeight"] = (double)layoutElement.flexibleHeight;
+        data["layoutPriority"] = layoutElement.layoutPriority;
+        return data;
+    }
+
+    private JsonData ExportAspectRatioFitter(AspectRatioFitter fitter)
+    {
+        JsonData data = NewObject();
+        if (fitter == null)
+            return data;
+
+        data["aspectMode"] = fitter.aspectMode.ToString();
+        data["aspectRatio"] = (double)fitter.aspectRatio;
+        return data;
+    }
+
+    private JsonData ExportRectMask2D(RectMask2D rectMask2D)
+    {
+        JsonData data = NewObject();
+        if (rectMask2D == null)
+            return data;
+
+        data["padding"] = ExportRectOffset(rectMask2D.padding);
+        data["softness"] = NewVector2(rectMask2D.softness);
+        return data;
+    }
+
+    private JsonData ExportShadow(Shadow shadow)
+    {
+        JsonData data = NewObject();
+        if (shadow == null)
+            return data;
+
+        data["effectColor"] = NewColor(shadow.effectColor);
+        data["effectDistance"] = NewVector2(shadow.effectDistance);
+        data["useGraphicAlpha"] = shadow.useGraphicAlpha;
         return data;
     }
 
@@ -385,33 +660,19 @@ internal sealed class UguiUguiToJsonExporter
     }
 
     /// <summary>
-    /// 获取当前节点对应的 UGUI 类型字符串。
+    /// 向 components 数组添加一个组件项。
     /// </summary>
-    private string GetElementType(GameObject element)
+    private static void AddComponent(JsonData components, string type, JsonData data)
     {
-        if (element == null)
-            return string.Empty;
+        if (components == null || !components.IsArray)
+            return;
+        if (string.IsNullOrEmpty(type))
+            return;
 
-        if (element.GetComponent<Button>() != null)
-            return "Button";
-        if (element.GetComponent<Toggle>() != null)
-            return "Toggle";
-        if (element.GetComponent<Slider>() != null)
-            return "Slider";
-        if (element.GetComponent<InputField>() != null)
-            return "InputField";
-        if (element.GetComponent<ScrollRect>() != null)
-            return "ScrollRect";
-        if (element.GetComponent<Dropdown>() != null)
-            return "Dropdown";
-        if (element.GetComponent<Mask>() != null)
-            return "Mask";
-        if (element.GetComponent<Text>() != null)
-            return "Text";
-        if (element.GetComponent<Image>() != null)
-            return "Image";
-
-        return string.Empty;
+        JsonData item = NewObject();
+        item[UguiJsonSchema.KEY_TYPE] = type;
+        item[UguiJsonSchema.KEY_DATA] = data ?? NewObject();
+        components.Add(item);
     }
 
     /// <summary>
@@ -486,6 +747,59 @@ internal sealed class UguiUguiToJsonExporter
     }
 
     /// <summary>
+    /// 将 Rect 转为 JSON 数组。
+    /// </summary>
+    private static JsonData NewRect(Rect r)
+    {
+        JsonData list = NewArray();
+        list.Add((double)r.x);
+        list.Add((double)r.y);
+        list.Add((double)r.width);
+        list.Add((double)r.height);
+        return list;
+    }
+
+    /// <summary>
+    /// 将 RectOffset 转为 JSON 对象。
+    /// </summary>
+    private static JsonData ExportRectOffset(RectOffset offset)
+    {
+        JsonData data = NewObject();
+        if (offset == null)
+            return data;
+
+        data["left"] = offset.left;
+        data["right"] = offset.right;
+        data["top"] = offset.top;
+        data["bottom"] = offset.bottom;
+        return data;
+    }
+    /// <summary>
+    /// 将 RectOffset 转为 JSON 对象。
+    /// </summary>
+    private static JsonData ExportRectOffset(Vector4 offset)
+    {
+        JsonData data = NewObject();
+        if (offset == null)
+            return data;
+
+        data["left"] = offset.x;
+        data["right"] = offset.y;
+        data["top"] = offset.z;
+        data["bottom"] = offset.w;
+        return data;
+    }
+    /// <summary>
+    /// 导出 Navigation：当前以 mode 为主，必要时补充引用。
+    /// </summary>
+    private static JsonData ExportNavigation(Navigation navigation, Transform owner)
+    {
+        JsonData data = NewObject();
+        data["mode"] = navigation.mode.ToString();
+        return data;
+    }
+
+    /// <summary>
     /// 获取 Sprite 的导出路径：Resources 内用相对路径，否则用 Assets 路径。
     /// </summary>
     private static string GetSpritePath(Sprite sprite)
@@ -519,6 +833,24 @@ internal sealed class UguiUguiToJsonExporter
         }
 
         return material.name;
+    }
+
+    /// <summary>
+    /// 获取 Texture 的导出路径：Resources 内用相对路径，否则用 Assets 路径。
+    /// </summary>
+    private static string GetTexturePath(Texture texture)
+    {
+        if (texture == null)
+            return null;
+
+        string assetPath = AssetDatabase.GetAssetPath(texture);
+        if (!string.IsNullOrEmpty(assetPath))
+        {
+            string resourcesPath = TryConvertToResourcesPath(assetPath);
+            return !string.IsNullOrEmpty(resourcesPath) ? resourcesPath : assetPath;
+        }
+
+        return texture.name;
     }
 
     /// <summary>
@@ -587,8 +919,42 @@ internal sealed class UguiUguiToJsonExporter
         }
 
         if (cur != root)
-            return target.name;
+            return null;
 
         return sb.ToString();
     }
+
+    /// <summary>
+    /// 获取从 root 到 target 的相对路径；若 target 为 root 则返回 "."。
+    /// </summary>
+    private static string GetRelativePathOrDot(Transform root, Transform target)
+    {
+        if (root == null || target == null)
+            return null;
+
+        if (root == target)
+            return ".";
+
+        return GetRelativePath(root, target);
+    }
+
+#if TMPRO
+    /// <summary>
+    /// 获取 TMP_FontAsset 的导出路径：Resources 内用相对路径，否则用 Assets 路径。
+    /// </summary>
+    private static string GetTmpFontPath(TMP_FontAsset font)
+    {
+        if (font == null)
+            return null;
+
+        string assetPath = AssetDatabase.GetAssetPath(font);
+        if (!string.IsNullOrEmpty(assetPath))
+        {
+            string resourcesPath = TryConvertToResourcesPath(assetPath);
+            return !string.IsNullOrEmpty(resourcesPath) ? resourcesPath : assetPath;
+        }
+
+        return font.name;
+    }
+#endif
 }
