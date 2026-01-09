@@ -387,6 +387,7 @@ internal sealed class UguiUguiToJsonExporter
             return data;
 
         data["interactable"] = slider.interactable;
+        data["targetGraphic"] = slider.targetGraphic != null ? GetRelativePathOrDot(slider.transform, slider.targetGraphic.transform) : null;
         data["transition"] = slider.transition.ToString();
         data["fillRect"] = slider.fillRect != null ? GetRelativePathOrDot(slider.transform, slider.fillRect.transform) : null;
         data["handleRect"] = slider.handleRect != null ? GetRelativePathOrDot(slider.transform, slider.handleRect.transform) : null;

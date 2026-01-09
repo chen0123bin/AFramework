@@ -57,6 +57,22 @@ public class EditorMenuItems
         CanvasGroup canvasGroup = view.GetComponent<CanvasGroup>();
         canvasGroup.SetActive(canvasGroup.alpha == 0);
     }
+    [MenuItem("GameObject/UIFramework/复制路径(Shift+C) #c", false, -101)]
+    static void CopyParents()
+    {
+        if (EditorApplication.isCompiling)
+        {
+            return;
+        }
+        string path = GetParentPath(null, Selection.activeObject as GameObject, "");
+        if (path.Contains("View/"))
+        {
+            int index = path.IndexOf("View/") + 5;
+            path = path.Substring(index, path.Length - index);
+        }
+        GUIUtility.systemCopyBuffer = path;
+        Debug.Log(string.Format("systemCopyBuffer: {0}", path));
+    }
     [MenuItem("GameObject/UIFramework/创建脚本/View", false, -100)]
     static void CreateScriptBtn()
     {
@@ -70,7 +86,7 @@ public class EditorMenuItems
         GetGameObject(array, out gameObject, out chooseGameObjectList);
         string savePath = GetSavePath();
         string viewName = gameObject.name;
-        CreateView(viewName, "", savePath, gameObject, chooseGameObjectList);
+        CreateView(viewName, savePath, gameObject, chooseGameObjectList);
 
     }
 
@@ -118,30 +134,20 @@ public class EditorMenuItems
         return savePath;
     }
 
-    static void CreateView(string viewName, string logicName, string savePath, GameObject gameObject, List<GameObject> chooseGameObjectList)
+    static void CreateView(string viewName, string savePath, GameObject gameObject, List<GameObject> chooseGameObjectList)
     {
         string loadPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(gameObject);
         string generateFilePath = savePath + "/" + viewName + ".cs";
         var sw = new StreamWriter(generateFilePath, false, Encoding.UTF8);
         var strBuilder = new StringBuilder();
-        strBuilder.AppendLine("using LWFramework.UI;");
+        strBuilder.AppendLine("using LWUI;");
         strBuilder.AppendLine("using UnityEngine.UI;");
         strBuilder.AppendLine("using UnityEngine;");
         strBuilder.AppendLine("using LWFramework;");
-        strBuilder.AppendLine("using System.Collections.Generic;");
         strBuilder.AppendLine();
         strBuilder.AppendFormat("[UIViewData(\"{0}\",(int)FindType.Name,\"LWFramework/Canvas/Normal\")]", loadPath);
         strBuilder.AppendLine();
-        if (logicName == null || logicName == "")
-        {
-            strBuilder.AppendFormat("public class {0} : BaseUIView ", viewName);
-        }
-        else
-        {
-            strBuilder.AppendFormat("[UILogic(\"{0}\")]", logicName);
-            strBuilder.AppendLine();
-            strBuilder.AppendFormat("public class {0} : BaseLogicUIView  ", viewName);
-        }
+        strBuilder.AppendFormat("public class {0} : BaseUIView ", viewName);
         strBuilder.AppendLine();
         strBuilder.AppendLine("{");
         strBuilder.AppendLine();
@@ -155,11 +161,7 @@ public class EditorMenuItems
             strBuilder.AppendFormat("\tprivate {0} {1};", componentName, ConvertName(childName));
             strBuilder.AppendLine();
         }
-        if (logicName != null && logicName != "")
-        {
-            strBuilder.AppendFormat("\tprivate {0} m_Logic;", logicName);
-            strBuilder.AppendLine();
-        }
+
         strBuilder.AppendLine("\tpublic override  void CreateView(GameObject gameObject)");
         strBuilder.AppendLine("\t{");
         strBuilder.AppendLine("\t\tbase.CreateView(gameObject);");
@@ -180,18 +182,19 @@ public class EditorMenuItems
                 strBuilder.AppendLine();
                 buttons.Add(childName);
             }
+            //添加按钮点击事件监听
+            if (componentName == "Toggle")
+            {
+                strBuilder.AppendFormat("\t\t{0}.onValueChanged.AddListener((value) => ", ConvertName(childName));
+                strBuilder.AppendLine("\t\t{");
+                strBuilder.AppendLine();
+                strBuilder.AppendLine("\t\t});");
+                strBuilder.AppendLine();
+                buttons.Add(childName);
+            }
         }
         strBuilder.AppendLine("\t}");
 
-        if (logicName != null && logicName != "")
-        {
-            //重写ConvertLogic
-            strBuilder.AppendLine("\tprotected override  void ConvertLogic()");
-            strBuilder.AppendLine("\t{");
-            strBuilder.AppendFormat("\t\tm_Logic = ({0})m_ILogic;", logicName);
-            strBuilder.AppendLine();
-            strBuilder.AppendLine("\t}");
-        }
 
         //类的结尾括号
         strBuilder.AppendLine("}");
@@ -240,7 +243,7 @@ public class EditorMenuItems
 
     static string GetParentPath(GameObject gameObject, GameObject child, string str)
     {
-        if (child.transform.parent == gameObject.transform)
+        if (child.transform.parent == null || child.transform.parent.gameObject == gameObject)
         {
             str = child.name + str;
             return str;
@@ -252,6 +255,7 @@ public class EditorMenuItems
         }
 
     }
+
     static string ConvertName(string name)
     {
         return "m_" + name;

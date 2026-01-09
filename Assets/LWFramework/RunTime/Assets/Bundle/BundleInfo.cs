@@ -55,11 +55,6 @@ namespace LWAssets
         public List<string> Assets = new List<string>();
         
         /// <summary>
-        /// 优先级(0-10, 越高越优先)
-        /// </summary>
-        public int Priority;
-        
-        /// <summary>
         /// 获取带哈希的文件名（用于缓存和下载）
         /// </summary>
         public string GetFileName()

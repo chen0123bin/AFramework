@@ -74,7 +74,7 @@
           {
             "type" : "Image",
             "data" : {
-              "sprite" : null,
+              "sprite" : "Assets/Arts/Imgs/Base/\u767D\u8272\u80CC\u666F.png",
               "color"  : [
                 1.0,
                 1.0,
@@ -1335,8 +1335,8 @@
                             0.0
                           ],
                           "anchorMax" : [
-                            1.0,
-                            1.0
+                            0.0,
+                            0.0
                           ],
                           "pivot"     : [
                             0.5,
@@ -1411,8 +1411,8 @@
             0.5
           ],
           "anchoredPosition" : [
-            0.0,
-            -200.0
+            -755.0,
+            -120.0
           ],
           "sizeDelta"        : [
             300.0,
@@ -1434,15 +1434,16 @@
             "type" : "Slider",
             "data" : {
               "interactable" : true,
-              "transition"   : "ColorTint",
-              "fillRect"     : "ImgFill",
-              "handleRect"   : "ImgHandle",
-              "direction"    : "LeftToRight",
-              "minValue"     : 0.0,
-              "maxValue"     : 1.0,
-              "wholeNumbers" : false,
-              "value"        : 0.5,
-              "navigation"   : {
+              "targetGraphic" : "ImgHandle",
+              "transition"    : "ColorTint",
+              "fillRect"      : "ImgFill",
+              "handleRect"    : "ImgHandle",
+              "direction"     : "LeftToRight",
+              "minValue"      : 0.0,
+              "maxValue"      : 1.0,
+              "wholeNumbers"  : false,
+              "value"         : 0.0780000016093254,
+              "navigation"    : {
                 "mode" : "Automatic"
               }
             }
@@ -1488,7 +1489,7 @@
               {
                 "type" : "Image",
                 "data" : {
-                  "sprite" : null,
+                  "sprite" : "Assets/Arts/Imgs/Base/\u8FDB\u5EA6\u67611.png",
                   "color"  : [
                     0.5,
                     0.5,
@@ -1497,7 +1498,7 @@
                   ],
                   "material" : "Default UI Material",
                   "raycastTarget" : false,
-                  "imageType"     : "Sliced",
+                  "imageType"     : "Simple",
                   "fillCenter"    : true,
                   "pixelsPerUnitMultiplier" : 1.0,
                   "preserveAspect"          : false,
@@ -1518,7 +1519,7 @@
                 0.0
               ],
               "anchorMax" : [
-                0.5,
+                1.0,
                 1.0
               ],
               "pivot"     : [
@@ -1531,7 +1532,7 @@
               ],
               "sizeDelta"        : [
                 10.0,
-                0.0
+                -10.0
               ],
               "rotation"         : [
                 0.0,
@@ -1548,7 +1549,7 @@
               {
                 "type" : "Image",
                 "data" : {
-                  "sprite" : null,
+                  "sprite" : "Assets/Arts/Imgs/Base/\u8FDB\u5EA6\u67612.png",
                   "color"  : [
                     0.200000002980232,
                     0.699999988079071,
@@ -1557,12 +1558,12 @@
                   ],
                   "material" : "Default UI Material",
                   "raycastTarget" : false,
-                  "imageType"     : "Sliced",
+                  "imageType"     : "Filled",
                   "fillCenter"    : true,
                   "pixelsPerUnitMultiplier" : 1.0,
                   "preserveAspect"          : false,
-                  "fillMethod"              : "Radial360",
-                  "fillAmount"              : 1.0,
+                  "fillMethod"              : "Horizontal",
+                  "fillAmount"              : 0.0780000016093254,
                   "fillClockwise"           : true,
                   "fillOrigin"              : 0
                 }
@@ -1574,11 +1575,11 @@
             "active" : true,
             "rectTransform" : {
               "anchorMin" : [
-                0.5,
+                0.0780000016093254,
                 0.0
               ],
               "anchorMax" : [
-                0.5,
+                0.0780000016093254,
                 1.0
               ],
               "pivot"     : [
@@ -1608,7 +1609,7 @@
               {
                 "type" : "Image",
                 "data" : {
-                  "sprite" : null,
+                  "sprite" : "Assets/Arts/Imgs/Base/\u57062.png",
                   "color"  : [
                     1.0,
                     1.0,
@@ -1757,7 +1758,7 @@
               {
                 "type" : "Image",
                 "data" : {
-                  "sprite" : null,
+                  "sprite" : "Assets/Arts/Imgs/Base/\u767D\u8272\u80CC\u666F.png",
                   "color"  : [
                     1.0,
                     1.0,
@@ -1766,7 +1767,7 @@
                   ],
                   "material" : "Default UI Material",
                   "raycastTarget" : true,
-                  "imageType"     : "Sliced",
+                  "imageType"     : "Simple",
                   "fillCenter"    : true,
                   "pixelsPerUnitMultiplier" : 1.0,
                   "preserveAspect"          : false,
@@ -2245,921 +2246,6 @@
               "material" : "Default UI Material",
               "raycastTarget" : true
             }
-          }
-        ]
-      },
-      {
-        "name" : "ScvList",
-        "active" : true,
-        "rectTransform" : {
-          "anchorMin" : [
-            0.5,
-            0.5
-          ],
-          "anchorMax" : [
-            0.5,
-            0.5
-          ],
-          "pivot"     : [
-            0.5,
-            0.5
-          ],
-          "anchoredPosition" : [
-            -662.0,
-            216.0
-          ],
-          "sizeDelta"        : [
-            200.0,
-            200.0
-          ],
-          "rotation"         : [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "scale"            : [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        "components"    : [
-          {
-            "type" : "Image",
-            "data" : {
-              "sprite" : null,
-              "color"  : [
-                1.0,
-                1.0,
-                1.0,
-                0.391999989748001
-              ],
-              "material" : "Default UI Material",
-              "raycastTarget" : true,
-              "imageType"     : "Sliced",
-              "fillCenter"    : true,
-              "pixelsPerUnitMultiplier" : 1.0,
-              "preserveAspect"          : false,
-              "fillMethod"              : "Radial360",
-              "fillAmount"              : 1.0,
-              "fillClockwise"           : true,
-              "fillOrigin"              : 0
-            }
-          },
-          {
-            "type" : "ScrollRect",
-            "data" : {
-              "content" : "Viewport/Content",
-              "horizontal" : true,
-              "vertical"   : true,
-              "movementType" : "Elastic",
-              "elasticity"   : 0.100000001490116,
-              "inertia"      : true,
-              "decelerationRate" : 0.135000005364418,
-              "scrollSensitivity" : 1.0,
-              "viewport"          : "Viewport",
-              "horizontalScrollbar" : "Scrollbar Horizontal",
-              "verticalScrollbar"   : "Scrollbar Vertical"
-            }
-          }
-        ],
-        "children"      : [
-          {
-            "name" : "Viewport",
-            "active" : true,
-            "rectTransform" : {
-              "anchorMin" : [
-                0.0,
-                0.0
-              ],
-              "anchorMax" : [
-                1.0,
-                1.0
-              ],
-              "pivot"     : [
-                0.0,
-                1.0
-              ],
-              "anchoredPosition" : [
-                0.0,
-                0.0
-              ],
-              "sizeDelta"        : [
-                -17.0,
-                -17.0
-              ],
-              "rotation"         : [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "scale"            : [
-                1.0,
-                1.0,
-                1.0
-              ]
-            },
-            "components"    : [
-              {
-                "type" : "Image",
-                "data" : {
-                  "sprite" : null,
-                  "color"  : [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ],
-                  "material" : "Default UI Material",
-                  "raycastTarget" : true,
-                  "imageType"     : "Sliced",
-                  "fillCenter"    : true,
-                  "pixelsPerUnitMultiplier" : 1.0,
-                  "preserveAspect"          : false,
-                  "fillMethod"              : "Radial360",
-                  "fillAmount"              : 1.0,
-                  "fillClockwise"           : true,
-                  "fillOrigin"              : 0
-                }
-              },
-              {
-                "type" : "Mask",
-                "data" : {
-                  "showMaskGraphic" : false
-                }
-              }
-            ],
-            "children"      : [
-              {
-                "name" : "Content",
-                "active" : true,
-                "rectTransform" : {
-                  "anchorMin" : [
-                    0.0,
-                    1.0
-                  ],
-                  "anchorMax" : [
-                    1.0,
-                    1.0
-                  ],
-                  "pivot"     : [
-                    0.0,
-                    1.0
-                  ],
-                  "anchoredPosition" : [
-                    0.0,
-                    0.0
-                  ],
-                  "sizeDelta"        : [
-                    0.0,
-                    300.0
-                  ],
-                  "rotation"         : [
-                    0.0,
-                    0.0,
-                    0.0
-                  ],
-                  "scale"            : [
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "name" : "Scrollbar Horizontal",
-            "active" : true,
-            "rectTransform" : {
-              "anchorMin" : [
-                0.0,
-                0.0
-              ],
-              "anchorMax" : [
-                1.0,
-                0.0
-              ],
-              "pivot"     : [
-                0.0,
-                0.0
-              ],
-              "anchoredPosition" : [
-                0.0,
-                0.0
-              ],
-              "sizeDelta"        : [
-                -17.0,
-                20.0
-              ],
-              "rotation"         : [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "scale"            : [
-                1.0,
-                1.0,
-                1.0
-              ]
-            },
-            "components"    : [
-              {
-                "type" : "Image",
-                "data" : {
-                  "sprite" : null,
-                  "color"  : [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ],
-                  "material" : "Default UI Material",
-                  "raycastTarget" : true,
-                  "imageType"     : "Sliced",
-                  "fillCenter"    : true,
-                  "pixelsPerUnitMultiplier" : 1.0,
-                  "preserveAspect"          : false,
-                  "fillMethod"              : "Radial360",
-                  "fillAmount"              : 1.0,
-                  "fillClockwise"           : true,
-                  "fillOrigin"              : 0
-                }
-              },
-              {
-                "type" : "Scrollbar",
-                "data" : {
-                  "interactable" : true,
-                  "transition"   : "ColorTint",
-                  "colors"       : {
-                    "normalColor" : [
-                      1.0,
-                      1.0,
-                      1.0,
-                      1.0
-                    ],
-                    "highlightedColor" : [
-                      0.960784316062927,
-                      0.960784316062927,
-                      0.960784316062927,
-                      1.0
-                    ],
-                    "pressedColor"     : [
-                      0.7843137383461,
-                      0.7843137383461,
-                      0.7843137383461,
-                      1.0
-                    ],
-                    "selectedColor"    : [
-                      0.960784316062927,
-                      0.960784316062927,
-                      0.960784316062927,
-                      1.0
-                    ],
-                    "disabledColor"    : [
-                      0.7843137383461,
-                      0.7843137383461,
-                      0.7843137383461,
-                      0.501960813999176
-                    ],
-                    "colorMultiplier"  : 1.0,
-                    "fadeDuration"     : 0.100000001490116
-                  },
-                  "targetGraphic" : ".",
-                  "handleRect"    : "Sliding Area/Handle",
-                  "direction"     : "LeftToRight",
-                  "value"         : 0.0,
-                  "size"          : 1.0,
-                  "numberOfSteps" : 0,
-                  "navigation"    : {
-                    "mode" : "Automatic"
-                  }
-                }
-              }
-            ],
-            "children"      : [
-              {
-                "name" : "Sliding Area",
-                "active" : true,
-                "rectTransform" : {
-                  "anchorMin" : [
-                    0.0,
-                    0.0
-                  ],
-                  "anchorMax" : [
-                    1.0,
-                    1.0
-                  ],
-                  "pivot"     : [
-                    0.5,
-                    0.5
-                  ],
-                  "anchoredPosition" : [
-                    0.0,
-                    0.0
-                  ],
-                  "sizeDelta"        : [
-                    -20.0,
-                    -20.0
-                  ],
-                  "rotation"         : [
-                    0.0,
-                    0.0,
-                    0.0
-                  ],
-                  "scale"            : [
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "children"      : [
-                  {
-                    "name" : "Handle",
-                    "active" : true,
-                    "rectTransform" : {
-                      "anchorMin" : [
-                        0.0,
-                        0.0
-                      ],
-                      "anchorMax" : [
-                        1.0,
-                        1.0
-                      ],
-                      "pivot"     : [
-                        0.5,
-                        0.5
-                      ],
-                      "anchoredPosition" : [
-                        0.0,
-                        0.0
-                      ],
-                      "sizeDelta"        : [
-                        20.0,
-                        20.0
-                      ],
-                      "rotation"         : [
-                        0.0,
-                        0.0,
-                        0.0
-                      ],
-                      "scale"            : [
-                        1.0,
-                        1.0,
-                        1.0
-                      ]
-                    },
-                    "components"    : [
-                      {
-                        "type" : "Image",
-                        "data" : {
-                          "sprite" : null,
-                          "color"  : [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                          ],
-                          "material" : "Default UI Material",
-                          "raycastTarget" : true,
-                          "imageType"     : "Sliced",
-                          "fillCenter"    : true,
-                          "pixelsPerUnitMultiplier" : 1.0,
-                          "preserveAspect"          : false,
-                          "fillMethod"              : "Radial360",
-                          "fillAmount"              : 1.0,
-                          "fillClockwise"           : true,
-                          "fillOrigin"              : 0
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name" : "Scrollbar Vertical",
-            "active" : true,
-            "rectTransform" : {
-              "anchorMin" : [
-                1.0,
-                0.0
-              ],
-              "anchorMax" : [
-                1.0,
-                1.0
-              ],
-              "pivot"     : [
-                1.0,
-                1.0
-              ],
-              "anchoredPosition" : [
-                0.0,
-                0.0
-              ],
-              "sizeDelta"        : [
-                20.0,
-                -17.0
-              ],
-              "rotation"         : [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "scale"            : [
-                1.0,
-                1.0,
-                1.0
-              ]
-            },
-            "components"    : [
-              {
-                "type" : "Image",
-                "data" : {
-                  "sprite" : null,
-                  "color"  : [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ],
-                  "material" : "Default UI Material",
-                  "raycastTarget" : true,
-                  "imageType"     : "Sliced",
-                  "fillCenter"    : true,
-                  "pixelsPerUnitMultiplier" : 1.0,
-                  "preserveAspect"          : false,
-                  "fillMethod"              : "Radial360",
-                  "fillAmount"              : 1.0,
-                  "fillClockwise"           : true,
-                  "fillOrigin"              : 0
-                }
-              },
-              {
-                "type" : "Scrollbar",
-                "data" : {
-                  "interactable" : true,
-                  "transition"   : "ColorTint",
-                  "colors"       : {
-                    "normalColor" : [
-                      1.0,
-                      1.0,
-                      1.0,
-                      1.0
-                    ],
-                    "highlightedColor" : [
-                      0.960784316062927,
-                      0.960784316062927,
-                      0.960784316062927,
-                      1.0
-                    ],
-                    "pressedColor"     : [
-                      0.7843137383461,
-                      0.7843137383461,
-                      0.7843137383461,
-                      1.0
-                    ],
-                    "selectedColor"    : [
-                      0.960784316062927,
-                      0.960784316062927,
-                      0.960784316062927,
-                      1.0
-                    ],
-                    "disabledColor"    : [
-                      0.7843137383461,
-                      0.7843137383461,
-                      0.7843137383461,
-                      0.501960813999176
-                    ],
-                    "colorMultiplier"  : 1.0,
-                    "fadeDuration"     : 0.100000001490116
-                  },
-                  "targetGraphic" : ".",
-                  "handleRect"    : "Sliding Area/Handle",
-                  "direction"     : "BottomToTop",
-                  "value"         : 1.0,
-                  "size"          : 0.610000014305115,
-                  "numberOfSteps" : 0,
-                  "navigation"    : {
-                    "mode" : "Automatic"
-                  }
-                }
-              }
-            ],
-            "children"      : [
-              {
-                "name" : "Sliding Area",
-                "active" : true,
-                "rectTransform" : {
-                  "anchorMin" : [
-                    0.0,
-                    0.0
-                  ],
-                  "anchorMax" : [
-                    1.0,
-                    1.0
-                  ],
-                  "pivot"     : [
-                    0.5,
-                    0.5
-                  ],
-                  "anchoredPosition" : [
-                    0.0,
-                    0.0
-                  ],
-                  "sizeDelta"        : [
-                    -20.0,
-                    -20.0
-                  ],
-                  "rotation"         : [
-                    0.0,
-                    0.0,
-                    0.0
-                  ],
-                  "scale"            : [
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "children"      : [
-                  {
-                    "name" : "Handle",
-                    "active" : true,
-                    "rectTransform" : {
-                      "anchorMin" : [
-                        0.0,
-                        0.389999985694885
-                      ],
-                      "anchorMax" : [
-                        1.0,
-                        1.0
-                      ],
-                      "pivot"     : [
-                        0.5,
-                        0.5
-                      ],
-                      "anchoredPosition" : [
-                        0.0,
-                        0.0
-                      ],
-                      "sizeDelta"        : [
-                        20.0,
-                        20.0
-                      ],
-                      "rotation"         : [
-                        0.0,
-                        0.0,
-                        0.0
-                      ],
-                      "scale"            : [
-                        1.0,
-                        1.0,
-                        1.0
-                      ]
-                    },
-                    "components"    : [
-                      {
-                        "type" : "Image",
-                        "data" : {
-                          "sprite" : null,
-                          "color"  : [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                          ],
-                          "material" : "Default UI Material",
-                          "raycastTarget" : true,
-                          "imageType"     : "Sliced",
-                          "fillCenter"    : true,
-                          "pixelsPerUnitMultiplier" : 1.0,
-                          "preserveAspect"          : false,
-                          "fillMethod"              : "Radial360",
-                          "fillAmount"              : 1.0,
-                          "fillClockwise"           : true,
-                          "fillOrigin"              : 0
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "name" : "SldTest",
-        "active" : true,
-        "rectTransform" : {
-          "anchorMin" : [
-            0.5,
-            0.5
-          ],
-          "anchorMax" : [
-            0.5,
-            0.5
-          ],
-          "pivot"     : [
-            0.5,
-            0.5
-          ],
-          "anchoredPosition" : [
-            -482.0,
-            -229.0
-          ],
-          "sizeDelta"        : [
-            160.0,
-            20.0
-          ],
-          "rotation"         : [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "scale"            : [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        "components"    : [
-          {
-            "type" : "Slider",
-            "data" : {
-              "interactable" : true,
-              "transition"   : "ColorTint",
-              "fillRect"     : "Fill Area/Fill",
-              "handleRect"   : "Handle Slide Area/Handle",
-              "direction"    : "LeftToRight",
-              "minValue"     : 0.0,
-              "maxValue"     : 1.0,
-              "wholeNumbers" : false,
-              "value"        : 0.0,
-              "navigation"   : {
-                "mode" : "Automatic"
-              }
-            }
-          }
-        ],
-        "children"      : [
-          {
-            "name" : "Background",
-            "active" : true,
-            "rectTransform" : {
-              "anchorMin" : [
-                0.0,
-                0.25
-              ],
-              "anchorMax" : [
-                1.0,
-                0.75
-              ],
-              "pivot"     : [
-                0.5,
-                0.5
-              ],
-              "anchoredPosition" : [
-                0.0,
-                0.0
-              ],
-              "sizeDelta"        : [
-                0.0,
-                0.0
-              ],
-              "rotation"         : [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "scale"            : [
-                1.0,
-                1.0,
-                1.0
-              ]
-            },
-            "components"    : [
-              {
-                "type" : "Image",
-                "data" : {
-                  "sprite" : "Resources/unity_builtin_extra",
-                  "color"  : [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ],
-                  "material" : "Default UI Material",
-                  "raycastTarget" : true,
-                  "imageType"     : "Sliced",
-                  "fillCenter"    : true,
-                  "pixelsPerUnitMultiplier" : 1.0,
-                  "preserveAspect"          : false,
-                  "fillMethod"              : "Radial360",
-                  "fillAmount"              : 1.0,
-                  "fillClockwise"           : true,
-                  "fillOrigin"              : 0
-                }
-              }
-            ]
-          },
-          {
-            "name" : "Fill Area",
-            "active" : true,
-            "rectTransform" : {
-              "anchorMin" : [
-                0.0,
-                0.25
-              ],
-              "anchorMax" : [
-                1.0,
-                0.75
-              ],
-              "pivot"     : [
-                0.5,
-                0.5
-              ],
-              "anchoredPosition" : [
-                -5.0,
-                0.0
-              ],
-              "sizeDelta"        : [
-                -20.0,
-                0.0
-              ],
-              "rotation"         : [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "scale"            : [
-                1.0,
-                1.0,
-                1.0
-              ]
-            },
-            "children"      : [
-              {
-                "name" : "Fill",
-                "active" : true,
-                "rectTransform" : {
-                  "anchorMin" : [
-                    0.0,
-                    0.0
-                  ],
-                  "anchorMax" : [
-                    0.0,
-                    1.0
-                  ],
-                  "pivot"     : [
-                    0.5,
-                    0.5
-                  ],
-                  "anchoredPosition" : [
-                    0.0,
-                    0.0
-                  ],
-                  "sizeDelta"        : [
-                    10.0,
-                    0.0
-                  ],
-                  "rotation"         : [
-                    0.0,
-                    0.0,
-                    0.0
-                  ],
-                  "scale"            : [
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "components"    : [
-                  {
-                    "type" : "Image",
-                    "data" : {
-                      "sprite" : "Resources/unity_builtin_extra",
-                      "color"  : [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                      ],
-                      "material" : "Default UI Material",
-                      "raycastTarget" : true,
-                      "imageType"     : "Sliced",
-                      "fillCenter"    : true,
-                      "pixelsPerUnitMultiplier" : 1.0,
-                      "preserveAspect"          : false,
-                      "fillMethod"              : "Radial360",
-                      "fillAmount"              : 1.0,
-                      "fillClockwise"           : true,
-                      "fillOrigin"              : 0
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name" : "Handle Slide Area",
-            "active" : true,
-            "rectTransform" : {
-              "anchorMin" : [
-                0.0,
-                0.0
-              ],
-              "anchorMax" : [
-                1.0,
-                1.0
-              ],
-              "pivot"     : [
-                0.5,
-                0.5
-              ],
-              "anchoredPosition" : [
-                0.0,
-                0.0
-              ],
-              "sizeDelta"        : [
-                -20.0,
-                0.0
-              ],
-              "rotation"         : [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "scale"            : [
-                1.0,
-                1.0,
-                1.0
-              ]
-            },
-            "children"      : [
-              {
-                "name" : "Handle",
-                "active" : true,
-                "rectTransform" : {
-                  "anchorMin" : [
-                    0.0,
-                    0.0
-                  ],
-                  "anchorMax" : [
-                    0.0,
-                    1.0
-                  ],
-                  "pivot"     : [
-                    0.5,
-                    0.5
-                  ],
-                  "anchoredPosition" : [
-                    0.0,
-                    0.0
-                  ],
-                  "sizeDelta"        : [
-                    20.0,
-                    0.0
-                  ],
-                  "rotation"         : [
-                    0.0,
-                    0.0,
-                    0.0
-                  ],
-                  "scale"            : [
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "components"    : [
-                  {
-                    "type" : "Image",
-                    "data" : {
-                      "sprite" : "Resources/unity_builtin_extra",
-                      "color"  : [
-                        1.0,
-                        1.0,
-                        1.0,
-                        1.0
-                      ],
-                      "material" : "Default UI Material",
-                      "raycastTarget" : true,
-                      "imageType"     : "Simple",
-                      "fillCenter"    : true,
-                      "pixelsPerUnitMultiplier" : 1.0,
-                      "preserveAspect"          : false,
-                      "fillMethod"              : "Radial360",
-                      "fillAmount"              : 1.0,
-                      "fillClockwise"           : true,
-                      "fillOrigin"              : 0
-                    }
-                  }
-                ]
-              }
-            ]
           }
         ]
       }

@@ -360,12 +360,11 @@ namespace LWAssets.Editor
                     }
                 }
 
-                // 应用分包规则的标签和优先级
+                // 应用分包规则的标签
                 var rule = config.PackageRules.FirstOrDefault(r =>
                     bundleName.StartsWith(r.Name.ToLower()));
                 if (rule != null)
                 {
-                    bundleInfo.Priority = rule.Priority;
                     bundleInfo.Tags.AddRange(rule.Tags);
                 }
 
@@ -423,7 +422,6 @@ namespace LWAssets.Editor
                         Hash = hash,
                         Size = fileInfo.Length,
                         IsRawFile = true,
-                        Priority = rule.Priority,
                         Tags = new List<string>(rule.Tags),
                         Assets = new List<string> { file }  // 原始文件的Assets只有自己
                     };

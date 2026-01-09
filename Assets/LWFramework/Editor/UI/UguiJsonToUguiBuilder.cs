@@ -589,7 +589,7 @@ internal sealed class UguiJsonToUguiBuilder
         if (data == null || !data.IsObject)
             return defaultValue;
 
-        Vector4 offset =  new Vector4();
+        Vector4 offset = new Vector4();
         offset.x = m_Reader.GetFloat(data, "left", offset.x);
         offset.y = m_Reader.GetFloat(data, "right", offset.y);
         offset.z = m_Reader.GetFloat(data, "top", offset.z);
@@ -751,7 +751,13 @@ internal sealed class UguiJsonToUguiBuilder
         Slider slider = go.GetComponent<Slider>();
         if (slider == null)
             return;
-
+        string targetGraphicName = m_Reader.GetString(sliderData, "targetGraphic", string.Empty);
+        if (!string.IsNullOrEmpty(targetGraphicName))
+        {
+            Graphic t = ResolveGraphic(go.transform, targetGraphicName);
+            if (t != null)
+                slider.targetGraphic = t;
+        }
         string fillRectName = m_Reader.GetString(sliderData, "fillRect", string.Empty);
         if (!string.IsNullOrEmpty(fillRectName))
         {

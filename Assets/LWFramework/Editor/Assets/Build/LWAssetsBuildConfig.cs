@@ -29,6 +29,8 @@ namespace LWAssets.Editor
         [Header("标签设置")]
         public List<TagRule> TagRules = new List<TagRule>();
 
+        [Header("内置标签设置")]
+        public List<string> BuiltinTags = new List<string>();
         [Header("高级设置")]
         public bool EnableEncryption = false;
         public string EncryptionKey = "";
@@ -47,7 +49,6 @@ namespace LWAssets.Editor
         public string FolderPath;              // 资源文件夹路径
         public string FilePattern = "*";       // 文件匹配模式
         public long MaxBundleSize = 10 * 1024 * 1024; // 10MB
-        public int Priority = 0;               // 优先级
         public List<string> Tags = new List<string>();  // 标签列表 ⬅️
     }
     /// <summary>
@@ -58,31 +59,26 @@ namespace LWAssets.Editor
         /// <summary>
         /// 按最顶层文件夹打包
         /// </summary>
-        ByTopFolder,
+        ByTopFolder = 0,
         /// <summary>
         /// 按文件夹打包
         /// </summary>
-        ByFolder,
+        ByFolder = 1,
 
         /// <summary>
         /// 每个文件单独打包
         /// </summary>
-        ByFile,
+        ByFile = 2,
 
         /// <summary>
         /// 按大小分包
         /// </summary>
-        BySize,
-
-        /// <summary>
-        /// 按优先级分包
-        /// </summary>
-        ByPriority,
+        BySize = 3,
 
         /// <summary>
         /// 原始文件（不打包）
         /// </summary>
-        RawFile
+        RawFile = 5
     }
 
     /// <summary>

@@ -354,6 +354,13 @@ namespace LWAssets
 
             var bundles = await m_VersionManager.GetBundlesToDownloadAsync(tags);
             await m_DownloadManager.DownloadAsync(bundles, progress, cancellationToken);
+
+            var newManifest = await m_VersionManager.ApplyRemoteAsLocalAsync();
+            if (newManifest != null)
+            {
+                m_Manifest = newManifest;
+                await m_Loader.InitializeAsync(m_Manifest);
+            }
         }
 
         #endregion

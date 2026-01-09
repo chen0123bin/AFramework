@@ -12,6 +12,8 @@ public class Startup : MonoBehaviour
 
     public string configUrl;
     public string procedureName = "StartProcedure";
+
+    private LoadingView m_LoadingView;
     async void Start()
     {
         LWDebug.Log("Start");
@@ -32,13 +34,24 @@ public class Startup : MonoBehaviour
 
         await ManagerUtility.AssetsMgr.InitializeAsync();
         MainManager.Instance.MonoBehaviour = this;
+        if (ManagerUtility.AssetsMgr.CurrentPlayMode == LWAssets.PlayMode.Online)
+        {
+
+            m_LoadingView = ManagerUtility.UIMgr.OpenView<LoadingView>();
+            //await DownloadAsync();
+            await UniTask.Delay(1500);
+            ManagerUtility.UIMgr.CloseView<LoadingView>();
+        }
 
         ManagerUtility.EventMgr.AddListener<int>("TestEvent", OnTestEvent1);
         ManagerUtility.EventMgr.AddListener<int>("TestEvent", OnTestEvent2);
+
+
     }
 
     private void OnTestEvent2(int obj)
     {
+        LoadScene2Async().Forget();
         LWDebug.Log($"OnTestEvent2 {obj}");
     }
 
@@ -79,7 +92,69 @@ public class Startup : MonoBehaviour
         MainManager.Instance.Update();
     }
 
+    /// <summary>
+    /// 下载资源示例
+    /// </summary>
+    private async UniTask DownloadAsync()
+    {
+        if (!ManagerUtility.AssetsMgr.IsInitialized)
+        {
+            m_LoadingView.Tip = "Please initialize first!";
+            return;
+        }
 
+        try
+        {
+            // 检查更新
+            m_LoadingView.Tip = "Checking for updates...";
+            var checkResult = await ManagerUtility.AssetsMgr.Version.CheckUpdateAsync();
+
+            if (checkResult.Status == UpdateStatus.NoUpdate)
+            {
+                m_LoadingView.Tip = "No updates available.";
+                return;
+            }
+
+            m_LoadingView.Tip = $"Update available: {checkResult.RemoteVersion}, Size: {FileUtility.FormatFileSize(checkResult.DownloadSize)}";
+
+            // 开始下载
+            var progress = new Progress<DownloadProgress>(p =>
+            {
+                m_LoadingView.Progress = p.Progress;
+                m_LoadingView.Tip = $"Downloading: {p.CompletedCount}/{p.TotalCount} - {FileUtility.FormatFileSize((long)p.Speed)}/s";
+            });
+
+            await ManagerUtility.AssetsMgr.DownloadAsync(null, progress);
+
+            m_LoadingView.Progress = 1f;
+            m_LoadingView.Tip = "Download completed!";
+        }
+        catch (Exception ex)
+        {
+            m_LoadingView.Tip = $"Download failed: {ex.Message}";
+            Debug.LogException(ex);
+        }
+    }
+    /// <summary>
+    /// 加载场景示例
+    /// </summary>
+    private async UniTaskVoid LoadScene2Async()
+    {
+
+        Debug.Log("LoadScene2Async");
+        var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
+               "Assets/0Res/Scenes2/Test2.unity",
+               UnityEngine.SceneManagement.LoadSceneMode.Additive,
+               true);
+        if (handle.IsValid)
+        {
+            LWDebug.Log($"Scene loaded: {handle.Scene.name}");
+        }
+        else if (handle.HasError)
+        {
+            LWDebug.Log($"Scene load error: {handle.Error.Message}");
+        }
+    }
     void OnDestroy()
     {
         WaitDestroy();

@@ -1,0 +1,224 @@
+{
+  "Root": {
+    "name": "LoadingView",
+    "rectTransform": {
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 0.5],
+      "anchoredPosition": [0.0, 0.0],
+      "sizeDelta": [0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "children": [
+      {
+        "name": "ImgBackground",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0.0, 0.0],
+          "sizeDelta": [0.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "components": [
+          {
+            "type": "Image",
+            "data": {
+              "sprite": "Assets/Arts/Imgs/Base/黑色背景.png",
+              "color": [0.1, 0.1, 0.1, 1.0],
+              "material": "Default UI Material",
+              "raycastTarget": true,
+              "imageType": "Sliced",
+              "fillCenter": true,
+              "pixelsPerUnitMultiplier": 1.0,
+              "preserveAspect": false,
+              "fillMethod": "Radial360",
+              "fillAmount": 1.0,
+              "fillClockwise": true,
+              "fillOrigin": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "SldProgress",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.2],
+          "anchorMax": [0.5, 0.2],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0.0, 0.0],
+          "sizeDelta": [800.0, 20.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "components": [
+          {
+            "type": "Slider",
+            "data": {
+              "interactable": true,
+              "transition": "ColorTint",
+              "targetGraphic": "Background",
+              "fillRect": "Fill Area/Fill",
+              "handleRect": null,
+              "direction": "LeftToRight",
+              "minValue": 0.0,
+              "maxValue": 1.0,
+              "wholeNumbers": false,
+              "value": 0.0,
+              "navigation": {
+                "mode": "Automatic"
+              }
+            }
+          }
+        ],
+        "children": [
+          {
+            "name": "Background",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 0.25],
+              "anchorMax": [1.0, 0.75],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0.0, 0.0],
+              "sizeDelta": [0.0, 0.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "components": [
+              {
+                "type": "Image",
+                "data": {
+                  "sprite": "UI/Skin/Background.psd",
+                  "color": [0.2, 0.2, 0.2, 1.0],
+                  "material": "Default UI Material",
+                  "raycastTarget": true,
+                  "imageType": "Sliced",
+                  "fillCenter": true,
+                  "pixelsPerUnitMultiplier": 1.0,
+                  "preserveAspect": false,
+                  "fillMethod": "Radial360",
+                  "fillAmount": 1.0,
+                  "fillClockwise": true,
+                  "fillOrigin": 0
+                }
+              }
+            ]
+          },
+          {
+            "name": "Fill Area",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 0.25],
+              "anchorMax": [1.0, 0.75],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0.0, 0.0],
+              "sizeDelta": [-10.0, 0.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "children": [
+              {
+                "name": "Fill",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.0],
+                  "anchorMax": [0.0, 1.0],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0.0, 0.0],
+                  "sizeDelta": [10.0, 0.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": "UI/Skin/UISprite.psd",
+                      "color": [0.2, 0.8, 0.2, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Sliced",
+                      "fillCenter": true,
+                      "pixelsPerUnitMultiplier": 1.0,
+                      "preserveAspect": false,
+                      "fillMethod": "Radial360",
+                      "fillAmount": 1.0,
+                      "fillClockwise": true,
+                      "fillOrigin": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "TxtProgress",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.2],
+          "anchorMax": [0.5, 0.2],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0.0, 30.0],
+          "sizeDelta": [100.0, 30.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "components": [
+          {
+            "type": "Text",
+            "data": {
+              "content": "0%",
+              "font": "Library/unity default resources",
+              "fontSize": 24,
+              "fontStyle": "Normal",
+              "color": [1.0, 1.0, 1.0, 1.0],
+              "alignment": "MiddleCenter",
+              "horizontalOverflow": "Wrap",
+              "verticalOverflow": "Truncate",
+              "raycastTarget": false,
+              "supportRichText": true,
+              "lineSpacing": 1.0
+            }
+          }
+        ]
+      },
+      {
+        "name": "TxtTip",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.2],
+          "anchorMax": [0.5, 0.2],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0.0, 60.0],
+          "sizeDelta": [400.0, 40.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "components": [
+          {
+            "type": "Text",
+            "data": {
+              "content": "正在加载资源...",
+              "font": "Library/unity default resources",
+              "fontSize": 28,
+              "fontStyle": "Normal",
+              "color": [1.0, 1.0, 1.0, 1.0],
+              "alignment": "MiddleCenter",
+              "horizontalOverflow": "Wrap",
+              "verticalOverflow": "Truncate",
+              "raycastTarget": false,
+              "supportRichText": true,
+              "lineSpacing": 1.0
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -22,7 +22,7 @@ namespace LWAssets
         public string MinAppVersion;
         public bool ForceUpdate;
     }
-    
+
     /// <summary>
     /// 版本管理器
     /// </summary>
@@ -30,24 +30,26 @@ namespace LWAssets
     {
         private readonly LWAssetsConfig m_Config;
         private readonly CacheManager m_CacheManager;
-        
+
         private VersionInfo m_LocalVersion;
         private VersionInfo m_RemoteVersion;
         private BundleManifest m_LocalManifest;
         private BundleManifest m_RemoteManifest;
-        
+
         public VersionInfo LocalVersion => m_LocalVersion;
         public VersionInfo RemoteVersion => m_RemoteVersion;
         public bool HasNewVersion => m_RemoteVersion != null && m_LocalVersion?.Version != m_RemoteVersion.Version;
-        
+        public BundleManifest LocalManifest => m_LocalManifest;
+        public BundleManifest RemoteManifest => m_RemoteManifest;
+
         public VersionManager(LWAssetsConfig config, CacheManager cacheManager)
         {
             m_Config = config;
             m_CacheManager = cacheManager;
         }
-        
+
         #region 初始化
-        
+
         /// <summary>
         /// 初始化版本信息
         /// </summary>
@@ -55,7 +57,7 @@ namespace LWAssets
         {
             // 加载本地版本信息
             m_LocalVersion = await LoadLocalVersionAsync();
-            
+
             // 如果是在线模式，检查远程版本
             if (m_Config.PlayMode == PlayMode.Online)
             {
@@ -68,10 +70,10 @@ namespace LWAssets
                     Debug.LogWarning($"[LWAssets] Failed to load remote version: {ex.Message}");
                 }
             }
-            
+
             Debug.Log($"[LWAssets] Version initialized - Local: {m_LocalVersion?.Version}, Remote: {m_RemoteVersion?.Version}");
         }
-        
+
         /// <summary>
         /// 加载本地版本信息
         /// </summary>
@@ -88,11 +90,11 @@ namespace LWAssets
                 }
                 catch { }
             }
-            
+
             // 其次从StreamingAssets加载
             var streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), m_Config.VersionFileName);
-            
-            #if UNITY_ANDROID && !UNITY_EDITOR
+
+#if UNITY_ANDROID && !UNITY_EDITOR
             // Android需要使用UnityWebRequest
             using (var request = UnityWebRequest.Get(streamingPath))
             {
@@ -102,29 +104,29 @@ namespace LWAssets
                     return JsonUtility.FromJson<VersionInfo>(request.downloadHandler.text);
                 }
             }
-            #else
+#else
             if (File.Exists(streamingPath))
             {
                 var json = await File.ReadAllTextAsync(streamingPath);
                 return JsonUtility.FromJson<VersionInfo>(json);
             }
-            #endif
-            
+#endif
+
             return null;
         }
-        
+
         /// <summary>
         /// 加载远程版本信息
         /// </summary>
         private async UniTask<VersionInfo> LoadRemoteVersionAsync()
         {
             var url = m_Config.GetRemoteURL() + m_Config.VersionFileName;
-            
+
             using (var request = UnityWebRequest.Get(url))
             {
                 request.timeout = 10;
                 await request.SendWebRequest();
-                
+
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     return JsonUtility.FromJson<VersionInfo>(request.downloadHandler.text);
@@ -135,43 +137,97 @@ namespace LWAssets
                 }
             }
         }
-        
+
         #endregion
-        
+
         #region 清单管理
-        
+
         /// <summary>
         /// 加载清单文件
         /// </summary>
         public async UniTask<BundleManifest> LoadManifestAsync()
         {
-            // 检查是否需要更新清单
-            if (m_Config.PlayMode == PlayMode.Online && HasNewVersion)
+            m_LocalManifest = await LoadLocalManifestAsync();
+
+            if (m_Config.PlayMode != PlayMode.Online)
+            {
+                return m_LocalManifest;
+            }
+
+            if (m_RemoteVersion == null)
             {
                 try
                 {
-                    var manifest = await LoadRemoteManifestAsync();
-                    if (manifest != null)
-                    {
-                        // 保存到本地
-                        await SaveManifestAsync(manifest);
-                        await SaveVersionAsync(m_RemoteVersion);
-                        m_LocalManifest = manifest;
-                        m_LocalVersion = m_RemoteVersion;
-                        return manifest;
-                    }
+                    m_RemoteVersion = await LoadRemoteVersionAsync();
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"[LWAssets] Failed to load remote manifest: {ex.Message}");
+                    Debug.LogWarning($"[LWAssets] Failed to load remote version: {ex.Message}");
                 }
             }
-            
-            // 加载本地清单
-            m_LocalManifest = await LoadLocalManifestAsync();
+
+            if (!HasNewVersion)
+            {
+                return m_LocalManifest;
+            }
+
+            try
+            {
+                return await LoadRemoteManifestAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LWAssets] Failed to load remote manifest: {ex.Message}");
+                return m_LocalManifest;
+            }
+        }
+
+        /// <summary>
+        /// 将远程清单/版本落盘为本地数据（用于下载完成后确认更新）
+        /// </summary>
+        public async UniTask<BundleManifest> ApplyRemoteAsLocalAsync()
+        {
+            if (m_Config.PlayMode != PlayMode.Online)
+            {
+                return m_LocalManifest;
+            }
+
+            if (m_RemoteVersion == null)
+            {
+                try
+                {
+                    m_RemoteVersion = await LoadRemoteVersionAsync();
+                }
+                catch
+                {
+                    return m_LocalManifest;
+                }
+            }
+
+            if (m_RemoteManifest == null)
+            {
+                try
+                {
+                    m_RemoteManifest = await LoadRemoteManifestAsync();
+                }
+                catch
+                {
+                    return m_LocalManifest;
+                }
+            }
+
+            if (m_RemoteManifest == null || m_RemoteVersion == null)
+            {
+                return m_LocalManifest;
+            }
+
+            await SaveManifestAsync(m_RemoteManifest);
+            await SaveVersionAsync(m_RemoteVersion);
+            m_LocalManifest = m_RemoteManifest;
+            m_LocalVersion = m_RemoteVersion;
             return m_LocalManifest;
         }
-        
+
         /// <summary>
         /// 加载本地清单
         /// </summary>
@@ -188,11 +244,11 @@ namespace LWAssets
                 }
                 catch { }
             }
-            
+
             // 其次从StreamingAssets加载
             var streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), m_Config.ManifestFileName);
-            
-            #if UNITY_ANDROID && !UNITY_EDITOR
+
+#if UNITY_ANDROID && !UNITY_EDITOR
             using (var request = UnityWebRequest.Get(streamingPath))
             {
                 await request.SendWebRequest();
@@ -201,29 +257,29 @@ namespace LWAssets
                     return BundleManifest.FromJson(request.downloadHandler.text);
                 }
             }
-            #else
+#else
             if (File.Exists(streamingPath))
             {
                 var json = await File.ReadAllTextAsync(streamingPath);
                 return BundleManifest.FromJson(json);
             }
-            #endif
-            
+#endif
+
             return new BundleManifest();
         }
-        
+
         /// <summary>
         /// 加载远程清单
         /// </summary>
         private async UniTask<BundleManifest> LoadRemoteManifestAsync()
         {
             var url = m_Config.GetRemoteURL() + m_Config.ManifestFileName;
-            
+
             using (var request = UnityWebRequest.Get(url))
             {
                 request.timeout = 30;
                 await request.SendWebRequest();
-                
+
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     m_RemoteManifest = BundleManifest.FromJson(request.downloadHandler.text);
@@ -235,7 +291,7 @@ namespace LWAssets
                 }
             }
         }
-        
+
         /// <summary>
         /// 保存清单到本地
         /// </summary>
@@ -243,16 +299,16 @@ namespace LWAssets
         {
             var path = Path.Combine(m_Config.GetPersistentDataPath(), m_Config.ManifestFileName);
             var directory = Path.GetDirectoryName(path);
-            
+
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
-            
+
             var json = manifest.ToJson();
             await File.WriteAllTextAsync(path, json);
         }
-        
+
         /// <summary>
         /// 保存版本信息到本地
         /// </summary>
@@ -262,35 +318,35 @@ namespace LWAssets
             var json = JsonUtility.ToJson(version);
             await File.WriteAllTextAsync(path, json);
         }
-        
+
         #endregion
-        
+
         #region 更新检测
-        
+
         /// <summary>
         /// 检查更新
         /// </summary>
         public async UniTask<UpdateCheckResult> CheckUpdateAsync()
         {
             var result = new UpdateCheckResult();
-            
+
             try
             {
                 m_RemoteVersion = await LoadRemoteVersionAsync();
-                
+
                 if (m_RemoteVersion == null)
                 {
                     result.Status = UpdateStatus.CheckFailed;
                     result.Error = "Failed to load remote version";
                     return result;
                 }
-                
+
                 if (m_LocalVersion?.Version == m_RemoteVersion.Version)
                 {
                     result.Status = UpdateStatus.NoUpdate;
                     return result;
                 }
-                
+
                 // 检查是否强制更新
                 if (m_RemoteVersion.ForceUpdate)
                 {
@@ -300,10 +356,10 @@ namespace LWAssets
                 {
                     result.Status = UpdateStatus.OptionalUpdate;
                 }
-                
+
                 result.LocalVersion = m_LocalVersion?.Version;
                 result.RemoteVersion = m_RemoteVersion.Version;
-                
+
                 // 加载远程清单计算下载大小
                 var remoteManifest = await LoadRemoteManifestAsync();
                 var downloadBundles = await GetBundlesToDownloadAsync(null, remoteManifest);
@@ -315,10 +371,10 @@ namespace LWAssets
                 result.Status = UpdateStatus.CheckFailed;
                 result.Error = ex.Message;
             }
-            
+
             return result;
         }
-        
+
         /// <summary>
         /// 获取需要下载的Bundle大小
         /// </summary>
@@ -327,28 +383,28 @@ namespace LWAssets
             var bundles = await GetBundlesToDownloadAsync(tags);
             return bundles.Sum(b => b.Size);
         }
-        
+
         /// <summary>
         /// 获取需要下载的Bundle列表
         /// </summary>
-        public async UniTask<List<BundleInfo>> GetBundlesToDownloadAsync(string[] tags = null, 
+        public async UniTask<List<BundleInfo>> GetBundlesToDownloadAsync(string[] tags = null,
             BundleManifest manifest = null)
         {
             if (manifest == null)
             {
                 manifest = m_RemoteManifest ?? m_LocalManifest;
             }
-            
+
             if (manifest == null)
             {
                 return new List<BundleInfo>();
             }
-            
+
             var bundlesToDownload = new List<BundleInfo>();
             var bundlesToCheck = tags != null && tags.Length > 0
                 ? tags.SelectMany(t => manifest.GetBundlesByTag(t)).Distinct().ToList()
                 : manifest.Bundles;
-            
+
             foreach (var bundle in bundlesToCheck)
             {
                 // 检查缓存
@@ -356,24 +412,24 @@ namespace LWAssets
                 {
                     continue;
                 }
-                
+
                 // 检查StreamingAssets
                 var streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundle.GetFileName());
                 if (File.Exists(streamingPath))
                 {
                     continue;
                 }
-                
+
                 bundlesToDownload.Add(bundle);
             }
-            
+
             await UniTask.CompletedTask;
             return bundlesToDownload;
         }
-        
+
         #endregion
     }
-    
+
     /// <summary>
     /// 更新状态
     /// </summary>
@@ -384,7 +440,7 @@ namespace LWAssets
         ForceUpdate,
         CheckFailed
     }
-    
+
     /// <summary>
     /// 更新检查结果
     /// </summary>

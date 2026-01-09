@@ -15,33 +15,33 @@ namespace LWAssets.Editor
         private Vector2 _bundleListScrollPos;
         private Vector2 _assetListScrollPos;
         private Vector2 _dependencyScrollPos;
-        
+
         private BundleManifest _manifest;
         private string _manifestPath;
         private BundleInfo _selectedBundle;
         private string _searchText = "";
         private int _selectedTab;
         private readonly string[] _tabs = { "Bundles", "Assets", "Dependencies" };
-        
+
         [MenuItem("LWAssets/Tools/Bundle Viewer")]
         public static void ShowWindow()
         {
             GetWindow<BundleViewer>("Bundle Viewer");
         }
-        
+
         private void OnGUI()
         {
             DrawToolbar();
-            
+
             if (_manifest == null)
             {
                 EditorGUILayout.HelpBox("Load a manifest file to view bundles.", MessageType.Info);
                 return;
             }
-            
+
             _selectedTab = GUILayout.Toolbar(_selectedTab, _tabs);
             EditorGUILayout.Space();
-            
+
             switch (_selectedTab)
             {
                 case 0:
@@ -55,21 +55,21 @@ namespace LWAssets.Editor
                     break;
             }
         }
-        
+
         private void DrawToolbar()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            
+
             if (GUILayout.Button("Load Manifest", EditorStyles.toolbarButton, GUILayout.Width(100)))
             {
-                var path = EditorUtility.OpenFilePanel("Select Manifest", 
+                var path = EditorUtility.OpenFilePanel("Select Manifest",
                     Application.dataPath + "/../AssetBundles", "json");
                 if (!string.IsNullOrEmpty(path))
                 {
                     LoadManifest(path);
                 }
             }
-            
+
             if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(60)))
             {
                 if (!string.IsNullOrEmpty(_manifestPath))
@@ -77,20 +77,20 @@ namespace LWAssets.Editor
                     LoadManifest(_manifestPath);
                 }
             }
-            
+
             GUILayout.FlexibleSpace();
-            
-            _searchText = EditorGUILayout.TextField(_searchText, EditorStyles.toolbarSearchField, 
+
+            _searchText = EditorGUILayout.TextField(_searchText, EditorStyles.toolbarSearchField,
                 GUILayout.Width(200));
-            
+
             if (GUILayout.Button("SeachCancel"))
             {
                 _searchText = "";
                 GUI.FocusControl(null);
             }
-            
+
             EditorGUILayout.EndHorizontal();
-            
+
             // 显示清单信息
             if (_manifest != null)
             {
@@ -102,7 +102,7 @@ namespace LWAssets.Editor
                 EditorGUILayout.EndHorizontal();
             }
         }
-        
+
         private void LoadManifest(string path)
         {
             try
@@ -117,48 +117,48 @@ namespace LWAssets.Editor
                 Debug.LogError($"[LWAssets] Failed to load manifest: {ex.Message}");
             }
         }
-        
+
         private void DrawBundleList()
         {
             EditorGUILayout.BeginHorizontal();
-            
+
             // Bundle列表
             EditorGUILayout.BeginVertical("box", GUILayout.Width(position.width * 0.45f));
             EditorGUILayout.LabelField("Bundle List", EditorStyles.boldLabel);
-            
+
             _bundleListScrollPos = EditorGUILayout.BeginScrollView(_bundleListScrollPos);
-            
+
             var filteredBundles = _manifest.Bundles
-                .Where(b => string.IsNullOrEmpty(_searchText) || 
+                .Where(b => string.IsNullOrEmpty(_searchText) ||
                     b.BundleName.ToLower().Contains(_searchText.ToLower()))
                 .OrderByDescending(b => b.Size);
-            
+
             foreach (var bundle in filteredBundles)
             {
                 var isSelected = _selectedBundle == bundle;
                 var style = isSelected ? "selectionRect" : "box";
-                
+
                 EditorGUILayout.BeginHorizontal(style);
-                
+
                 EditorGUILayout.LabelField(bundle.BundleName, GUILayout.Width(150));
                 EditorGUILayout.LabelField(FileUtility.FormatFileSize(bundle.Size), GUILayout.Width(80));
                 EditorGUILayout.LabelField($"[{string.Join(",", bundle.Tags)}]");
-                
+
                 if (GUILayout.Button("✔", GUILayout.Width(30)))
                 {
                     _selectedBundle = bundle;
                 }
-                
+
                 EditorGUILayout.EndHorizontal();
             }
-            
+
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
-            
+
             // Bundle详情
             EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("Bundle Details", EditorStyles.boldLabel);
-            
+
             if (_selectedBundle != null)
             {
                 DrawBundleDetails(_selectedBundle);
@@ -167,41 +167,40 @@ namespace LWAssets.Editor
             {
                 EditorGUILayout.HelpBox("Select a bundle to view details.", MessageType.Info);
             }
-            
+
             EditorGUILayout.EndVertical();
-            
+
             EditorGUILayout.EndHorizontal();
         }
-        
+
         private void DrawBundleDetails(BundleInfo bundle)
         {
             EditorGUILayout.LabelField("Name", bundle.BundleName);
             EditorGUILayout.LabelField("Size", FileUtility.FormatFileSize(bundle.Size));
             EditorGUILayout.LabelField("Hash", bundle.Hash);
             EditorGUILayout.LabelField("CRC", bundle.CRC.ToString());
-            EditorGUILayout.LabelField("Priority", bundle.Priority.ToString());
             EditorGUILayout.LabelField("Is Raw File", bundle.IsRawFile.ToString());
             EditorGUILayout.LabelField("Tags", string.Join(", ", bundle.Tags));
-            
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField($"Dependencies ({bundle.Dependencies.Count})", EditorStyles.boldLabel);
-            
+
             _dependencyScrollPos = EditorGUILayout.BeginScrollView(_dependencyScrollPos, GUILayout.MaxHeight(100));
             foreach (var dep in bundle.Dependencies)
             {
                 EditorGUILayout.LabelField("  • " + dep);
             }
             EditorGUILayout.EndScrollView();
-            
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField($"Assets ({bundle.Assets.Count})", EditorStyles.boldLabel);
-            
+
             _assetListScrollPos = EditorGUILayout.BeginScrollView(_assetListScrollPos);
             foreach (var asset in bundle.Assets)
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField(asset);
-                
+
                 if (GUILayout.Button("Ping", GUILayout.Width(40)))
                 {
                     var obj = AssetDatabase.LoadAssetAtPath<Object>(asset);
@@ -214,30 +213,30 @@ namespace LWAssets.Editor
             }
             EditorGUILayout.EndScrollView();
         }
-        
+
         private void DrawAssetList()
         {
             EditorGUILayout.LabelField($"All Assets ({_manifest.GetAssetCount()})", EditorStyles.boldLabel);
-            
+
             _assetListScrollPos = EditorGUILayout.BeginScrollView(_assetListScrollPos);
-            
+
             var filteredAssets = _manifest.GetAssets()
-                .Where(a => string.IsNullOrEmpty(_searchText) || 
+                .Where(a => string.IsNullOrEmpty(_searchText) ||
                     a.ToLower().Contains(_searchText.ToLower()));
-            
+
             EditorGUILayout.BeginHorizontal("box");
             EditorGUILayout.LabelField("Asset Path", EditorStyles.boldLabel, GUILayout.Width(400));
             EditorGUILayout.LabelField("Type", EditorStyles.boldLabel, GUILayout.Width(100));
             EditorGUILayout.LabelField("Bundle", EditorStyles.boldLabel);
             EditorGUILayout.EndHorizontal();
-            
+
             foreach (var asset in filteredAssets)
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField(asset, GUILayout.Width(400));
                 EditorGUILayout.LabelField(GetTypeByAssetPath(asset), GUILayout.Width(100));
                 EditorGUILayout.LabelField(_manifest.GetBundleNameByAsset(asset));
-                
+
                 if (GUILayout.Button("Ping", GUILayout.Width(40)))
                 {
                     var obj = AssetDatabase.LoadAssetAtPath<Object>(asset);
@@ -248,7 +247,7 @@ namespace LWAssets.Editor
                 }
                 EditorGUILayout.EndHorizontal();
             }
-            
+
             EditorGUILayout.EndScrollView();
         }
         string GetTypeByAssetPath(string assetPath)
@@ -259,7 +258,7 @@ namespace LWAssets.Editor
         {
             EditorGUILayout.LabelField("Dependency Analysis", EditorStyles.boldLabel);
             EditorGUILayout.Space();
-            
+
             // 找出被依赖最多的Bundle
             var dependencyCount = new Dictionary<string, int>();
             foreach (var bundle in _manifest.Bundles)
@@ -273,13 +272,13 @@ namespace LWAssets.Editor
                     dependencyCount[dep]++;
                 }
             }
-            
+
             EditorGUILayout.LabelField("Most Depended Bundles:", EditorStyles.boldLabel);
-            
+
             var topDepended = dependencyCount
                 .OrderByDescending(x => x.Value)
                 .Take(10);
-            
+
             foreach (var kvp in topDepended)
             {
                 EditorGUILayout.BeginHorizontal();
@@ -287,13 +286,13 @@ namespace LWAssets.Editor
                 EditorGUILayout.LabelField($"Depended by {kvp.Value} bundles", GUILayout.Width(150));
                 EditorGUILayout.EndHorizontal();
             }
-            
+
             EditorGUILayout.Space();
-            
+
             // 循环依赖检测
             EditorGUILayout.LabelField("Circular Dependencies:", EditorStyles.boldLabel);
             var circularDeps = FindCircularDependencies();
-            
+
             if (circularDeps.Count == 0)
             {
                 EditorGUILayout.HelpBox("No circular dependencies found.", MessageType.Info);
@@ -306,14 +305,14 @@ namespace LWAssets.Editor
                 }
             }
         }
-        
+
         private List<List<string>> FindCircularDependencies()
         {
             var cycles = new List<List<string>>();
             var visited = new HashSet<string>();
             var recStack = new HashSet<string>();
             var path = new List<string>();
-            
+
             foreach (var bundle in _manifest.Bundles)
             {
                 if (!visited.Contains(bundle.BundleName))
@@ -321,17 +320,17 @@ namespace LWAssets.Editor
                     FindCyclesDFS(bundle.BundleName, visited, recStack, path, cycles);
                 }
             }
-            
+
             return cycles;
         }
-        
-        private void FindCyclesDFS(string bundleName, HashSet<string> visited, 
+
+        private void FindCyclesDFS(string bundleName, HashSet<string> visited,
             HashSet<string> recStack, List<string> path, List<List<string>> cycles)
         {
             visited.Add(bundleName);
             recStack.Add(bundleName);
             path.Add(bundleName);
-            
+
             var bundle = _manifest.GetBundleInfo(bundleName);
             if (bundle != null)
             {
@@ -351,7 +350,7 @@ namespace LWAssets.Editor
                     }
                 }
             }
-            
+
             path.RemoveAt(path.Count - 1);
             recStack.Remove(bundleName);
         }

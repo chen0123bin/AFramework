@@ -1,78 +1,29 @@
 
 {
     "Version" : "0.1",
-    "BuildTime" : "2026-01-06 19:27:12",
+    "BuildTime" : "2026-01-09 13:46:43",
     "Platform"  : "Windows",
     "Bundles"   : [
         {
             "BundleName" : "mytest_prefabs",
-            "Hash"       : "6c699d4fbe1435b5865767692b53a75e",
-            "CRC"        : 1860597459,
-            "Size"       : 26618,
+            "Hash"       : "256bbde4960adc6c2c6d26b6a3b7f119",
+            "CRC"        : 481812404,
+            "Size"       : 381730,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
-                "qqq"
-            ],
-            "Dependencies" : [
-            ],
-            "Assets"       : [
-                "Assets/0Res/Prefabs/Cube.prefab",
-                "Assets/0Res/Prefabs/Sphere.prefab"
-            ],
-            "Priority"     : 0
-        },
-        {
-            "BundleName" : "mytest_ui",
-            "Hash"       : "ec01703fb8751578673ddde6a81bee49",
-            "CRC"        : 4205162263,
-            "Size"       : 355722,
-            "IsRawFile"  : false,
-            "IsEncrypted" : false,
-            "Tags"        : [
-                "qqq"
+                "qqq",
+                "ccc"
             ],
             "Dependencies" : [
                 "shaders"
             ],
             "Assets"       : [
+                "Assets/0Res/Prefabs/Cube.prefab",
+                "Assets/0Res/Prefabs/Sphere.prefab",
+                "Assets/0Res/Prefabs/UI/LoadingView.prefab",
                 "Assets/0Res/Prefabs/UI/TestView.prefab"
-            ],
-            "Priority"     : 0
-        },
-        {
-            "BundleName" : "scene2_test2",
-            "Hash"       : "8cdb5483e5699f1e1b6e6980f75e2b6f",
-            "CRC"        : 2911765342,
-            "Size"       : 93252,
-            "IsRawFile"  : false,
-            "IsEncrypted" : false,
-            "Tags"        : [
-            ],
-            "Dependencies" : [
-                "mytest_prefabs"
-            ],
-            "Assets"       : [
-                "Assets/0Res/Scenes2/Test2.unity"
-            ],
-            "Priority"     : 0
-        },
-        {
-            "BundleName" : "scenes_scenes",
-            "Hash"       : "797dc40529973b9e63827da2c493ab64",
-            "CRC"        : 3089844192,
-            "Size"       : 93257,
-            "IsRawFile"  : false,
-            "IsEncrypted" : false,
-            "Tags"        : [
-            ],
-            "Dependencies" : [
-                "mytest_prefabs"
-            ],
-            "Assets"       : [
-                "Assets/0Res/Scenes/Test.unity"
-            ],
-            "Priority"     : 0
+            ]
         },
         {
             "BundleName" : "shaders",
@@ -99,24 +50,7 @@
                 "Assets/TextMesh Pro/Shaders/TMP_SDF-Surface.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_SDF.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Sprite.shader"
-            ],
-            "Priority"     : 0
-        },
-        {
-            "BundleName" : "raw_333",
-            "Hash"       : "3454f892e3df84762604f3d9638e3d04",
-            "CRC"        : 0,
-            "Size"       : 8,
-            "IsRawFile"  : true,
-            "IsEncrypted" : false,
-            "Tags"        : [
-            ],
-            "Dependencies" : [
-            ],
-            "Assets"       : [
-                "Assets/0Res/RawFiles/333.txt"
-            ],
-            "Priority"     : 0
+            ]
         }
     ]
 }
