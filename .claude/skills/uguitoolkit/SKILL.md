@@ -18,6 +18,8 @@ description: Unity UGUI 结构 JSON 生成与自动搭建工具箱。适用于�
 
 - 规范模板：references/UGUITempView.json
 - 示例页面：references/LoadingView.json
+- 示例页面：references/LoginView.json
+- 示例页面：references/QuizView.json
 
 生成 JSON 时，字段、层级、组件字段命名、枚举字符串都必须与参考文件保持一致。
 
@@ -32,7 +34,7 @@ description: Unity UGUI 结构 JSON 生成与自动搭建工具箱。适用于�
 
 输出：
 
-- 仅输出一个 JSON（建议文件名与 Root.name 一致，例如 LoadingView.json）
+- 仅输出一个 JSON，默认保存到 `Assets/UIJsonData/`，文件名与 Root.name 一致，例如 `Assets/UIJsonData/LoadingView.json`
 
 ## JSON 结构（UGUITempView 规则摘要）
 
@@ -87,6 +89,36 @@ components 结构：
    - 所有 type 的 data 字段名与参考 JSON 完全一致
    - Root.name 与文件名一致
 
+## 结构字段自检（不执行命令）
+
+本技能不执行任何powershell命令行校验；只做“结构 + 字段 + 引用路径”自检。生成 JSON 时按以下清单逐项对照：
+
+1. Root 结构
+   - 顶层必须包含 `Root`
+   - `Root.name` 必须存在且与文件名一致
+   - `Root.rectTransform` 必须存在且包含 anchorMin/anchorMax/pivot/anchoredPosition/sizeDelta/rotation/scale
+   - `Root.children` 建议始终存在（可为空数组）
+
+2. RectTransform 字段长度
+   - anchorMin/anchorMax/pivot/anchoredPosition/sizeDelta：必须是长度为 2 的数组
+   - rotation/scale：必须是长度为 3 的数组
+
+3. 节点字段白名单
+   - 每个节点只允许出现：name、active、rectTransform、components、children
+   - `active` 可省略（默认 true）
+
+4. 组件字段
+   - `components` 中每一项必须包含 `type` 与 `data`
+   - `type` 必须是参考模板中出现过的组件（例如 Image/Text/Button/Toggle/InputField/ScrollRect/Mask/Dropdown 等）
+   - `data` 字段名与枚举字符串必须与 references/UGUITempView.json 对齐：不新增字段、不漏字段、不随意改枚举字符串
+
+5. 引用路径一致性（最容易出错）
+   - ScrollRect.data.content / viewport / horizontalScrollbar / verticalScrollbar：引用的路径必须能在该节点 children 中找到
+   - Toggle.data.targetGraphic / graphic / group：引用的节点/组件必须存在
+   - InputField.data.textComponent / placeholder：引用的子节点必须存在
+   - Dropdown.data.template / captionText / itemText：引用的子节点必须存在
+   - 引用值若使用 `A/B/C` 形式，必须能按层级逐级找到
+
 
 ## 组件支持范围（与参考 JSON 对齐）
 
@@ -107,7 +139,8 @@ references/UGUITempView.json 中出现的 Layout 组件字段仅用于字段名/
 推荐规则：
 
 - 默认不使用任何 Layout 组件（Vertical/Horizontal/Grid/ContentSizeFitter/AspectRatioFitter/LayoutElement）
-- 唯一允许场景：ScrollRect 的 Content 节点用于动态列表，Content 可挂 VerticalLayoutGroup + ContentSizeFitter（verticalFit=PreferredSize）
+- 唯一允许场景：ScrollRect 的 Content 节点用于动态列表，Content 可挂 VerticalLayoutGroup + ContentSizeFitter（verticalFit=PreferredSize）或者 HorizontalLayoutGroup + ContentSizeFitter（horizontalFit=PreferredSize）或者 GridLayoutGroup + ContentSizeFitter（verticalFit=PreferredSize, horizontalFit=PreferredSize）
+
 - 除 ScrollRect Content 外的所有区域（查询条/表头/分页/弹窗/按钮组等）一律使用 RectTransform（锚点/sizeDelta/anchoredPosition）手动排版
 - 需要“间距/留白”时，通过 sizeDelta/anchoredPosition 或增加空节点占位实现，不使用 Layout 组件
 
