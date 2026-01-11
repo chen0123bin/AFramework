@@ -2,7 +2,7 @@
 alwaysApply: false
 description: UGUI组件命名规则、组件类型与内容的组合命名、UGUITempView.json文件的使用
 ---
-UGUITemp.json是一份存储unity ugui描述的文件，可以根据这份规则，在项目文件夹生成新的json文件
+UGUITempView.json是一份存储unity ugui描述的文件，可以根据这份规则，在项目文件夹生成新的json文件
 对象命名 (Object Naming)
 规则:使用 驼峰命名法 (CamelCase)。
 举例:
