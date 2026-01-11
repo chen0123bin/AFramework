@@ -187,7 +187,7 @@ namespace LWAssets
         {
             var manifest = new BundleManifest
             {
-                Version = "0.0.0",
+                Version = 0,
                 BuildTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 Platform = LWAssetsConfig.GetPlatformName()
             };

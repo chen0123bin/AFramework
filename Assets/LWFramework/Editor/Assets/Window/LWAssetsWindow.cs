@@ -137,10 +137,10 @@ namespace LWAssets.Editor
             EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("Project Statistics", EditorStyles.boldLabel);
 
-            var assetCount = AssetDatabase.FindAssets("", new[] { "Assets" }).Length;
-            var prefabCount = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }).Length;
-            var textureCount = AssetDatabase.FindAssets("t:Texture", new[] { "Assets" }).Length;
-            var materialCount = AssetDatabase.FindAssets("t:Material", new[] { "Assets" }).Length;
+            int assetCount = AssetDatabase.FindAssets("", new[] { "Assets" }).Length;
+            int prefabCount = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }).Length;
+            int textureCount = AssetDatabase.FindAssets("t:Texture", new[] { "Assets" }).Length;
+            int materialCount = AssetDatabase.FindAssets("t:Material", new[] { "Assets" }).Length;
 
             EditorGUILayout.LabelField($"Total Assets: {assetCount}");
             EditorGUILayout.LabelField($"Prefabs: {prefabCount}");
@@ -190,7 +190,7 @@ namespace LWAssets.Editor
             {
                 if (m_BuildConfig != null)
                 {
-                    var path = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
+                    string path = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
                     if (Directory.Exists(path))
                     {
                         EditorUtility.RevealInFinder(path);
@@ -301,7 +301,7 @@ namespace LWAssets.Editor
 
             if (m_RuntimeConfig != null)
             {
-                var editor = UnityEditor.Editor.CreateEditor(m_RuntimeConfig);
+                UnityEditor.Editor editor = UnityEditor.Editor.CreateEditor(m_RuntimeConfig);
                 editor.OnInspectorGUI();
             }
             else
@@ -325,15 +325,15 @@ namespace LWAssets.Editor
 
                 if (Directory.Exists(buildPath))
                 {
-                    var platforms = Directory.GetDirectories(buildPath);
+                    string[] platforms = Directory.GetDirectories(buildPath);
 
                     foreach (var platform in platforms)
                     {
-                        var manifestPath = Path.Combine(platform, "manifest.json");
+                        string manifestPath = Path.Combine(platform, "manifest.json");
                         if (File.Exists(manifestPath))
                         {
-                            var json = File.ReadAllText(manifestPath);
-                            var manifest = BundleManifest.FromJson(json);
+                            string json = File.ReadAllText(manifestPath);
+                            BundleManifest manifest = BundleManifest.FromJson(json);
 
                             EditorGUILayout.BeginHorizontal();
                             EditorGUILayout.LabelField(Path.GetFileName(platform), GUILayout.Width(100));
@@ -356,7 +356,7 @@ namespace LWAssets.Editor
 
         private void CreateBuildConfig()
         {
-            var path = EditorUtility.SaveFilePanelInProject(
+            string path = EditorUtility.SaveFilePanelInProject(
                 "Create Build Config", "LWAssetsBuildConfig", "asset", "");
 
             if (!string.IsNullOrEmpty(path))
@@ -595,7 +595,7 @@ namespace LWAssets.Editor
             var newManifestSize = new FileInfo(newManifestPath).Length;
             var version = new VersionInfo
             {
-                Version = PlayerSettings.bundleVersion,
+                Version = manifest.Version,
                 ManifestHash = newManifestHash,
                 ManifestSize = newManifestSize,
                 BuildTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),

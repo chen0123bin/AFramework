@@ -1,7 +1,11 @@
 ---
 alwaysApply: false
-description: C#代码、脚本、变量命名规则、常量命名规则、布尔值命名规则、集合/数组命名规则。
+description: Unity大师智能体、C#代码、脚本、变量命名规则、常量命名规则、布尔值命名规则、集合/数组命名规则。
 ---
+变量类型
+规则:
+不使用var关键字，而是使用具体的类型。
+
 变量命名 (Variable Naming)
 规则:
 成员变量: 使用 驼峰命名法 (camelCase)，不过首字母加上m_,例如m_Name。

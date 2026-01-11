@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LitJson;
 using UnityEditor;
 using UnityEngine;
 
@@ -319,9 +320,10 @@ namespace LWAssets.Editor
         private static BundleManifest GenerateManifest(LWAssetsBuildConfig config,
             AssetBundleManifest unityManifest, string outputPath)
         {
+            var buildVersion = AllocateNextBuildVersion(config);
             var manifest = new BundleManifest
             {
-                Version = PlayerSettings.bundleVersion,
+                Version = buildVersion,
                 BuildTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 Platform = LWAssetsConfig.GetPlatformName()
             };
@@ -484,6 +486,9 @@ namespace LWAssets.Editor
         /// <summary>
         /// 生成版本文件
         /// </summary>
+        /// <remarks>
+        /// VersionInfo.Version 使用“构建自增号”，每次成功打包后自动 +1，并持久化到项目内 JSON 文件。
+        /// </remarks>
         private static void GenerateVersionFile(LWAssetsBuildConfig config,
             BundleManifest manifest, string outputPath)
         {
@@ -491,9 +496,11 @@ namespace LWAssets.Editor
             var manifestHash = HashUtility.ComputeFileMD5(manifestPath);
             var manifestSize = new FileInfo(manifestPath).Length;
 
+            
+
             var version = new VersionInfo
             {
-                Version = PlayerSettings.bundleVersion,
+                Version = manifest.Version,
                 ManifestHash = manifestHash,
                 ManifestSize = manifestSize,
                 BuildTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -503,7 +510,57 @@ namespace LWAssets.Editor
 
             var versionPath = Path.Combine(outputPath, "version.json");
             File.WriteAllText(versionPath, JsonUtility.ToJson(version, true));
+
+          
         }
+
+        /// <summary>
+        /// 分配下一次构建的版本号（并记录到 BuildVersions.json 文件中）。
+        /// </summary>
+        private static int AllocateNextBuildVersion(LWAssetsBuildConfig config)
+        {
+            string key = $"{config.OutputPath}|{EditorUserBuildSettings.activeBuildTarget}";
+            string path = Path.Combine(Application.dataPath,  "LWAssetsBuildVersions.json");
+
+            Dictionary<string, int> buildVersions = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (File.Exists(path))
+            {
+                try
+                {
+                    string json = File.ReadAllText(path);
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        Dictionary<string, int> loaded = JsonMapper.ToObject<Dictionary<string, int>>(json);
+                        if (loaded != null)
+                        {
+                            buildVersions = loaded;
+                        }
+                    }
+                }
+                catch
+                {
+                    buildVersions = new Dictionary<string, int>(StringComparer.Ordinal);
+                }
+            }
+
+            int currentVersion;
+            buildVersions.TryGetValue(key, out currentVersion);
+            int nextVersion = currentVersion + 1;
+            buildVersions[key] = nextVersion;
+
+            string directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            SortedDictionary<string, int> orderedBuildVersions = new SortedDictionary<string, int>(buildVersions, StringComparer.Ordinal);
+            string outputJson = JsonMapper.ToJson(orderedBuildVersions, true);
+            File.WriteAllText(path, outputJson);
+
+            return nextVersion;
+        }
+      
 
         /// <summary>
         /// 清理输出目录
@@ -540,7 +597,7 @@ namespace LWAssets.Editor
             report.AppendLine("=== LWAssets Build Report ===");
             report.AppendLine($"Build Time: {DateTime.Now}");
             report.AppendLine($"Platform: {EditorUserBuildSettings.activeBuildTarget}");
-            report.AppendLine($"Version: {PlayerSettings.bundleVersion}");
+            report.AppendLine($"Version: {manifest.Version}");
             report.AppendLine();
 
             report.AppendLine("=== Bundle Summary ===");

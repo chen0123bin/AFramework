@@ -1,7 +1,7 @@
 
 {
-    "Version" : "0.1",
-    "BuildTime" : "2026-01-09 13:46:43",
+    "Version" : 2,
+    "BuildTime" : "2026-01-10 00:55:03",
     "Platform"  : "Windows",
     "Bundles"   : [
         {
@@ -27,9 +27,9 @@
         },
         {
             "BundleName" : "shaders",
-            "Hash"       : "a3135c08fba2902ec8d2cb28410a7d97",
-            "CRC"        : 2397558506,
-            "Size"       : 29818,
+            "Hash"       : "adb78fc7de4b0ccef17a573ca22fd165",
+            "CRC"        : 4044209739,
+            "Size"       : 30373,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -37,6 +37,7 @@
             "Dependencies" : [
             ],
             "Assets"       : [
+                "Assets/Arts/Shaders/Dissolve.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Custom-Atlas.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap.shader",

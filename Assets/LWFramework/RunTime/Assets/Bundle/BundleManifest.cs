@@ -14,7 +14,7 @@ namespace LWAssets
         /// <summary>
         /// 版本号
         /// </summary>
-        public string Version;
+        public int Version;
 
         /// <summary>
         /// 构建时间

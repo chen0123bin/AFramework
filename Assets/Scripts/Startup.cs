@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LWAssets;
 using LWCore;
@@ -38,14 +39,13 @@ public class Startup : MonoBehaviour
         {
 
             m_LoadingView = ManagerUtility.UIMgr.OpenView<LoadingView>();
-            //await DownloadAsync();
+            await DownloadAsync();
             await UniTask.Delay(1500);
             ManagerUtility.UIMgr.CloseView<LoadingView>();
         }
 
         ManagerUtility.EventMgr.AddListener<int>("TestEvent", OnTestEvent1);
         ManagerUtility.EventMgr.AddListener<int>("TestEvent", OnTestEvent2);
-
 
     }
 

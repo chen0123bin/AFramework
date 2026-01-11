@@ -15,7 +15,7 @@ namespace LWAssets
     [Serializable]
     public class VersionInfo
     {
-        public string Version;
+        public int Version;
         public string ManifestHash;
         public long ManifestSize;
         public string BuildTime;
@@ -38,7 +38,16 @@ namespace LWAssets
 
         public VersionInfo LocalVersion => m_LocalVersion;
         public VersionInfo RemoteVersion => m_RemoteVersion;
-        public bool HasNewVersion => m_RemoteVersion != null && m_LocalVersion?.Version != m_RemoteVersion.Version;
+        public bool HasNewVersion
+        {
+            get
+            {
+                return m_RemoteVersion != null &&
+                (m_LocalVersion?.Version != m_RemoteVersion.Version ||
+                m_LocalVersion?.ManifestHash != m_RemoteVersion.ManifestHash)
+                ;
+            }
+        }
         public BundleManifest LocalManifest => m_LocalManifest;
         public BundleManifest RemoteManifest => m_RemoteManifest;
 
@@ -341,7 +350,7 @@ namespace LWAssets
                     return result;
                 }
 
-                if (m_LocalVersion?.Version == m_RemoteVersion.Version)
+                if (!HasNewVersion)
                 {
                     result.Status = UpdateStatus.NoUpdate;
                     return result;
@@ -357,7 +366,7 @@ namespace LWAssets
                     result.Status = UpdateStatus.OptionalUpdate;
                 }
 
-                result.LocalVersion = m_LocalVersion?.Version;
+                result.LocalVersion = m_LocalVersion.Version;
                 result.RemoteVersion = m_RemoteVersion.Version;
 
                 // 加载远程清单计算下载大小
@@ -447,8 +456,8 @@ namespace LWAssets
     public struct UpdateCheckResult
     {
         public UpdateStatus Status;
-        public string LocalVersion;
-        public string RemoteVersion;
+        public int LocalVersion;
+        public int RemoteVersion;
         public long DownloadSize;
         public int DownloadCount;
         public string Error;

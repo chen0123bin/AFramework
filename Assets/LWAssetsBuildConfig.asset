@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: LWAssetsBuildConfig
   m_EditorClassIdentifier: 
   OutputPath: AssetBundles
-  BuildTarget: 19
   BuildOptions: 0
   PackageRules:
   - Name: mytest
@@ -21,7 +20,6 @@ MonoBehaviour:
     FolderPath: Assets/0Res/Prefabs
     FilePattern: '*.*'
     MaxBundleSize: 1000
-    Priority: 0
     Tags:
     - qqq
   - Name: scenes
@@ -29,21 +27,18 @@ MonoBehaviour:
     FolderPath: Assets/0Res/Scenes
     FilePattern: '*.*'
     MaxBundleSize: 1000
-    Priority: 0
     Tags: []
   - Name: scene2
     Strategy: 1
     FolderPath: Assets/0Res/Scenes2
     FilePattern: '*.*'
     MaxBundleSize: 1000
-    Priority: 0
     Tags: []
   - Name: raw
     Strategy: 4
     FolderPath: Assets/0Res/RawFiles
     FilePattern: '*.*'
     MaxBundleSize: 1000
-    Priority: 0
     Tags: []
   CollectShaders: 1
   ShaderBundleName: shaders
@@ -55,6 +50,8 @@ MonoBehaviour:
   - FolderPath: Assets/0Res/Scenes
     Tags:
     - ccc
+  BuiltinTags:
+  - qqq
   EnableEncryption: 1
   EncryptionKey: dsafdsafsf
   GenerateReport: 1
