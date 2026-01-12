@@ -1,18 +1,18 @@
 
 {
-    "Version" : 2,
-    "BuildTime" : "2026-01-10 00:55:03",
+    "Version" : 3,
+    "BuildTime" : "2026-01-12 16:55:20",
     "Platform"  : "Windows",
     "Bundles"   : [
         {
             "BundleName" : "mytest_prefabs",
-            "Hash"       : "256bbde4960adc6c2c6d26b6a3b7f119",
-            "CRC"        : 481812404,
-            "Size"       : 381730,
+            "Hash"       : "ba65869348df997cd485953431a0b981",
+            "CRC"        : 3348105728,
+            "Size"       : 454950,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
-                "qqq",
+                "Core",
                 "ccc"
             ],
             "Dependencies" : [
@@ -20,16 +20,58 @@
             ],
             "Assets"       : [
                 "Assets/0Res/Prefabs/Cube.prefab",
+                "Assets/0Res/Prefabs/Cube009.prefab",
+                "Assets/0Res/Prefabs/Cube2.prefab",
+                "Assets/0Res/Prefabs/Cylinder1.prefab",
+                "Assets/0Res/Prefabs/Cylinder2.prefab",
+                "Assets/0Res/Prefabs/MCP_TestGameObject_Visual.prefab",
+                "Assets/0Res/Prefabs/SnowVFX.prefab",
                 "Assets/0Res/Prefabs/Sphere.prefab",
                 "Assets/0Res/Prefabs/UI/LoadingView.prefab",
                 "Assets/0Res/Prefabs/UI/TestView.prefab"
             ]
         },
         {
+            "BundleName" : "scene2_scenes2",
+            "Hash"       : "56cf5652e500c6b394a4b0f45c20ae16",
+            "CRC"        : 4056577629,
+            "Size"       : 93312,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+                "ccc"
+            ],
+            "Dependencies" : [
+                "mytest_prefabs",
+                "shaders"
+            ],
+            "Assets"       : [
+                "Assets/0Res/Scenes2/Test2.unity"
+            ]
+        },
+        {
+            "BundleName" : "scenes_scenes",
+            "Hash"       : "80bed2364a44d50c62b9944775c53b1d",
+            "CRC"        : 646458044,
+            "Size"       : 93256,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+                "ccc"
+            ],
+            "Dependencies" : [
+                "mytest_prefabs",
+                "shaders"
+            ],
+            "Assets"       : [
+                "Assets/0Res/Scenes/Test.unity"
+            ]
+        },
+        {
             "BundleName" : "shaders",
-            "Hash"       : "adb78fc7de4b0ccef17a573ca22fd165",
-            "CRC"        : 4044209739,
-            "Size"       : 30373,
+            "Hash"       : "da672723f9b21edfa7e3b89897259792",
+            "CRC"        : 1960432424,
+            "Size"       : 35776,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -38,6 +80,10 @@
             ],
             "Assets"       : [
                 "Assets/Arts/Shaders/Dissolve.shader",
+                "Assets/Arts/Shaders/ElectricCurrentFlow.shader",
+                "Assets/Arts/Shaders/HoloScan.shader",
+                "Assets/Arts/Shaders/MCP_CoolNeon.shader",
+                "Assets/Arts/Shaders/PipeFlow.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Custom-Atlas.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap.shader",
@@ -51,6 +97,21 @@
                 "Assets/TextMesh Pro/Shaders/TMP_SDF-Surface.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_SDF.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Sprite.shader"
+            ]
+        },
+        {
+            "BundleName" : "raw_333",
+            "Hash"       : "fc1802582675406a0cf3f883d74355d2",
+            "CRC"        : 0,
+            "Size"       : 68726,
+            "IsRawFile"  : true,
+            "IsEncrypted" : false,
+            "Tags"        : [
+            ],
+            "Dependencies" : [
+            ],
+            "Assets"       : [
+                "Assets/0Res/RawFiles/333.txt"
             ]
         }
     ]

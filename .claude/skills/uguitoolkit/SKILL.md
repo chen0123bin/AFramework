@@ -17,9 +17,9 @@ description: Unity UGUI 结构 JSON 生成与自动搭建工具箱。适用于�
 ## 参考规则
 
 - 规范模板：references/UGUITempView.json
+- 示例页面：references/QuizView.json
 - 示例页面：references/LoadingView.json
 - 示例页面：references/LoginView.json
-- 示例页面：references/QuizView.json
 
 生成 JSON 时，字段、层级、组件字段命名、枚举字符串都必须与参考文件保持一致。
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using LWCore;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -60,10 +61,10 @@ namespace LWAssets.Samples
                 // 加载配置
                 var config = LWAssetsConfig.Load();
 
-                // 初始化
-                await LWAssetsService.Assets.InitializeAsync(config);
+                // 初始化资产服务
+                await ManagerUtility.AssetsMgr.InitializeAsync(config);
 
-                UpdateStatusMsg($"Initialized! Mode: {LWAssetsService.Assets.CurrentPlayMode}");
+                UpdateStatusMsg($"Initialized! Mode: {ManagerUtility.AssetsMgr.CurrentPlayMode}");
             }
             catch (Exception ex)
             {
@@ -77,7 +78,7 @@ namespace LWAssets.Samples
         /// </summary>
         private async UniTaskVoid LoadAssetAsync()
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
                 UpdateStatusMsg("Please initialize first!");
                 return;
@@ -95,7 +96,7 @@ namespace LWAssets.Samples
                 //     UpdateStatusMsg($"Loaded: {prefab.name}");
                 // }
 
-                var gameObject = await LWAssetsService.Assets.InstantiateAsync(_testPrefabPath, _spawnPoint);
+                var gameObject = await ManagerUtility.AssetsMgr.InstantiateAsync(_testPrefabPath, _spawnPoint);
 
                 // 方式2：使用句柄
                 // var handle = await LWAssets.LoadAssetWithHandleAsync<GameObject>(_testPrefabPath);
@@ -118,7 +119,7 @@ namespace LWAssets.Samples
         /// </summary>
         private async UniTaskVoid LoadSceneAsync()
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
                 UpdateStatusMsg("Please initialize first!");
                 return;
@@ -128,7 +129,7 @@ namespace LWAssets.Samples
             {
                 UpdateStatusMsg("Loading scene...");
 
-                var handle = await LWAssetsService.Assets.LoadSceneAsync(
+                var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
                     _testScenePath,
                     UnityEngine.SceneManagement.LoadSceneMode.Additive,
                     true);
@@ -153,7 +154,7 @@ namespace LWAssets.Samples
         /// </summary>
         private async UniTaskVoid LoadScene2Async()
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
                 UpdateStatusMsg("Please initialize first!");
                 return;
@@ -163,7 +164,7 @@ namespace LWAssets.Samples
             {
                 UpdateStatusMsg("Loading scene...");
 
-                var handle = await LWAssetsService.Assets.LoadSceneAsync(
+                var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
                     _test2ScenePath,
                     UnityEngine.SceneManagement.LoadSceneMode.Additive,
                     true);
@@ -188,12 +189,12 @@ namespace LWAssets.Samples
         /// </summary>
         public async UniTask<string> LoadRawFileAsync()
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
-                await LWAssetsService.Assets.InitializeAsync();
+                await ManagerUtility.AssetsMgr.InitializeAsync();
             }
 
-            var text = await LWAssetsService.Assets.LoadRawFileTextAsync(_testRawFilePath);
+            var text = await ManagerUtility.AssetsMgr.LoadRawFileTextAsync(_testRawFilePath);
             Debug.Log($"Raw file content: {text}");
             return text;
         }
@@ -203,7 +204,7 @@ namespace LWAssets.Samples
         /// </summary>
         private async UniTaskVoid DownloadAsync()
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
                 UpdateStatusMsg("Please initialize first!");
                 return;
@@ -213,7 +214,7 @@ namespace LWAssets.Samples
             {
                 // 检查更新
                 UpdateStatusMsg("Checking for updates...");
-                var checkResult = await LWAssetsService.Assets.Version.CheckUpdateAsync();
+                var checkResult = await ManagerUtility.AssetsMgr.Version.CheckUpdateAsync();
 
                 if (checkResult.Status == UpdateStatus.NoUpdate)
                 {
@@ -230,7 +231,7 @@ namespace LWAssets.Samples
                     UpdateStatusMsg($"Downloading: {p.CompletedCount}/{p.TotalCount} - {FileUtility.FormatFileSize((long)p.Speed)}/s");
                 });
 
-                await LWAssetsService.Assets.DownloadAsync(null, progress);
+                await ManagerUtility.AssetsMgr.DownloadAsync(null, progress);
 
                 _progressSlider.value = 1f;
                 UpdateStatusMsg("Download completed!");
@@ -247,17 +248,17 @@ namespace LWAssets.Samples
         /// </summary>
         public async UniTask DownloadByTagAsync(params string[] tags)
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
-                await LWAssetsService.Assets.InitializeAsync();
+                await ManagerUtility.AssetsMgr.InitializeAsync();
             }
 
             // 获取下载大小
-            var downloadSize = await LWAssetsService.Assets.GetDownloadSizeAsync(tags);
+            var downloadSize = await ManagerUtility.AssetsMgr.GetDownloadSizeAsync(tags);
             Debug.Log($"Download size for tags [{string.Join(",", tags)}]: {FileUtility.FormatFileSize(downloadSize)}");
 
             // 下载
-            await LWAssetsService.Assets.DownloadAsync(tags);
+            await ManagerUtility.AssetsMgr.DownloadAsync(tags);
         }
 
         /// <summary>
@@ -265,13 +266,13 @@ namespace LWAssets.Samples
         /// </summary>
         private void ClearCache()
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
                 UpdateStatusMsg("Please initialize first!");
                 return;
             }
 
-            LWAssetsService.Assets.Cache.ClearAll();
+            ManagerUtility.AssetsMgr.Cache.ClearAll();
             UpdateStatusMsg("Cache cleared!");
         }
 
@@ -280,9 +281,9 @@ namespace LWAssets.Samples
         /// </summary>
         public async UniTask BatchLoadAsync()
         {
-            if (!LWAssetsService.Assets.IsInitialized)
+            if (!ManagerUtility.AssetsMgr.IsInitialized)
             {
-                await LWAssetsService.Assets.InitializeAsync();
+                await ManagerUtility.AssetsMgr.InitializeAsync();
             }
 
             var assetPaths = new[]
@@ -297,7 +298,7 @@ namespace LWAssets.Samples
                 Debug.Log($"Batch load progress: {p * 100:F1}%");
             });
 
-            var assets = await LWAssetsService.Assets.LoadAssetsAsync<GameObject>(assetPaths, progress);
+            var assets = await ManagerUtility.AssetsMgr.LoadAssetsAsync<GameObject>(assetPaths, progress);
 
             foreach (var asset in assets)
             {
@@ -310,11 +311,11 @@ namespace LWAssets.Samples
         /// </summary>
         public void SetupPreload()
         {
-            if (!LWAssetsService.Assets.IsInitialized) return;
+            if (!ManagerUtility.AssetsMgr.IsInitialized) return;
 
             // 手动请求预加载
-            LWAssetsService.Assets.Preloader.RequestPreload("Assets/Prefabs/UI/MainMenu.prefab", PreloadPriority.High);
-            LWAssetsService.Assets.Preloader.RequestPreload("Assets/Prefabs/UI/SettingsPanel.prefab", PreloadPriority.Normal);
+            ManagerUtility.AssetsMgr.Preloader.RequestPreload("Assets/Prefabs/UI/MainMenu.prefab", PreloadPriority.High);
+            ManagerUtility.AssetsMgr.Preloader.RequestPreload("Assets/Prefabs/UI/SettingsPanel.prefab", PreloadPriority.Normal);
 
             // 批量预加载
             var preloadList = new[]
@@ -323,12 +324,12 @@ namespace LWAssets.Samples
                 "Assets/Prefabs/Characters/NPC1.prefab",
                 "Assets/Prefabs/Effects/Explosion.prefab"
             };
-            LWAssetsService.Assets.Preloader.RequestPreload(preloadList, PreloadPriority.Low);
+            ManagerUtility.AssetsMgr.Preloader.RequestPreload(preloadList, PreloadPriority.Low);
 
             // 使用智能预测
-            LWAssetsService.Assets.Preloader.RecordAccess("Assets/Scenes/Level1.unity");
-            var predicted = LWAssetsService.Assets.Preloader.GetPredictedAssets("Assets/Scenes/Level1.unity");
-            LWAssetsService.Assets.Preloader.RequestPreload(predicted);
+            ManagerUtility.AssetsMgr.Preloader.RecordAccess("Assets/Scenes/Level1.unity");
+            var predicted = ManagerUtility.AssetsMgr.Preloader.GetPredictedAssets("Assets/Scenes/Level1.unity");
+            ManagerUtility.AssetsMgr.Preloader.RequestPreload(predicted);
         }
 
         /// <summary>
@@ -337,9 +338,9 @@ namespace LWAssets.Samples
         public async UniTask MemoryManagementAsync()
         {
             // 获取内存统计
-            var stats = LWAssetsService.Assets.Preloader.GetType()
+            var stats = ManagerUtility.AssetsMgr.Preloader.GetType()
                 .GetField("_memoryMonitor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.GetValue(LWAssetsService.Assets.Preloader) as MemoryMonitor;
+                ?.GetValue(ManagerUtility.AssetsMgr.Preloader) as MemoryMonitor;
 
             if (stats != null)
             {
@@ -348,7 +349,7 @@ namespace LWAssets.Samples
             }
 
             // 手动卸载未使用资源
-            await LWAssetsService.Assets.UnloadUnusedAssetsAsync();
+            await ManagerUtility.AssetsMgr.UnloadUnusedAssetsAsync();
 
             // 强制卸载所有
             // LWAssets.ForceUnloadAll();
@@ -366,7 +367,7 @@ namespace LWAssets.Samples
         private void OnDestroy()
         {
             // 清理
-            LWAssetsService.Assets.Destroy();
+            ManagerUtility.AssetsMgr.Destroy();
         }
     }
 
@@ -378,10 +379,10 @@ namespace LWAssets.Samples
         public async UniTaskVoid StartGame()
         {
             // 1. 初始化资源系统
-            await LWAssetsService.Assets.InitializeAsync();
+            await ManagerUtility.AssetsMgr.InitializeAsync();
 
             // 2. 检查更新
-            var updateResult = await LWAssetsService.Assets.Version.CheckUpdateAsync();
+            var updateResult = await ManagerUtility.AssetsMgr.Version.CheckUpdateAsync();
 
             if (updateResult.Status == UpdateStatus.ForceUpdate)
             {
@@ -399,14 +400,14 @@ namespace LWAssets.Samples
             }
 
             // 3. 下载核心资源
-            var coreSize = await LWAssetsService.Assets.GetDownloadSizeAsync(new[] { "core", "ui" });
+            var coreSize = await ManagerUtility.AssetsMgr.GetDownloadSizeAsync(new[] { "core", "ui" });
             if (coreSize > 0)
             {
-                await LWAssetsService.Assets.DownloadAsync(new[] { "core", "ui" });
+                await ManagerUtility.AssetsMgr.DownloadAsync(new[] { "core", "ui" });
             }
 
             // 4. 加载启动场景
-            await LWAssetsService.Assets.LoadSceneAsync("Assets/Scenes/MainMenu.unity");
+            await ManagerUtility.AssetsMgr.LoadSceneAsync("Assets/Scenes/MainMenu.unity");
 
             // 5. 后台下载其他资源
             DownloadBackgroundAsync().Forget();
@@ -415,7 +416,7 @@ namespace LWAssets.Samples
         private async UniTaskVoid DownloadBackgroundAsync()
         {
             // 低优先级后台下载
-            await LWAssetsService.Assets.DownloadAsync(new[] { "levels", "characters", "effects" });
+            await ManagerUtility.AssetsMgr.DownloadAsync(new[] { "levels", "characters", "effects" });
         }
 
         private void ShowUpdateDialog(UpdateCheckResult result)
@@ -426,12 +427,13 @@ namespace LWAssets.Samples
         private async UniTask<bool> ShowOptionalUpdateDialog(UpdateCheckResult result)
         {
             Debug.Log($"Optional update available: {result.LocalVersion} -> {result.RemoteVersion}");
+            await UniTask.WaitForSeconds(1); // 模拟异步操作
             return true; // 模拟用户确认
         }
 
         private async UniTask DownloadUpdates()
         {
-            await LWAssetsService.Assets.DownloadAsync();
+            await ManagerUtility.AssetsMgr.DownloadAsync();
         }
     }
 }

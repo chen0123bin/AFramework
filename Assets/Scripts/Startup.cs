@@ -55,10 +55,12 @@ public class Startup : MonoBehaviour
         LWDebug.Log($"OnTestEvent2 {obj}");
     }
 
-    private void OnTestEvent1(int obj)
+    private async void OnTestEvent1(int obj)
     {
         LWDebug.Log($"OnTestEvent1 {obj}");
-        ManagerUtility.UIMgr.OpenView<TestView>();
+        string text = await ManagerUtility.AssetsMgr.LoadRawFileTextAsync("Assets/0Res/RawFiles/333.txt");
+        LWDebug.Log("RAWFile" + text);
+        //ManagerUtility.UIMgr.OpenView<TestView>();
     }
 
 
@@ -66,7 +68,7 @@ public class Startup : MonoBehaviour
     /// 默认资源更新完成
     /// </summary>
     /// <param name="obj"></param>
-    private async void OnUpdateCallback(bool obj)
+    private void OnUpdateCallback(bool obj)
     {
 
     }
@@ -144,7 +146,7 @@ public class Startup : MonoBehaviour
         Debug.Log("LoadScene2Async");
         var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
                "Assets/0Res/Scenes2/Test2.unity",
-               UnityEngine.SceneManagement.LoadSceneMode.Additive,
+               UnityEngine.SceneManagement.LoadSceneMode.Single,
                true);
         if (handle.IsValid)
         {

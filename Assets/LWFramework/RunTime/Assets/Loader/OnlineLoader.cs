@@ -52,12 +52,15 @@ namespace LWAssets
 
             var sw = Stopwatch.StartNew();
 
-            if (!File.Exists(filePath) || !m_CacheManager.ValidateBundle(bundleInfo))
+            if (!File.Exists(filePath))
             {
                 await m_DownloadManager.DownloadAsync(new[] { bundleInfo }, null, cancellationToken);
+            }
+            // 是否已缓存且有效
+            if (!m_CacheManager.ValidateBundle(bundleInfo))
+            {
                 m_CacheManager.AddEntry(bundleInfo);
             }
-
             if (!File.Exists(filePath))
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {filePath}");
@@ -76,13 +79,17 @@ namespace LWAssets
             var filePath = GetBundlePath(bundleInfo);
 
             // 检查是否需要下载
-            if (!File.Exists(filePath) || !m_CacheManager.ValidateBundle(bundleInfo))
+            if (!File.Exists(filePath))
             {
                 // 下载Bundle
                 await DownloadBundleAsync(bundleInfo, cancellationToken);
+
+            }
+            // 是否已缓存且有效
+            if (!m_CacheManager.ValidateBundle(bundleInfo))
+            {
                 m_CacheManager.AddEntry(bundleInfo);
             }
-
             // 加载Bundle
             var request = AssetBundle.LoadFromFileAsync(filePath);
             await request;
@@ -113,7 +120,7 @@ namespace LWAssets
         {
             // 优先从缓存目录加载
             var cachePath = Path.Combine(m_Config.GetPersistentDataPath(), bundleInfo.GetFileName());
-            if (File.Exists(cachePath) && m_CacheManager.ValidateBundle(bundleInfo))
+            if (File.Exists(cachePath))
             {
                 return cachePath;
             }

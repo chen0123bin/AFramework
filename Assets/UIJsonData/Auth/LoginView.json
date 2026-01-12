@@ -1,0 +1,1130 @@
+{
+    "Root": {
+        "name": "LoginView",
+        "rectTransform": {
+            "anchorMin": [
+                0.0,
+                0.0
+            ],
+            "anchorMax": [
+                1.0,
+                1.0
+            ],
+            "pivot": [
+                0.5,
+                0.5
+            ],
+            "anchoredPosition": [
+                0.0,
+                0.0
+            ],
+            "sizeDelta": [
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "children": [
+            {
+                "name": "ImgDim",
+                "active": true,
+                "rectTransform": {
+                    "anchorMin": [
+                        0.0,
+                        0.0
+                    ],
+                    "anchorMax": [
+                        1.0,
+                        1.0
+                    ],
+                    "pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "anchoredPosition": [
+                        0.0,
+                        0.0
+                    ],
+                    "sizeDelta": [
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "components": [
+                    {
+                        "type": "Image",
+                        "data": {
+                            "sprite": "Assets/Arts/BaseUI/白色背景.png",
+                            "color": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.65
+                            ],
+                            "material": "Default UI Material",
+                            "raycastTarget": true,
+                            "imageType": "Simple",
+                            "fillCenter": true,
+                            "pixelsPerUnitMultiplier": 1.0,
+                            "preserveAspect": false,
+                            "fillMethod": "Radial360",
+                            "fillAmount": 1.0,
+                            "fillClockwise": true,
+                            "fillOrigin": 0
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "ImgTop",
+                "active": true,
+                "rectTransform": {
+                    "anchorMin": [
+                        0.0,
+                        1.0
+                    ],
+                    "anchorMax": [
+                        1.0,
+                        1.0
+                    ],
+                    "pivot": [
+                        0.5,
+                        1.0
+                    ],
+                    "anchoredPosition": [
+                        0.0,
+                        0.0
+                    ],
+                    "sizeDelta": [
+                        0.0,
+                        160.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "components": [
+                    {
+                        "type": "Image",
+                        "data": {
+                            "sprite": "Assets/Arts/BaseUI/顶部背景1.png",
+                            "color": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                0.95
+                            ],
+                            "material": "Default UI Material",
+                            "raycastTarget": false,
+                            "imageType": "Simple",
+                            "fillCenter": true,
+                            "pixelsPerUnitMultiplier": 1.0,
+                            "preserveAspect": false,
+                            "fillMethod": "Radial360",
+                            "fillAmount": 1.0,
+                            "fillClockwise": true,
+                            "fillOrigin": 0
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "PnlMain",
+                "active": true,
+                "rectTransform": {
+                    "anchorMin": [
+                        0.5,
+                        0.5
+                    ],
+                    "anchorMax": [
+                        0.5,
+                        0.5
+                    ],
+                    "pivot": [
+                        0.5,
+                        0.5
+                    ],
+                    "anchoredPosition": [
+                        0.0,
+                        -20.0
+                    ],
+                    "sizeDelta": [
+                        720.0,
+                        560.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "components": [
+                    {
+                        "type": "Image",
+                        "data": {
+                            "sprite": "Assets/Arts/BaseUI/边框1.png",
+                            "color": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "material": "Default UI Material",
+                            "raycastTarget": true,
+                            "imageType": "Sliced",
+                            "fillCenter": true,
+                            "pixelsPerUnitMultiplier": 1.0,
+                            "preserveAspect": false,
+                            "fillMethod": "Radial360",
+                            "fillAmount": 1.0,
+                            "fillClockwise": true,
+                            "fillOrigin": 0
+                        }
+                    }
+                ],
+                "children": [
+                    {
+                        "name": "TxtTitle",
+                        "active": true,
+                        "rectTransform": {
+                            "anchorMin": [
+                                0.5,
+                                1.0
+                            ],
+                            "anchorMax": [
+                                0.5,
+                                1.0
+                            ],
+                            "pivot": [
+                                0.5,
+                                1.0
+                            ],
+                            "anchoredPosition": [
+                                0.0,
+                                -48.0
+                            ],
+                            "sizeDelta": [
+                                600.0,
+                                64.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ]
+                        },
+                        "components": [
+                            {
+                                "type": "Text",
+                                "data": {
+                                    "content": "登录",
+                                    "fontSize": 40,
+                                    "color": [
+                                        1.0,
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "raycastTarget": false,
+                                    "supportRichText": false,
+                                    "alignment": "MiddleCenter"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "IpfUser",
+                        "active": true,
+                        "rectTransform": {
+                            "anchorMin": [
+                                0.5,
+                                0.5
+                            ],
+                            "anchorMax": [
+                                0.5,
+                                0.5
+                            ],
+                            "pivot": [
+                                0.5,
+                                0.5
+                            ],
+                            "anchoredPosition": [
+                                0.0,
+                                92.0
+                            ],
+                            "sizeDelta": [
+                                560.0,
+                                68.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ]
+                        },
+                        "components": [
+                            {
+                                "type": "Image",
+                                "data": {
+                                    "sprite": "Assets/Arts/BaseUI/白色图片.png",
+                                    "color": [
+                                        1.0,
+                                        1.0,
+                                        1.0,
+                                        0.18
+                                    ],
+                                    "material": "Default UI Material",
+                                    "raycastTarget": true,
+                                    "imageType": "Sliced",
+                                    "fillCenter": true,
+                                    "pixelsPerUnitMultiplier": 1.0,
+                                    "preserveAspect": false,
+                                    "fillMethod": "Radial360",
+                                    "fillAmount": 1.0,
+                                    "fillClockwise": true,
+                                    "fillOrigin": 0
+                                }
+                            },
+                            {
+                                "type": "InputField",
+                                "data": {
+                                    "interactable": true,
+                                    "text": "",
+                                    "characterLimit": 0,
+                                    "readOnly": false,
+                                    "caretBlinkRate": 0.85,
+                                    "caretWidth": 1,
+                                    "selectionColor": [
+                                        0.26,
+                                        0.58,
+                                        1.0,
+                                        0.55
+                                    ],
+                                    "contentType": "Standard",
+                                    "lineType": "SingleLine",
+                                    "textComponent": "TxtText",
+                                    "placeholder": "TxtPlaceholder"
+                                }
+                            }
+                        ],
+                        "children": [
+                            {
+                                "name": "TxtPlaceholder",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "anchorMax": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "pivot": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        18.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        -36.0,
+                                        0.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Text",
+                                        "data": {
+                                            "content": "账号",
+                                            "fontSize": 26,
+                                            "color": [
+                                                1.0,
+                                                1.0,
+                                                1.0,
+                                                0.55
+                                            ],
+                                            "raycastTarget": false,
+                                            "supportRichText": false,
+                                            "alignment": "MiddleLeft"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "TxtText",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "anchorMax": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "pivot": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        18.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        -36.0,
+                                        0.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Text",
+                                        "data": {
+                                            "content": "",
+                                            "fontSize": 26,
+                                            "color": [
+                                                1.0,
+                                                1.0,
+                                                1.0,
+                                                1.0
+                                            ],
+                                            "raycastTarget": false,
+                                            "supportRichText": false,
+                                            "alignment": "MiddleLeft"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "name": "IpfPassword",
+                        "active": true,
+                        "rectTransform": {
+                            "anchorMin": [
+                                0.5,
+                                0.5
+                            ],
+                            "anchorMax": [
+                                0.5,
+                                0.5
+                            ],
+                            "pivot": [
+                                0.5,
+                                0.5
+                            ],
+                            "anchoredPosition": [
+                                0.0,
+                                10.0
+                            ],
+                            "sizeDelta": [
+                                560.0,
+                                68.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ]
+                        },
+                        "components": [
+                            {
+                                "type": "Image",
+                                "data": {
+                                    "sprite": "Assets/Arts/BaseUI/白色图片.png",
+                                    "color": [
+                                        1.0,
+                                        1.0,
+                                        1.0,
+                                        0.18
+                                    ],
+                                    "material": "Default UI Material",
+                                    "raycastTarget": true,
+                                    "imageType": "Sliced",
+                                    "fillCenter": true,
+                                    "pixelsPerUnitMultiplier": 1.0,
+                                    "preserveAspect": false,
+                                    "fillMethod": "Radial360",
+                                    "fillAmount": 1.0,
+                                    "fillClockwise": true,
+                                    "fillOrigin": 0
+                                }
+                            },
+                            {
+                                "type": "InputField",
+                                "data": {
+                                    "interactable": true,
+                                    "text": "",
+                                    "characterLimit": 0,
+                                    "readOnly": false,
+                                    "caretBlinkRate": 0.85,
+                                    "caretWidth": 1,
+                                    "selectionColor": [
+                                        0.26,
+                                        0.58,
+                                        1.0,
+                                        0.55
+                                    ],
+                                    "contentType": "Password",
+                                    "lineType": "SingleLine",
+                                    "textComponent": "TxtText",
+                                    "placeholder": "TxtPlaceholder"
+                                }
+                            }
+                        ],
+                        "children": [
+                            {
+                                "name": "TxtPlaceholder",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "anchorMax": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "pivot": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        18.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        -36.0,
+                                        0.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Text",
+                                        "data": {
+                                            "content": "密码",
+                                            "fontSize": 26,
+                                            "color": [
+                                                1.0,
+                                                1.0,
+                                                1.0,
+                                                0.55
+                                            ],
+                                            "raycastTarget": false,
+                                            "supportRichText": false,
+                                            "alignment": "MiddleLeft"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "TxtText",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "anchorMax": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "pivot": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        18.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        -36.0,
+                                        0.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Text",
+                                        "data": {
+                                            "content": "",
+                                            "fontSize": 26,
+                                            "color": [
+                                                1.0,
+                                                1.0,
+                                                1.0,
+                                                1.0
+                                            ],
+                                            "raycastTarget": false,
+                                            "supportRichText": false,
+                                            "alignment": "MiddleLeft"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "name": "TglRemember",
+                        "active": true,
+                        "rectTransform": {
+                            "anchorMin": [
+                                0.5,
+                                0.5
+                            ],
+                            "anchorMax": [
+                                0.5,
+                                0.5
+                            ],
+                            "pivot": [
+                                0.0,
+                                0.5
+                            ],
+                            "anchoredPosition": [
+                                -280.0,
+                                -72.0
+                            ],
+                            "sizeDelta": [
+                                320.0,
+                                44.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ]
+                        },
+                        "components": [
+                            {
+                                "type": "Toggle",
+                                "data": {
+                                    "interactable": true,
+                                    "isOn": true,
+                                    "transition": "ColorTint",
+                                    "toggleTransition": "Fade",
+                                    "targetGraphic": "ImgBox",
+                                    "graphic": "ImgBox/ImgCheck"
+                                }
+                            }
+                        ],
+                        "children": [
+                            {
+                                "name": "ImgBox",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.5
+                                    ],
+                                    "anchorMax": [
+                                        0.0,
+                                        0.5
+                                    ],
+                                    "pivot": [
+                                        0.0,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        36.0,
+                                        36.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Image",
+                                        "data": {
+                                            "sprite": "Assets/Arts/BaseUI/圆1.png",
+                                            "color": [
+                                                1.0,
+                                                1.0,
+                                                1.0,
+                                                0.75
+                                            ],
+                                            "material": "Default UI Material",
+                                            "raycastTarget": true,
+                                            "imageType": "Simple",
+                                            "fillCenter": true,
+                                            "pixelsPerUnitMultiplier": 1.0,
+                                            "preserveAspect": true,
+                                            "fillMethod": "Radial360",
+                                            "fillAmount": 1.0,
+                                            "fillClockwise": true,
+                                            "fillOrigin": 0
+                                        }
+                                    }
+                                ],
+                                "children": [
+                                    {
+                                        "name": "ImgCheck",
+                                        "active": true,
+                                        "rectTransform": {
+                                            "anchorMin": [
+                                                0.5,
+                                                0.5
+                                            ],
+                                            "anchorMax": [
+                                                0.5,
+                                                0.5
+                                            ],
+                                            "pivot": [
+                                                0.5,
+                                                0.5
+                                            ],
+                                            "anchoredPosition": [
+                                                0.0,
+                                                0.0
+                                            ],
+                                            "sizeDelta": [
+                                                28.0,
+                                                28.0
+                                            ],
+                                            "rotation": [
+                                                0.0,
+                                                0.0,
+                                                0.0
+                                            ],
+                                            "scale": [
+                                                1.0,
+                                                1.0,
+                                                1.0
+                                            ]
+                                        },
+                                        "components": [
+                                            {
+                                                "type": "Image",
+                                                "data": {
+                                                    "sprite": "Assets/Arts/BaseUI/勾选.png",
+                                                    "color": [
+                                                        1.0,
+                                                        1.0,
+                                                        1.0,
+                                                        1.0
+                                                    ],
+                                                    "material": "Default UI Material",
+                                                    "raycastTarget": false,
+                                                    "imageType": "Simple",
+                                                    "fillCenter": true,
+                                                    "pixelsPerUnitMultiplier": 1.0,
+                                                    "preserveAspect": true,
+                                                    "fillMethod": "Radial360",
+                                                    "fillAmount": 1.0,
+                                                    "fillClockwise": true,
+                                                    "fillOrigin": 0
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "TxtRemember",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "anchorMax": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "pivot": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        54.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        -54.0,
+                                        0.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Text",
+                                        "data": {
+                                            "content": "记住我",
+                                            "fontSize": 24,
+                                            "color": [
+                                                1.0,
+                                                1.0,
+                                                1.0,
+                                                0.9
+                                            ],
+                                            "raycastTarget": false,
+                                            "supportRichText": false,
+                                            "alignment": "MiddleLeft"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "name": "BtnLogin",
+                        "active": true,
+                        "rectTransform": {
+                            "anchorMin": [
+                                0.5,
+                                0.0
+                            ],
+                            "anchorMax": [
+                                0.5,
+                                0.0
+                            ],
+                            "pivot": [
+                                0.5,
+                                0.0
+                            ],
+                            "anchoredPosition": [
+                                0.0,
+                                56.0
+                            ],
+                            "sizeDelta": [
+                                380.0,
+                                84.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ]
+                        },
+                        "components": [
+                            {
+                                "type": "Image",
+                                "data": {
+                                    "sprite": "Assets/Arts/BaseUI/按钮1.png",
+                                    "color": [
+                                        1.0,
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "material": "Default UI Material",
+                                    "raycastTarget": true,
+                                    "imageType": "Sliced",
+                                    "fillCenter": true,
+                                    "pixelsPerUnitMultiplier": 1.0,
+                                    "preserveAspect": false,
+                                    "fillMethod": "Radial360",
+                                    "fillAmount": 1.0,
+                                    "fillClockwise": true,
+                                    "fillOrigin": 0
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "data": {
+                                    "interactable": true,
+                                    "transition": "ColorTint"
+                                }
+                            }
+                        ],
+                        "children": [
+                            {
+                                "name": "TxtLogin",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "anchorMax": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "pivot": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Text",
+                                        "data": {
+                                            "content": "登录",
+                                            "fontSize": 30,
+                                            "color": [
+                                                0.12,
+                                                0.12,
+                                                0.12,
+                                                1.0
+                                            ],
+                                            "raycastTarget": false,
+                                            "supportRichText": false,
+                                            "alignment": "MiddleCenter"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "name": "BtnClose",
+                        "active": true,
+                        "rectTransform": {
+                            "anchorMin": [
+                                1.0,
+                                1.0
+                            ],
+                            "anchorMax": [
+                                1.0,
+                                1.0
+                            ],
+                            "pivot": [
+                                1.0,
+                                1.0
+                            ],
+                            "anchoredPosition": [
+                                -18.0,
+                                -18.0
+                            ],
+                            "sizeDelta": [
+                                64.0,
+                                64.0
+                            ],
+                            "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ]
+                        },
+                        "components": [
+                            {
+                                "type": "Image",
+                                "data": {
+                                    "sprite": "Assets/Arts/BaseUI/按钮4.png",
+                                    "color": [
+                                        1.0,
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "material": "Default UI Material",
+                                    "raycastTarget": true,
+                                    "imageType": "Sliced",
+                                    "fillCenter": true,
+                                    "pixelsPerUnitMultiplier": 1.0,
+                                    "preserveAspect": false,
+                                    "fillMethod": "Radial360",
+                                    "fillAmount": 1.0,
+                                    "fillClockwise": true,
+                                    "fillOrigin": 0
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "data": {
+                                    "interactable": true,
+                                    "transition": "ColorTint"
+                                }
+                            }
+                        ],
+                        "children": [
+                            {
+                                "name": "TxtClose",
+                                "active": true,
+                                "rectTransform": {
+                                    "anchorMin": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "anchorMax": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "pivot": [
+                                        0.5,
+                                        0.5
+                                    ],
+                                    "anchoredPosition": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "sizeDelta": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "rotation": [
+                                        0.0,
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                },
+                                "components": [
+                                    {
+                                        "type": "Text",
+                                        "data": {
+                                            "content": "X",
+                                            "fontSize": 28,
+                                            "color": [
+                                                0.12,
+                                                0.12,
+                                                0.12,
+                                                1.0
+                                            ],
+                                            "raycastTarget": false,
+                                            "supportRichText": false,
+                                            "alignment": "MiddleCenter"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

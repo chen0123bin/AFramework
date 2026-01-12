@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -99,8 +100,42 @@ namespace LWAssets
         /// <typeparam name="T"></typeparam>
         /// <param name="assetPath"></param>
         /// <returns></returns>
-        public abstract UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
-            where T : UnityEngine.Object;
+        /// <summary>
+        /// 通用：通过清单定位Bundle，再从Bundle异步加载资源
+        /// </summary>
+        public virtual async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
+            where T : UnityEngine.Object
+        {
+            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
+            if (bundleInfo == null)
+            {
+                UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
+                return null;
+            }
+
+            var sw = Stopwatch.StartNew();
+
+            var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
+            if (bundleHandle == null || !bundleHandle.IsValid)
+            {
+                UnityEngine.Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
+                return null;
+            }
+
+            var assetName = Path.GetFileNameWithoutExtension(assetPath);
+            var request = bundleHandle.Bundle.LoadAssetAsync<T>(assetName);
+            await request;
+
+            var asset = request.asset as T;
+            sw.Stop();
+
+            if (asset != null)
+            {
+                TrackAssetHandle(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+            }
+
+            return asset;
+        }
 
         /// <summary>
         /// 异步加载原始文件    
@@ -119,8 +154,60 @@ namespace LWAssets
             return data != null ? System.Text.Encoding.UTF8.GetString(data) : null;
         }
 
-        public abstract UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad,
-            CancellationToken cancellationToken = default);
+        /// <summary>
+        /// 通用：通过清单定位场景Bundle，确保Bundle加载后再切场景
+        /// </summary>
+        public virtual async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad,
+            CancellationToken cancellationToken = default)
+        {
+            var sceneHandle = new SceneHandle(scenePath);
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                var bundleInfo = m_Manifest.GetBundleByAsset(scenePath);
+                if (bundleInfo == null)
+                {
+                    sceneHandle.SetError(new FileNotFoundException($"Scene not found: {scenePath}"));
+                    return sceneHandle;
+                }
+
+                var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
+                if (bundleHandle == null || !bundleHandle.IsValid)
+                {
+                    sceneHandle.SetError(new Exception($"Failed to load scene bundle: {bundleInfo.BundleName}"));
+                    return sceneHandle;
+                }
+
+                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                var op = SceneManager.LoadSceneAsync(sceneName, mode);
+                op.allowSceneActivation = activateOnLoad;
+
+                while (!op.isDone)
+                {
+                    sceneHandle.SetProgress(op.progress);
+                    if (op.progress >= 0.9f && !activateOnLoad)
+                    {
+                        break;
+                    }
+                    await UniTask.Yield(cancellationToken);
+                }
+
+                sw.Stop();
+
+                sceneHandle.SetScene(SceneManager.GetSceneByName(sceneName), bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+                sceneHandle.Retain();
+                lock (m_LockObj)
+                {
+                    m_HandleBaseCache[scenePath] = sceneHandle;
+                }
+            }
+            catch (Exception ex)
+            {
+                sceneHandle.SetError(ex);
+            }
+
+            return sceneHandle;
+        }
 
         /// <summary>
         /// 异步实例化资源

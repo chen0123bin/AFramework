@@ -259,7 +259,7 @@ namespace LWAssets
                     m_Cts.Token, request.CTS.Token))
                 {
                     // 执行加载
-                    var asset = await LWAssetsService.Assets.LoadAssetAsync<UnityEngine.Object>(
+                    var asset = await LWCore.ManagerUtility.AssetsMgr.LoadAssetAsync<UnityEngine.Object>(
                         request.AssetPath, linkedCts.Token);
 
                     if (asset != null)

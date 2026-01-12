@@ -36,50 +36,6 @@ namespace LWAssets
 
         #region 异步加载实现
 
-        /// <summary>
-        /// WebGL加载资源，并记录加载耗时/引用信息
-        /// </summary>
-        public override async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
-        {
-            // 直接通过 manifest 获取 Bundle 信息
-            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
-            if (bundleInfo == null)
-            {
-                UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
-                return null;
-            }
-
-            var sw = Stopwatch.StartNew();
-
-            // 加载Bundle
-            var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
-            if (bundleHandle == null || !bundleHandle.IsValid)
-            {
-                UnityEngine.Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
-                return null;
-            }
-
-            // 从Bundle加载资源
-            var assetName = System.IO.Path.GetFileNameWithoutExtension(assetPath);
-            var request = bundleHandle.Bundle.LoadAssetAsync<T>(assetName);
-            await request;
-
-            var asset = request.asset as T;
-            if (asset != null)
-            {
-                sw.Stop();
-                TrackAssetHandle(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
-            }
-            else
-            {
-                sw.Stop();
-            }
-
-            return asset;
-        }
-
-
-
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
             if (TryGetRawFileFromCache(assetPath, out var cached))
@@ -126,62 +82,7 @@ namespace LWAssets
             }
         }
 
-        public override async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode,
-            bool activateOnLoad, CancellationToken cancellationToken = default)
-        {
-            var sceneHandle = new SceneHandle(scenePath);
-            var sw = Stopwatch.StartNew();
-            try
-            {
-                // 直接通过 manifest 获取 Bundle 信息
-                var bundleInfo = m_Manifest.GetBundleByAsset(scenePath);
-                if (bundleInfo == null)
-                {
-                    sceneHandle.SetError(new System.IO.FileNotFoundException($"Scene not found: {scenePath}"));
-                    return sceneHandle;
-                }
 
-                // 加载场景Bundle
-                var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
-                if (bundleHandle == null || !bundleHandle.IsValid)
-                {
-                    sceneHandle.SetError(new Exception($"Failed to load scene bundle: {bundleInfo.BundleName}"));
-                    return sceneHandle;
-                }
-
-                // 加载场景
-                var sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
-                var op = SceneManager.LoadSceneAsync(sceneName, mode);
-                op.allowSceneActivation = activateOnLoad;
-
-                while (!op.isDone)
-                {
-                    sceneHandle.SetProgress(op.progress);
-
-                    if (op.progress >= 0.9f && !activateOnLoad)
-                    {
-                        break;
-                    }
-
-                    await UniTask.Yield(cancellationToken);
-                }
-
-                sw.Stop();
-
-                sceneHandle.SetScene(SceneManager.GetSceneByName(sceneName), bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
-                sceneHandle.Retain();
-                lock (m_LockObj)
-                {
-                    m_HandleBaseCache[scenePath] = sceneHandle;
-                }
-            }
-            catch (Exception ex)
-            {
-                sceneHandle.SetError(ex);
-            }
-
-            return sceneHandle;
-        }
 
         #endregion
 
@@ -193,7 +94,7 @@ namespace LWAssets
             var url = m_Config.GetRemoteURL() + bundleInfo.GetFileName();
 
             // WebGL使用UnityWebRequest加载Bundle
-            using (var request = UnityWebRequestAssetBundle.GetAssetBundle(url, bundleInfo.CRC))
+            using (var request = UnityWebRequestAssetBundle.GetAssetBundle(url))
             {
                 await request.SendWebRequest();
 

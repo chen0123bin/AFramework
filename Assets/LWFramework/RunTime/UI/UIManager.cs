@@ -157,6 +157,7 @@ namespace LWUI
         public async override UniTask PreLoadDefaultUI()
         {
             string style = GetStyle();
+            await UniTask.WaitForSeconds(1); // 模拟异步操作
             //style = style.IsEmpty() ? "Default" : style;
             //加载内置UI资源
 

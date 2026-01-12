@@ -21,7 +21,7 @@ MonoBehaviour:
     FilePattern: '*.*'
     MaxBundleSize: 1000
     Tags:
-    - qqq
+    - Core
   - Name: scenes
     Strategy: 1
     FolderPath: Assets/0Res/Scenes
@@ -35,7 +35,7 @@ MonoBehaviour:
     MaxBundleSize: 1000
     Tags: []
   - Name: raw
-    Strategy: 4
+    Strategy: 5
     FolderPath: Assets/0Res/RawFiles
     FilePattern: '*.*'
     MaxBundleSize: 1000
@@ -51,7 +51,7 @@ MonoBehaviour:
     Tags:
     - ccc
   BuiltinTags:
-  - qqq
+  - Core
   EnableEncryption: 1
   EncryptionKey: dsafdsafsf
   GenerateReport: 1

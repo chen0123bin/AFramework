@@ -96,7 +96,7 @@ namespace LWAssets
                         // 自动卸载
                         if (m_Config.EnableAutoUnload)
                         {
-                            await LWAssetsService.Assets.UnloadUnusedAssetsAsync();
+                            await LWCore.ManagerUtility.AssetsMgr.UnloadUnusedAssetsAsync();
                         }
                     }
                 }

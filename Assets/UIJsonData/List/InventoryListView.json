@@ -1,0 +1,426 @@
+{
+  "Root": {
+    "name": "InventoryListView",
+    "rectTransform": {
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 0.5],
+      "anchoredPosition": [0.0, 0.0],
+      "sizeDelta": [0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "children": [
+      {
+        "name": "ImgBackground",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0.0, 0.0],
+          "sizeDelta": [0.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "components": [
+          {
+            "type": "Image",
+            "data": {
+              "sprite": "Assets/Arts/BaseUI/白色背景.png",
+              "color": [0.05, 0.06, 0.08, 1.0],
+              "material": "Default UI Material",
+              "raycastTarget": false,
+              "imageType": "Simple",
+              "fillCenter": true,
+              "pixelsPerUnitMultiplier": 1.0,
+              "preserveAspect": false,
+              "fillMethod": "Radial360",
+              "fillAmount": 1.0,
+              "fillClockwise": true,
+              "fillOrigin": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "PnlTop",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.0, 1.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 1.0],
+          "anchoredPosition": [0.0, 0.0],
+          "sizeDelta": [0.0, 132.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "components": [
+          {
+            "type": "Image",
+            "data": {
+              "sprite": "Assets/Arts/BaseUI/顶部背景2.png",
+              "color": [1.0, 1.0, 1.0, 0.95],
+              "material": "Default UI Material",
+              "raycastTarget": false,
+              "imageType": "Simple",
+              "fillCenter": true,
+              "pixelsPerUnitMultiplier": 1.0,
+              "preserveAspect": false,
+              "fillMethod": "Radial360",
+              "fillAmount": 1.0,
+              "fillClockwise": true,
+              "fillOrigin": 0
+            }
+          }
+        ],
+        "children": [
+          {
+            "name": "TxtTitle",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 0.0],
+              "anchorMax": [0.0, 1.0],
+              "pivot": [0.0, 0.5],
+              "anchoredPosition": [40.0, 0.0],
+              "sizeDelta": [260.0, 0.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "components": [
+              {
+                "type": "Text",
+                "data": {
+                  "content": "背包",
+                  "fontSize": 40,
+                  "color": [1.0, 1.0, 1.0, 1.0],
+                  "raycastTarget": false,
+                  "supportRichText": false,
+                  "alignment": "MiddleLeft"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "PnlBody",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0.0, 0.0],
+          "sizeDelta": [-80.0, -180.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "children": [
+          {
+            "name": "PnlListFrame",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 0.0],
+              "anchorMax": [1.0, 1.0],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0.0, 0.0],
+              "sizeDelta": [0.0, 0.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "components": [
+              {
+                "type": "Image",
+                "data": {
+                  "sprite": "Assets/Arts/BaseUI/边框3.png",
+                  "color": [1.0, 1.0, 1.0, 1.0],
+                  "material": "Default UI Material",
+                  "raycastTarget": true,
+                  "imageType": "Sliced",
+                  "fillCenter": true,
+                  "pixelsPerUnitMultiplier": 1.0,
+                  "preserveAspect": false,
+                  "fillMethod": "Radial360",
+                  "fillAmount": 1.0,
+                  "fillClockwise": true,
+                  "fillOrigin": 0
+                }
+              }
+            ],
+            "children": [
+              {
+                "name": "ScrItemList",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.0],
+                  "anchorMax": [1.0, 1.0],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0.0, 0.0],
+                  "sizeDelta": [-40.0, -40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "ScrollRect",
+                    "data": {
+                      "horizontal": false,
+                      "vertical": true,
+                      "movementType": "Elastic",
+                      "elasticity": 0.1,
+                      "inertia": true,
+                      "decelerationRate": 0.135,
+                      "scrollSensitivity": 25.0,
+                      "viewport": "PnlViewport",
+                      "content": "PnlViewport/Content"
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "PnlViewport",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Mask",
+                        "data": {
+                          "showMaskGraphic": false
+                        }
+                      },
+                      {
+                        "type": "Image",
+                        "data": {
+                          "sprite": "Assets/Arts/BaseUI/白色图片.png",
+                          "color": [1.0, 1.0, 1.0, 0.06],
+                          "material": "Default UI Material",
+                          "raycastTarget": true,
+                          "imageType": "Sliced",
+                          "fillCenter": true,
+                          "pixelsPerUnitMultiplier": 1.0,
+                          "preserveAspect": false,
+                          "fillMethod": "Radial360",
+                          "fillAmount": 1.0,
+                          "fillClockwise": true,
+                          "fillOrigin": 0
+                        }
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "Content",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [0.0, 1.0],
+                          "anchorMax": [1.0, 1.0],
+                          "pivot": [0.5, 1.0],
+                          "anchoredPosition": [0.0, 0.0],
+                          "sizeDelta": [0.0, 0.0],
+                          "rotation": [0.0, 0.0, 0.0],
+                          "scale": [1.0, 1.0, 1.0]
+                        },
+                        "components": [
+                          {
+                            "type": "VerticalLayoutGroup",
+                            "data": {
+                              "padding": { "left": 12, "right": 12, "top": 12, "bottom": 12 },
+                              "childAlignment": "UpperCenter",
+                              "spacing": 12.0,
+                              "childControlWidth": true,
+                              "childControlHeight": false,
+                              "childForceExpandWidth": true,
+                              "childForceExpandHeight": false,
+                              "childScaleWidth": false,
+                              "childScaleHeight": false,
+                              "reverseArrangement": false
+                            }
+                          },
+                          {
+                            "type": "ContentSizeFitter",
+                            "data": {
+                              "horizontalFit": "Unconstrained",
+                              "verticalFit": "PreferredSize"
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "PnlItem_01",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [0.0, 1.0],
+                              "anchorMax": [1.0, 1.0],
+                              "pivot": [0.5, 0.5],
+                              "anchoredPosition": [0.0, 0.0],
+                              "sizeDelta": [0.0, 92.0],
+                              "rotation": [0.0, 0.0, 0.0],
+                              "scale": [1.0, 1.0, 1.0]
+                            },
+                            "components": [
+                              {
+                                "type": "Image",
+                                "data": {
+                                  "sprite": "Assets/Arts/BaseUI/白色图片.png",
+                                  "color": [1.0, 1.0, 1.0, 0.08],
+                                  "material": "Default UI Material",
+                                  "raycastTarget": true,
+                                  "imageType": "Sliced",
+                                  "fillCenter": true,
+                                  "pixelsPerUnitMultiplier": 1.0,
+                                  "preserveAspect": false,
+                                  "fillMethod": "Radial360",
+                                  "fillAmount": 1.0,
+                                  "fillClockwise": true,
+                                  "fillOrigin": 0
+                                }
+                              }
+                            ],
+                            "children": [
+                              {
+                                "name": "ImgIcon",
+                                "active": true,
+                                "rectTransform": {
+                                  "anchorMin": [0.0, 0.5],
+                                  "anchorMax": [0.0, 0.5],
+                                  "pivot": [0.0, 0.5],
+                                  "anchoredPosition": [16.0, 0.0],
+                                  "sizeDelta": [64.0, 64.0],
+                                  "rotation": [0.0, 0.0, 0.0],
+                                  "scale": [1.0, 1.0, 1.0]
+                                },
+                                "components": [
+                                  {
+                                    "type": "Image",
+                                    "data": {
+                                      "sprite": "Assets/Arts/BaseUI/圆2.png",
+                                      "color": [1.0, 1.0, 1.0, 0.95],
+                                      "material": "Default UI Material",
+                                      "raycastTarget": false,
+                                      "imageType": "Simple",
+                                      "fillCenter": true,
+                                      "pixelsPerUnitMultiplier": 1.0,
+                                      "preserveAspect": true,
+                                      "fillMethod": "Radial360",
+                                      "fillAmount": 1.0,
+                                      "fillClockwise": true,
+                                      "fillOrigin": 0
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "TxtName",
+                                "active": true,
+                                "rectTransform": {
+                                  "anchorMin": [0.0, 0.0],
+                                  "anchorMax": [1.0, 1.0],
+                                  "pivot": [0.5, 0.5],
+                                  "anchoredPosition": [96.0, 0.0],
+                                  "sizeDelta": [-260.0, 0.0],
+                                  "rotation": [0.0, 0.0, 0.0],
+                                  "scale": [1.0, 1.0, 1.0]
+                                },
+                                "components": [
+                                  {
+                                    "type": "Text",
+                                    "data": {
+                                      "content": "治疗药水 x10",
+                                      "fontSize": 26,
+                                      "color": [1.0, 1.0, 1.0, 0.92],
+                                      "raycastTarget": false,
+                                      "supportRichText": false,
+                                      "alignment": "MiddleLeft"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "BtnUse",
+                                "active": true,
+                                "rectTransform": {
+                                  "anchorMin": [1.0, 0.5],
+                                  "anchorMax": [1.0, 0.5],
+                                  "pivot": [1.0, 0.5],
+                                  "anchoredPosition": [-16.0, 0.0],
+                                  "sizeDelta": [160.0, 62.0],
+                                  "rotation": [0.0, 0.0, 0.0],
+                                  "scale": [1.0, 1.0, 1.0]
+                                },
+                                "components": [
+                                  {
+                                    "type": "Image",
+                                    "data": {
+                                      "sprite": "Assets/Arts/BaseUI/按钮1.png",
+                                      "color": [1.0, 1.0, 1.0, 1.0],
+                                      "material": "Default UI Material",
+                                      "raycastTarget": true,
+                                      "imageType": "Sliced",
+                                      "fillCenter": true,
+                                      "pixelsPerUnitMultiplier": 1.0,
+                                      "preserveAspect": false,
+                                      "fillMethod": "Radial360",
+                                      "fillAmount": 1.0,
+                                      "fillClockwise": true,
+                                      "fillOrigin": 0
+                                    }
+                                  },
+                                  {
+                                    "type": "Button",
+                                    "data": {
+                                      "interactable": true,
+                                      "transition": "ColorTint"
+                                    }
+                                  }
+                                ],
+                                "children": [
+                                  {
+                                    "name": "TxtUse",
+                                    "active": true,
+                                    "rectTransform": {
+                                      "anchorMin": [0.0, 0.0],
+                                      "anchorMax": [1.0, 1.0],
+                                      "pivot": [0.5, 0.5],
+                                      "anchoredPosition": [0.0, 0.0],
+                                      "sizeDelta": [0.0, 0.0],
+                                      "rotation": [0.0, 0.0, 0.0],
+                                      "scale": [1.0, 1.0, 1.0]
+                                    },
+                                    "components": [
+                                      {
+                                        "type": "Text",
+                                        "data": {
+                                          "content": "使用",
+                                          "fontSize": 24,
+                                          "color": [0.12, 0.12, 0.12, 1.0],
+                                          "raycastTarget": false,
+                                          "supportRichText": false,
+                                          "alignment": "MiddleCenter"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

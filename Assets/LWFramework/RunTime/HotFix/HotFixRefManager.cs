@@ -32,7 +32,7 @@ namespace LWHotfix
                 return;
             }
             await LoadHotFixDll(hotfixDllName, dir);
-           
+
         }
         /**
         async UniTask LoadHotFixDll2()
@@ -103,7 +103,7 @@ namespace LWHotfix
             //             bytes = LWFramework.Asset.EncryptDecryptManager.GetEncryptDecryptServices(LWUtility.GlobalConfig.encryptType).Decrypt(bytes);
             //         }
             //     }
-              
+
             // }
             // else
             // {              
@@ -113,21 +113,22 @@ namespace LWHotfix
             //         bytes = LWFramework.Asset.EncryptDecryptManager.GetEncryptDecryptServices(LWUtility.GlobalConfig.encryptType).Decrypt(bytes);
             //     }
             // }
-          
+
             //LWDebug.Log("反射模式:"  + bytes.Length);
             //反射执行          
-          
+
             //Assembly assembly = Assembly.Load(bytes);
-            
+
 
             //OnHotFixLoaded(assembly);
+            await UniTask.WaitForSeconds(1); // 模拟异步操作
         }
 
 
 
-        
 
-        public override  void Destroy()
+
+        public override void Destroy()
         {
             base.Destroy();
         }
