@@ -212,7 +212,7 @@ namespace LWUI
         /// <param name="rootPath"></param>
         private void SetParent(GameObject go, FindType findType, string rootPath)
         {
-            Transform parent = ManagerUtility.UIMgr.IUIUtility.GetParent(findType, rootPath);
+            Transform parent = GetParent(findType, rootPath);
             if (parent == null)
             {
                 LWDebug.LogError($"没有找到这个{rootPath}路径的对象节点");
