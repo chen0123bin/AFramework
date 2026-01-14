@@ -77,7 +77,7 @@ namespace LWAssets.Editor
         /// <summary>
         /// 打开运行时监控窗口
         /// </summary>
-        [MenuItem("LWAssets/Runtime Monitor")]
+        [MenuItem("LWFramework/Assets/Runtime/Monitor")]
         public static void ShowWindow()
         {
             var window = GetWindow<AssetRuntimeMonitorWindow>("LWAssets Runtime");

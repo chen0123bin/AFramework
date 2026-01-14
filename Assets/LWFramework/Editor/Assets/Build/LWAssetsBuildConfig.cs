@@ -10,7 +10,7 @@ namespace LWAssets.Editor
     /// <summary>
     /// 构建配置
     /// </summary>
-    [CreateAssetMenu(fileName = "LWAssetsBuildConfig", menuName = "LWAssets/Build Config")]
+    [CreateAssetMenu(fileName = "LWAssetsBuildConfig", menuName = "LWFramework/Assets/Build Config")]
     public class LWAssetsBuildConfig : ScriptableObject
     {
         [Header("基础设置")]

@@ -34,80 +34,80 @@ namespace LWAssets
     /// <summary>
     /// LWAssets配置
     /// </summary>
-    [CreateAssetMenu(fileName = "LWAssetsConfig", menuName = "LWAssets/Config")]
+    [CreateAssetMenu(fileName = "LWAssetsConfig", menuName = "LWFramework/Assets/Config")]
     public class LWAssetsConfig : ScriptableObject
     {
         #region 基础设置
 
         [Header("基础设置")]
-        [FormerlySerializedAs("_playMode")] [SerializeField] private PlayMode m_PlayMode = PlayMode.EditorSimulate;
+        [FormerlySerializedAs("_playMode")][SerializeField] private PlayMode m_PlayMode = PlayMode.EditorSimulate;
 
-        [FormerlySerializedAs("_buildOutputPath")] [SerializeField] private string m_BuildOutputPath = "AssetBundles";
+        [FormerlySerializedAs("_buildOutputPath")][SerializeField] private string m_BuildOutputPath = "AssetBundles";
 
-        [FormerlySerializedAs("_remoteURL")] [SerializeField] private string m_RemoteUrl = "http://localhost:8080/";
+        [FormerlySerializedAs("_remoteURL")][SerializeField] private string m_RemoteUrl = "http://localhost:8080/";
 
-        [FormerlySerializedAs("_manifestFileName")] [SerializeField] private string m_ManifestFileName = "manifest.json";
+        [FormerlySerializedAs("_manifestFileName")][SerializeField] private string m_ManifestFileName = "manifest.json";
 
-        [FormerlySerializedAs("_versionFileName")] [SerializeField] private string m_VersionFileName = "version.json";
+        [FormerlySerializedAs("_versionFileName")][SerializeField] private string m_VersionFileName = "version.json";
 
         #endregion
 
         #region 下载设置
 
         [Header("下载设置")]
-        [FormerlySerializedAs("_maxConcurrentDownloads")] [SerializeField] private int m_MaxConcurrentDownloads = 5;
+        [FormerlySerializedAs("_maxConcurrentDownloads")][SerializeField] private int m_MaxConcurrentDownloads = 5;
 
-        [FormerlySerializedAs("_downloadTimeout")] [SerializeField] private int m_DownloadTimeout = 30;
+        [FormerlySerializedAs("_downloadTimeout")][SerializeField] private int m_DownloadTimeout = 30;
 
-        [FormerlySerializedAs("_maxRetryCount")] [SerializeField] private int m_MaxRetryCount = 3;
+        [FormerlySerializedAs("_maxRetryCount")][SerializeField] private int m_MaxRetryCount = 3;
 
-        [FormerlySerializedAs("_retryDelay")] [SerializeField] private float m_RetryDelay = 1f;
+        [FormerlySerializedAs("_retryDelay")][SerializeField] private float m_RetryDelay = 1f;
 
-        [FormerlySerializedAs("_enableBreakpointResume")] [SerializeField] private bool m_EnableBreakpointResume = true;
+        [FormerlySerializedAs("_enableBreakpointResume")][SerializeField] private bool m_EnableBreakpointResume = true;
 
         #endregion
 
         #region 缓存设置
 
         [Header("缓存设置")]
-        [FormerlySerializedAs("_maxCacheSize")] [SerializeField] private long m_MaxCacheSize = 1024 * 1024 * 1024; // 1GB
+        [FormerlySerializedAs("_maxCacheSize")][SerializeField] private long m_MaxCacheSize = 1024 * 1024 * 1024; // 1GB
 
-        [FormerlySerializedAs("_cacheExpirationDays")] [SerializeField] private int m_CacheExpirationDays = 30;
+        [FormerlySerializedAs("_cacheExpirationDays")][SerializeField] private int m_CacheExpirationDays = 30;
 
-        [FormerlySerializedAs("_enableAutoCleanup")] [SerializeField] private bool m_EnableAutoCleanup = true;
+        [FormerlySerializedAs("_enableAutoCleanup")][SerializeField] private bool m_EnableAutoCleanup = true;
 
-        [FormerlySerializedAs("_cleanupThreshold")] [SerializeField] private float m_CleanupThreshold = 0.9f; // 缓存使用率达到90%时清理
+        [FormerlySerializedAs("_cleanupThreshold")][SerializeField] private float m_CleanupThreshold = 0.9f; // 缓存使用率达到90%时清理
 
         #endregion
 
         #region 预加载设置
 
         [Header("预加载设置")]
-        [FormerlySerializedAs("_enablePreload")] [SerializeField] private bool m_EnablePreload = true;
+        [FormerlySerializedAs("_enablePreload")][SerializeField] private bool m_EnablePreload = true;
 
-        [FormerlySerializedAs("_maxPreloadTasks")] [SerializeField] private int m_MaxPreloadTasks = 3;
+        [FormerlySerializedAs("_maxPreloadTasks")][SerializeField] private int m_MaxPreloadTasks = 3;
 
-        [FormerlySerializedAs("_maxPreloadMemory")] [SerializeField] private long m_MaxPreloadMemory = 256 * 1024 * 1024; // 256MB
+        [FormerlySerializedAs("_maxPreloadMemory")][SerializeField] private long m_MaxPreloadMemory = 256 * 1024 * 1024; // 256MB
 
         #endregion
 
         #region 内存设置
 
         [Header("内存设置")]
-        [FormerlySerializedAs("_memoryWarningThreshold")] [SerializeField] private long m_MemoryWarningThreshold = 512 * 1024 * 1024; // 512MB
+        [FormerlySerializedAs("_memoryWarningThreshold")][SerializeField] private long m_MemoryWarningThreshold = 512 * 1024 * 1024; // 512MB
 
-        [FormerlySerializedAs("_memoryCriticalThreshold")] [SerializeField] private long m_MemoryCriticalThreshold = 768 * 1024 * 1024; // 768MB
+        [FormerlySerializedAs("_memoryCriticalThreshold")][SerializeField] private long m_MemoryCriticalThreshold = 768 * 1024 * 1024; // 768MB
 
-        [FormerlySerializedAs("_enableAutoUnload")] [SerializeField] private bool m_EnableAutoUnload = true;
+        [FormerlySerializedAs("_enableAutoUnload")][SerializeField] private bool m_EnableAutoUnload = true;
 
         #endregion
 
         #region 调试设置
 
         [Header("调试设置")]
-        [FormerlySerializedAs("_enableDetailLog")] [SerializeField] private bool m_EnableDetailLog = false;
+        [FormerlySerializedAs("_enableDetailLog")][SerializeField] private bool m_EnableDetailLog = false;
 
-        [FormerlySerializedAs("_enableProfiler")] [SerializeField] private bool m_EnableProfiler = false;
+        [FormerlySerializedAs("_enableProfiler")][SerializeField] private bool m_EnableProfiler = false;
 
         #endregion
 

@@ -5,7 +5,8 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace LWFramework.Core {
+namespace LWHotfix
+{
     /// <summary>
     /// 热更环境初始化处理
     /// </summary>

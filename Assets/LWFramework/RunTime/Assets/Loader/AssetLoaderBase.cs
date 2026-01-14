@@ -158,12 +158,14 @@ namespace LWAssets
         /// 通用：通过清单定位场景Bundle，确保Bundle加载后再切场景
         /// </summary>
         public virtual async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad,
+            IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
             var sceneHandle = new SceneHandle(scenePath);
             var sw = Stopwatch.StartNew();
             try
             {
+                progress?.Report(0f);
                 var bundleInfo = m_Manifest.GetBundleByAsset(scenePath);
                 if (bundleInfo == null)
                 {
@@ -184,7 +186,9 @@ namespace LWAssets
 
                 while (!op.isDone)
                 {
-                    sceneHandle.SetProgress(op.progress);
+                    var normalizedProgress = op.progress < 0.9f ? Mathf.Clamp01(op.progress / 0.9f) : 1f;
+                    sceneHandle.SetProgress(normalizedProgress);
+                    progress?.Report(normalizedProgress);
                     if (op.progress >= 0.9f && !activateOnLoad)
                     {
                         break;

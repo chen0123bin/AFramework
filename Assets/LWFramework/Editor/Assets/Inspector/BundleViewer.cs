@@ -23,7 +23,7 @@ namespace LWAssets.Editor
         private int _selectedTab;
         private readonly string[] _tabs = { "Bundles", "Assets", "Dependencies" };
 
-        [MenuItem("LWAssets/Tools/Bundle Viewer")]
+        [MenuItem("LWFramework/Assets/Analyze/Bundle Viewer")]
         public static void ShowWindow()
         {
             GetWindow<BundleViewer>("Bundle Viewer");

@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using LWFMS;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 namespace LWCore
 {
     /// <summary>
@@ -46,7 +49,7 @@ namespace LWCore
 
         public void ClearManager()
         {
-            //GetManager<IFSMManager>().GetFSMProcedure().TerminationFMS();
+            GetManager<IFSMManager>().GetFSMProcedure().TerminationFMS();
             if (m_ManagerDic != null && m_ManagerDic.Count > 0)
             {
                 m_ManagerDic.Clear();
@@ -91,32 +94,32 @@ namespace LWCore
         /// <summary>
         /// 启动流程管理
         /// </summary>
-        // public void StartProcedure()
-        // {
-        //     GetManager<IFSMManager>().InitFSMManager();
-        //     //找到所有的流程管理类
-        //     List<TypeAttr> procedureList = GetManager<IFSMManager>().GetFsmClassDataByName(nameof(FSMName.Procedure));
-        //     if (procedureList.Count > 0)
-        //     {
-        //         //创建一个流程管理状态机       
-        //         FSMStateMachine stateMachine = new FSMStateMachine(nameof(FSMName.Procedure), procedureList);
-        //         GetManager<IFSMManager>().RegisterFSM(stateMachine);
-        //         if (m_FirstFSMState != null)
-        //         {
-        //             GetManager<IFSMManager>().GetFSMProcedure().SwitchState(m_FirstFSMState.Name);
-        //         }
-        //         else
-        //         {
-        //             GetManager<IFSMManager>().GetFSMProcedure().StartFirst();
-        //         }
+        public void StartProcedure()
+        {
+            GetManager<IFSMManager>().InitFSMManager();
+            //找到所有的流程管理类
+            List<TypeAttr> procedureList = GetManager<IFSMManager>().GetFsmClassDataByName(nameof(FSMName.Procedure));
+            if (procedureList.Count > 0)
+            {
+                //创建一个流程管理状态机       
+                FSMStateMachine stateMachine = new FSMStateMachine(nameof(FSMName.Procedure), procedureList);
+                GetManager<IFSMManager>().RegisterFSM(stateMachine);
+                if (m_FirstFSMState != null)
+                {
+                    GetManager<IFSMManager>().GetFSMProcedure().SwitchState(m_FirstFSMState.Name);
+                }
+                else
+                {
+                    GetManager<IFSMManager>().GetFSMProcedure().StartFirst();
+                }
 
-        //     }
-        //     else
-        //     {
-        //         LWDebug.LogWarning("未找到第一个Procedure");
-        //     }
+            }
+            else
+            {
+                LWDebug.LogWarning("未找到第一个Procedure");
+            }
 
-        // }
+        }
 
         /// <summary>
         /// 启动Unity协程
@@ -132,6 +135,30 @@ namespace LWCore
             {
                 LWDebug.LogError($"{m_MonoBehaviour}为空，需要设置默认值，一般使用Startup脚本！！！");
             }
+
+        }
+
+        /// <summary>
+        /// 加载场景示例
+        /// </summary>
+        public async UniTask LoadScene(string scenePath, LoadSceneMode loadSceneMode = LoadSceneMode.Single)
+        {
+
+            Debug.Log("LoadScene2Async");
+            var progress = new System.Progress<float>(p =>
+            {
+                // 更新UI：p 取值 0~1 
+                LoadingBarView loadingBarView = ManagerUtility.UIMgr.OpenView<LoadingBarView>();
+                loadingBarView.Tip = "场景加载中...";
+                loadingBarView.Progress = p;
+            });
+
+            var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
+                scenePath,
+                loadSceneMode,
+                true,
+                progress);
+            ManagerUtility.UIMgr.CloseView<LoadingBarView>();
 
         }
 

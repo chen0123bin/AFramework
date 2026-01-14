@@ -44,8 +44,8 @@ Material:
     m_Colors:
     - _CoordOffset: {r: 0, g: 0, b: 0, a: 0}
     - _DeepColor: {r: 0, g: 0.25, b: 0.45, a: 1}
-    - _FoamColor: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 1}
     - _FlowDir: {r: 0, g: 1, b: 0, a: 0}
-    - _LiquidColor: {r: 0.09803921, g: 1, b: 0.107989304, a: 1}
+    - _FoamColor: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 1}
+    - _LiquidColor: {r: 0.37748206, g: 1, b: 0.09803921, a: 1}
     - _RimColor: {r: 0.25, g: 0.9, b: 1, a: 1}
   m_BuildTextureStacks: []

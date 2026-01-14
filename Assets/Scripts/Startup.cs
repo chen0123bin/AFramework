@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LWAssets;
 using LWCore;
+using LWFMS;
 using LWHotfix;
 using LWUI;
 using UnityEngine;
@@ -14,7 +15,7 @@ public class Startup : MonoBehaviour
     public string configUrl;
     public string procedureName = "StartProcedure";
 
-    private LoadingView m_LoadingView;
+    private LoadingBarView m_LoadingBarView;
     async void Start()
     {
         LWDebug.Log("Start");
@@ -25,72 +26,35 @@ public class Startup : MonoBehaviour
         //设置LWDebug数据
         LWDebug.SetLogConfig(true, 3, true);
 
-        MainManager.Instance.Init();
+        ManagerUtility.MainMgr.Init();
         //添加各种管理器      
-
-        MainManager.Instance.AddManager(typeof(IAssetsManager).ToString(), new LWAssetsManager());
-        MainManager.Instance.AddManager(typeof(IEventManager).ToString(), new LWEventManager());
-        MainManager.Instance.AddManager(typeof(IUIManager).ToString(), new UIManager());
-        MainManager.Instance.AddManager(typeof(IHotfixManager).ToString(), new HotFixCodeManager());
+        ManagerUtility.MainMgr.AddManager(typeof(IAssetsManager).ToString(), new LWAssetsManager());
+        ManagerUtility.MainMgr.AddManager(typeof(IEventManager).ToString(), new LWEventManager());
+        ManagerUtility.MainMgr.AddManager(typeof(IUIManager).ToString(), new UIManager());
+        ManagerUtility.MainMgr.AddManager(typeof(IHotfixManager).ToString(), new HotFixCodeManager());
+        ManagerUtility.MainMgr.AddManager(typeof(IFSMManager).ToString(), new FSMManager());
 
         await ManagerUtility.AssetsMgr.InitializeAsync();
-        MainManager.Instance.MonoBehaviour = this;
+        ManagerUtility.MainMgr.MonoBehaviour = this;
         if (ManagerUtility.AssetsMgr.CurrentPlayMode == LWAssets.PlayMode.Online)
         {
 
-            m_LoadingView = ManagerUtility.UIMgr.OpenView<LoadingView>();
+            m_LoadingBarView = ManagerUtility.UIMgr.OpenView<LoadingBarView>();
             await DownloadAsync();
-            await UniTask.Delay(1500);
-            ManagerUtility.UIMgr.CloseView<LoadingView>();
+            await UniTask.Delay(500);
+
+            ManagerUtility.UIMgr.CloseView<LoadingBarView>();
         }
 
-        ManagerUtility.EventMgr.AddListener<int>("TestEvent", OnTestEvent1);
-        ManagerUtility.EventMgr.AddListener<int>("TestEvent", OnTestEvent2);
+        //设置第一个启动的流程
+        MainManager.Instance.FirstFSMState = ManagerUtility.HotfixMgr.GetTypeByName(procedureName);
+        MainManager.Instance.StartProcedure();
 
     }
 
-    private void OnTestEvent2(int obj)
-    {
-        LoadScene2Async().Forget();
-        LWDebug.Log($"OnTestEvent2 {obj}");
-    }
-
-    private async void OnTestEvent1(int obj)
-    {
-        LWDebug.Log($"OnTestEvent1 {obj}");
-        string text = await ManagerUtility.AssetsMgr.LoadRawFileTextAsync("Assets/0Res/RawFiles/333.txt");
-        LWDebug.Log("RAWFile" + text);
-        //ManagerUtility.UIMgr.OpenView<TestView>();
-    }
-
-
-    /// <summary>
-    /// 默认资源更新完成
-    /// </summary>
-    /// <param name="obj"></param>
-    private void OnUpdateCallback(bool obj)
-    {
-
-    }
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            ManagerUtility.AssetsMgr.InstantiateAsync("Assets/0Res/Prefabs/Cube.prefab", null);
-
-        }
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            //GameObject go = ManagerUtility.AssetsMgr.LoadAsset<GameObject>("Assets/0Res/Prefabs/Cube.prefab");
-            ManagerUtility.AssetsMgr.Instantiate("Assets/0Res/Prefabs/Cube.prefab", null);
-
-        }
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            ManagerUtility.EventMgr.DispatchEvent("TestEvent", 100);
-        }
-
         MainManager.Instance.Update();
     }
 
@@ -101,60 +65,37 @@ public class Startup : MonoBehaviour
     {
         if (!ManagerUtility.AssetsMgr.IsInitialized)
         {
-            m_LoadingView.Tip = "Please initialize first!";
+            m_LoadingBarView.Tip = "资管管理器未初始化!";
             return;
         }
-
         try
         {
             // 检查更新
-            m_LoadingView.Tip = "Checking for updates...";
+            m_LoadingBarView.Tip = "检查更新...";
             var checkResult = await ManagerUtility.AssetsMgr.Version.CheckUpdateAsync();
 
             if (checkResult.Status == UpdateStatus.NoUpdate)
             {
-                m_LoadingView.Tip = "No updates available.";
+                m_LoadingBarView.Tip = "没有可用更新。";
                 return;
             }
-
-            m_LoadingView.Tip = $"Update available: {checkResult.RemoteVersion}, Size: {FileUtility.FormatFileSize(checkResult.DownloadSize)}";
-
+            m_LoadingBarView.Tip = $"发现更新: {checkResult.RemoteVersion}, 大小: {FileUtility.FormatFileSize(checkResult.DownloadSize)}";
             // 开始下载
             var progress = new Progress<DownloadProgress>(p =>
             {
-                m_LoadingView.Progress = p.Progress;
-                m_LoadingView.Tip = $"Downloading: {p.CompletedCount}/{p.TotalCount} - {FileUtility.FormatFileSize((long)p.Speed)}/s";
+                m_LoadingBarView.Progress = p.Progress;
+                m_LoadingBarView.Tip = $"下载中: {p.CompletedCount}/{p.TotalCount} - {FileUtility.FormatFileSize((long)p.Speed)}/s";
             });
 
             await ManagerUtility.AssetsMgr.DownloadAsync(null, progress);
 
-            m_LoadingView.Progress = 1f;
-            m_LoadingView.Tip = "Download completed!";
+            m_LoadingBarView.Progress = 1f;
+            m_LoadingBarView.Tip = "下载完成!";
         }
         catch (Exception ex)
         {
-            m_LoadingView.Tip = $"Download failed: {ex.Message}";
+            m_LoadingBarView.Tip = $"下载出错: {ex.Message}";
             Debug.LogException(ex);
-        }
-    }
-    /// <summary>
-    /// 加载场景示例
-    /// </summary>
-    private async UniTaskVoid LoadScene2Async()
-    {
-
-        Debug.Log("LoadScene2Async");
-        var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
-               "Assets/0Res/Scenes2/Test2.unity",
-               UnityEngine.SceneManagement.LoadSceneMode.Single,
-               true);
-        if (handle.IsValid)
-        {
-            LWDebug.Log($"Scene loaded: {handle.Scene.name}");
-        }
-        else if (handle.HasError)
-        {
-            LWDebug.Log($"Scene load error: {handle.Error.Message}");
         }
     }
     void OnDestroy()

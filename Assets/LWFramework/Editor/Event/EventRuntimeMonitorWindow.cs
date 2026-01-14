@@ -43,7 +43,7 @@ namespace LWCore.Editor
         private LWEventManager m_EventManager;
 
 
-        [MenuItem("LWFramework/Event Runtime Monitor")]
+        [MenuItem("LWFramework/Event/Runtime Monitor")]
         public static void ShowWindow()
         {
             var window = GetWindow<EventRuntimeMonitorWindow>("Event Runtime");

@@ -17,7 +17,7 @@ namespace LWAssets.Editor
         /// <summary>
         /// 收集项目中使用的所有Shader变体
         /// </summary>
-        [MenuItem("LWAssets/Shader/Collect Shader Variants")]
+        [MenuItem("LWFramework/Assets/Build/Shader/Collect Shader Variants")]
         public static void CollectShaderVariants()
         {
             var svc = new ShaderVariantCollection();
@@ -120,7 +120,7 @@ namespace LWAssets.Editor
         /// <summary>
         /// 分析Shader使用情况
         /// </summary>
-        [MenuItem("LWAssets/Shader/Analyze Shader Usage")]
+        [MenuItem("LWFramework/Assets/Build/Shader/Analyze Shader Usage")]
         public static void AnalyzeShaderUsage()
         {
             var shaderUsage = new Dictionary<Shader, int>();
@@ -166,7 +166,7 @@ namespace LWAssets.Editor
         /// <summary>
         /// 检查Shader兼容性
         /// </summary>
-        [MenuItem("LWAssets/Shader/Check Shader Compatibility")]
+        [MenuItem("LWFramework/Assets/Build/Shader/Check Shader Compatibility")]
         public static void CheckShaderCompatibility()
         {
             var issues = new List<string>();

@@ -22,18 +22,18 @@ namespace LWFMS
             for (int i = 0; i < classDataList.Count; i++)
             {
                 //获取与当前名称一致的stateBase
-                // FSMTypeAttribute attr = (FSMTypeAttribute)classDataList[i].attr;
-                // if (attr.FSMName == fmsName)
+                FSMTypeAttribute attr = (FSMTypeAttribute)classDataList[i].attr;
+                if (attr.FSMName == fmsName)
                 {
-                    // BaseFSMState stateBase = ManagerUtility.HotfixMgr.Instantiate<BaseFSMState>(classDataList[i].type.ToString());//Activator.CreateInstance(classDataList[i].type) as BaseFSMState;
-                    // stateBase.StateMachine = this;
+                    BaseFSMState stateBase = ManagerUtility.HotfixMgr.Instantiate<BaseFSMState>(classDataList[i].type.ToString());//Activator.CreateInstance(classDataList[i].type) as BaseFSMState;
+                    stateBase.StateMachine = this;
 
-                    // if (((FSMTypeAttribute)classDataList[i].attr).isFirst)
-                    // {
-                    //     _firstState = stateBase;
+                    if (((FSMTypeAttribute)classDataList[i].attr).isFirst)
+                    {
+                        _firstState = stateBase;
 
-                    // }
-                    //_stateDic.Add(classDataList[i].type.Name, stateBase);
+                    }
+                    _stateDic.Add(classDataList[i].type.Name, stateBase);
                 }
             }
         }

@@ -256,10 +256,11 @@ namespace LWAssets
         public async UniTask<SceneHandle> LoadSceneAsync(string scenePath,
             UnityEngine.SceneManagement.LoadSceneMode mode = UnityEngine.SceneManagement.LoadSceneMode.Single,
             bool activateOnLoad = true,
+            IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
             CheckInitialized();
-            return await m_Loader.LoadSceneAsync(scenePath, mode, activateOnLoad, cancellationToken);
+            return await m_Loader.LoadSceneAsync(scenePath, mode, activateOnLoad, progress, cancellationToken);
         }
 
         /// <summary>

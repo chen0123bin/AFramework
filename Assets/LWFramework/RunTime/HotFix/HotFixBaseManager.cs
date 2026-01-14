@@ -15,14 +15,14 @@ namespace LWHotfix
     public abstract class HotFixBaseManager : IManager, IHotfixManager
     {
         private bool isLoaded = false;
-        public  bool Loaded { get => isLoaded; }
+        public bool Loaded { get => isLoaded; }
 
         protected List<Assembly> m_AssemblyList = new List<Assembly>();
         protected List<string> m_HotfixDllNameList = new List<string>();
         //热更DLL中所有的type
-        protected List<Type> m_TypeHotfixList = new List<Type> ();
+        protected List<Type> m_TypeHotfixList = new List<Type>();
         //管理热更中的所有的Type
-        protected Dictionary<string, List<TypeAttr>> m_TypeAttrHotfixListDic = new Dictionary<string, List<TypeAttr>> ();
+        protected Dictionary<string, List<TypeAttr>> m_TypeAttrHotfixListDic = new Dictionary<string, List<TypeAttr>>();
 
 
         public abstract void Init();
@@ -43,7 +43,8 @@ namespace LWHotfix
             {
                 m_TypeAttrHotfixListDic = new Dictionary<string, List<TypeAttr>>();
             }
-            if (m_TypeHotfixList == null) {
+            if (m_TypeHotfixList == null)
+            {
                 m_TypeHotfixList = new List<Type>();
             }
             this.m_TypeHotfixList.AddRange(p_TypeArray);
@@ -118,7 +119,7 @@ namespace LWHotfix
         {
 
             //Type type = GetTypeByName(typeName);
-           // object ret;
+            // object ret;
             Assembly assembly = FindDomainByTypeName(typeName);
             object ret = assembly.CreateInstance(typeName, false, BindingFlags.Default, null, args, null, null);
             return (T)ret;
@@ -136,14 +137,15 @@ namespace LWHotfix
             methodInfo.Invoke(instance, p);
         }
         protected void OnHotFixLoaded(Assembly assembly)
-        {        
+        {
             isLoaded = true;
-            if (assembly != null) {
+            if (assembly != null)
+            {
                 LWDebug.Log("Dll加载完成" + assembly.GetName().Name);
                 m_HotfixDllNameList.Add(assembly.GetName().Name);
                 m_AssemblyList.Add(assembly);
                 AddHotfixTypeAttr(assembly.GetTypes().ToList());
-            }        
+            }
         }
 
         public virtual void Destroy()
@@ -156,5 +158,5 @@ namespace LWHotfix
 
     }
 
-    
+
 }

@@ -19,7 +19,7 @@ namespace LWAssets.Editor
         private bool _showIndirectDependencies = true;
         private int _maxDepth = 3;
         
-        [MenuItem("LWAssets/Tools/Dependency Viewer")]
+        [MenuItem("LWFramework/Assets/Analyze/Dependency Viewer")]
         public static void ShowWindow()
         {
             GetWindow<DependencyViewer>("Dependency Viewer");

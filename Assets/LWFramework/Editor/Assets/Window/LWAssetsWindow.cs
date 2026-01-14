@@ -22,7 +22,7 @@ namespace LWAssets.Editor
         private bool m_IsBuilding;
         private bool m_CopyToStreamingAssetsAfterBuild;
 
-        [MenuItem("LWAssets/Dashboard")]
+        [MenuItem("LWFramework/Assets/Dashboard")]
         public static void ShowWindow()
         {
             var window = GetWindow<LWAssetsWindow>("LWAssets");

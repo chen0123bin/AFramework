@@ -19,7 +19,7 @@ namespace LWAssets.Editor
         private bool _showMissingRefs = true;
         private long _largeFileThreshold = 10 * 1024 * 1024; // 10MB
         
-        [MenuItem("LWAssets/Tools/Asset Analyzer")]
+        [MenuItem("LWFramework/Assets/Analyze/Asset Analyzer")]
         public static void ShowWindow()
         {
             GetWindow<AssetAnalyzer>("Asset Analyzer");

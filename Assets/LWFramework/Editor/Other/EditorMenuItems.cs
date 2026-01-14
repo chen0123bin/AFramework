@@ -13,7 +13,7 @@ public class EditorMenuItems
     /// <summary>
     /// 复制选中资产的路径到剪贴板
     /// </summary>
-    [MenuItem("Assets/复制路径(Alt+C) &c")]
+    [MenuItem("Assets/LWFramework/复制路径(Alt+C) &c")]
     static void CopyAssetPath()
     {
         if (EditorApplication.isCompiling)
@@ -24,7 +24,7 @@ public class EditorMenuItems
         GUIUtility.systemCopyBuffer = path;
         Debug.Log(string.Format("systemCopyBuffer: {0}", path));
     }
-    [MenuItem("Assets/生成截图 _F12")]
+    [MenuItem("Assets/LWFramework/生成截图 _F12")]
     /// <summary>
     /// 生成截图并保存到项目根目录下的 Screenshots 文件夹，文件名使用当前日期时间。
     /// </summary>

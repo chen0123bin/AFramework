@@ -1,13 +1,12 @@
-﻿using LWFramework.Core;
+﻿using LWCore;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace LWFramework.FMS
+namespace LWFMS
 {
     /// <summary>
     /// 有限状态机管理者
     /// </summary>
-    //[ManagerClass(ManagerType.Normal)]
     public sealed class FSMManager : IManager, IFSMManager
     {
         //private Dictionary<string, FSMStateMachine> _fsms = new Dictionary<string, FSMStateMachine>();

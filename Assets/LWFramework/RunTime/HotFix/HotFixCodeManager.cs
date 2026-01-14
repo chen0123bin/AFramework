@@ -12,11 +12,11 @@ namespace LWHotfix
     /// <summary>
     /// 热更环境初始化处理
     /// </summary>
-    public class HotFixCodeManager : HotFixBaseManager,IManager
+    public class HotFixCodeManager : HotFixBaseManager, IManager
     {
-        
 
-     
+
+
         public override void Init()
         {
             Assembly assembly = Assembly.Load("Assembly-CSharp");
@@ -41,24 +41,20 @@ namespace LWHotfix
                 return;
             }
             await UniTask.DelayFrame(1);
-            
-            LWDebug.Log("Code模式");         
-  
-            Assembly assembly =  AppDomain.CurrentDomain.GetAssemblies().First(assembly=>assembly.GetName().Name == hotfixDllName);
+
+            LWDebug.Log("Code模式");
+
+            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().First(assembly => assembly.GetName().Name == hotfixDllName);
             OnHotFixLoaded(assembly);
 
         }
 
 
-
-       
-  
-      
         public override void Destroy()
         {
             base.Destroy();
         }
 
-       
+
     }
 }

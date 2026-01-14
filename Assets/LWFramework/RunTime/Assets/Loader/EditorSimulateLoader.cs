@@ -20,16 +20,16 @@ namespace LWAssets
         public EditorSimulateLoader(LWAssetsConfig config) : base(config)
         {
         }
-        
+
         public override async UniTask InitializeAsync(BundleManifest manifest)
         {
             m_Manifest = manifest;
             await UniTask.CompletedTask;
             UnityEngine.Debug.Log("[LWAssets] EditorSimulateLoader initialized");
         }
-        
+
         #region 同步加载
-        
+
         /// <summary>
         /// 编辑器模拟：同步加载资源，并记录加载耗时/引用信息
         /// </summary>
@@ -48,7 +48,7 @@ namespace LWAssets
             }
             return asset;
         }
-             
+
         public override byte[] LoadRawFile(string assetPath)
         {
             var fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
@@ -56,11 +56,11 @@ namespace LWAssets
             {
                 return File.ReadAllBytes(fullPath);
             }
-            
+
             UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {assetPath}");
             return null;
         }
-        
+
         public override string LoadRawFileText(string assetPath)
         {
             var fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
@@ -68,15 +68,15 @@ namespace LWAssets
             {
                 return File.ReadAllText(fullPath);
             }
-            
+
             UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {assetPath}");
             return null;
         }
-        
+
         #endregion
-        
+
         #region 异步加载
-        
+
         /// <summary>
         /// 编辑器模拟：异步加载资源，并记录加载耗时/引用信息
         /// </summary>
@@ -84,7 +84,7 @@ namespace LWAssets
         {
             // 模拟异步延迟
             await UniTask.Yield(cancellationToken);
-            
+
             var sw = Stopwatch.StartNew();
             var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
             sw.Stop();
@@ -98,8 +98,8 @@ namespace LWAssets
             }
             return asset;
         }
-        
-       
+
+
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
             if (TryGetRawFileFromCache(assetPath, out var cached))
@@ -122,23 +122,33 @@ namespace LWAssets
             TrackRawFileHandle(assetPath, data, "editor_simulate", data.LongLength, sw.Elapsed.TotalMilliseconds);
             return data;
         }
-        
-        public override async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, 
-            bool activateOnLoad, CancellationToken cancellationToken = default)
+
+        public override async UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode,
+            bool activateOnLoad,
+            IProgress<float> progress = null,
+            CancellationToken cancellationToken = default)
         {
             var sceneHandle = new SceneHandle(scenePath);
-            
+
             try
             {
+                progress?.Report(0f);
                 var loadParams = new LoadSceneParameters(mode);
                 var op = EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, loadParams);
-                
+                op.allowSceneActivation = activateOnLoad;
+
                 while (!op.isDone)
                 {
-                    sceneHandle.SetProgress(op.progress);
+                    var normalizedProgress = op.progress < 0.9f ? Mathf.Clamp01(op.progress / 0.9f) : 1f;
+                    sceneHandle.SetProgress(normalizedProgress);
+                    progress?.Report(normalizedProgress);
+                    if (op.progress >= 0.9f && !activateOnLoad)
+                    {
+                        break;
+                    }
                     await UniTask.Yield(cancellationToken);
                 }
-                
+
                 var scene = SceneManager.GetSceneByPath(scenePath);
                 sceneHandle.SetScene(scene);
                 sceneHandle.Retain();
@@ -147,37 +157,37 @@ namespace LWAssets
             {
                 sceneHandle.SetError(ex);
             }
-            
+
             return sceneHandle;
         }
-        
+
         #endregion
-        
-        protected override UniTask<AssetBundle> LoadBundleFromSourceAsync(BundleInfo bundleInfo, 
+
+        protected override UniTask<AssetBundle> LoadBundleFromSourceAsync(BundleInfo bundleInfo,
             CancellationToken cancellationToken = default)
         {
             // 编辑器模式不需要实际加载Bundle
             return UniTask.FromResult<AssetBundle>(null);
         }
-        
+
         public override void Release(UnityEngine.Object asset)
         {
             base.Release(asset);
         }
-        
+
         public override async UniTask UnloadUnusedAssetsAsync()
         {
             await base.UnloadUnusedAssetsAsync();
             await Resources.UnloadUnusedAssets();
         }
-        
+
         public override void ForceReleaseAll()
         {
             base.ForceReleaseAll();
             Resources.UnloadUnusedAssets();
         }
     }
-    
+
     /// <summary>
     /// 编辑器清单构建器
     /// </summary>
@@ -191,14 +201,14 @@ namespace LWAssets
                 BuildTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 Platform = LWAssetsConfig.GetPlatformName()
             };
-            
+
             // 收集所有资源
             var assetPaths = AssetDatabase.GetAllAssetPaths();
             foreach (var path in assetPaths)
             {
                 if (!path.StartsWith("Assets/")) continue;
                 if (path.EndsWith(".cs") || path.EndsWith(".meta")) continue;
-                
+
                 // manifest.Assets.Add(new AssetInfo
                 // {
                 //     AssetPath = path,
@@ -207,12 +217,12 @@ namespace LWAssets
                 //     IsRawFile = IsRawFile(path)
                 // });
             }
-            
+
             manifest.BuildIndex();
             await UniTask.CompletedTask;
             return manifest;
         }
-        
+
     }
 }
 #endif

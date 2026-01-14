@@ -32,7 +32,7 @@ namespace LWAssets.Editor
         private bool _didDragListElement;
 
         private readonly Dictionary<string, bool> _foldoutStates = new Dictionary<string, bool>();
-        [MenuItem("LWAssets/TestWindow")]
+        [MenuItem("LWFramework/Assets/Tools/Test Window")]
         public static void ShowWindow()
         {
             var window = GetWindow<TestWindow>();

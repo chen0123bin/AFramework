@@ -1,11 +1,10 @@
 ﻿using LWUI;
 using UnityEngine.UI;
 using UnityEngine;
-using LWFramework;
 using System.Collections.Generic;
 
 [UIViewData("Assets/0Res/Prefabs/UI/LoadingView.prefab", (int)FindType.Name, "LWFramework/Canvas/Top")]
-public class LoadingView : BaseUIView
+public class LoadingBarView : BaseUIView
 {
 
 	[UIElement("SldProgress")]

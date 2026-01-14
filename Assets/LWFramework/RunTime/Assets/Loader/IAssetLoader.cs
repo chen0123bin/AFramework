@@ -80,9 +80,11 @@ namespace LWAssets
         /// <param name="scenePath"></param>
         /// <param name="mode"></param>
         /// <param name="activateOnLoad"></param>
+        /// <param name="progress"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad, 
+        UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad,
+            IProgress<float> progress = null,
             CancellationToken cancellationToken = default);
         
         #endregion

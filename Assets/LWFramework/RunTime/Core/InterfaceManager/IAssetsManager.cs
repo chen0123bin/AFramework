@@ -130,6 +130,7 @@ namespace LWAssets
         UniTask<SceneHandle> LoadSceneAsync(string scenePath,
             UnityEngine.SceneManagement.LoadSceneMode mode = UnityEngine.SceneManagement.LoadSceneMode.Single,
             bool activateOnLoad = true,
+            IProgress<float> progress = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>

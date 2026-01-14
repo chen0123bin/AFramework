@@ -1,6 +1,5 @@
 ---
-alwaysApply: false
-description: Unity大师智能体、C#代码、脚本、变量命名规则、常量命名规则、布尔值命名规则、集合/数组命名规则。
+alwaysApply: true
 ---
 变量类型
 规则:

@@ -10,7 +10,7 @@ using System.Reflection;
 using UnityEngine;
 #if HYBRIDCLR
 using HybridCLR;
-namespace LWFramework.Core
+namespace LWHotfix
 {
 
     /// <summary>

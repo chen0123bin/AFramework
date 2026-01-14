@@ -35,7 +35,7 @@ public class UGUIJsonParser : EditorWindow
     /// <summary>
     /// 打开编辑器窗口。
     /// </summary>
-    [MenuItem("Tools/UGUI JSON Parser")]
+    [MenuItem("LWFramework/UI/UGUI/UGUI JSON Parser")]
     public static void ShowWindow()
     {
         GetWindow<UGUIJsonParser>("UGUI JSON Parser");
