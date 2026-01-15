@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using LWCore;
+﻿
+using System.Collections.Generic;
+using LWFMS;
 
-namespace LWFMS
+namespace LWCore
 {
     public interface IFSMManager
     {

@@ -58,6 +58,16 @@ namespace LWCore
                 return MainManager.Instance.GetManager<IHotfixManager>();
             }
         }
+        /// <summary>
+        /// 获取热更管理类
+        /// </summary>
+        public static IFSMManager FSMMgr
+        {
+            get
+            {
+                return MainManager.Instance.GetManager<IFSMManager>();
+            }
+        }
     }
 }
 

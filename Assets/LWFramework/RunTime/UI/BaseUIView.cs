@@ -65,6 +65,10 @@ namespace LWUI
         public virtual void CloseView()
         {
             // m_CanvasGroup.SetActive(false);
+            if (!m_IsOpen || m_Entity == null)
+            {
+                return;
+            }
             switch (m_ShowHideType)
             {
                 case ShowHideType.GameObject:
