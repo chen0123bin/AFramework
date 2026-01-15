@@ -8,7 +8,7 @@ namespace LWCore.Editor
     /// <summary>
     /// Hub 右侧页面基类：通过继承并重写 DrawContent 绘制交互内容。
     /// </summary>
-    internal abstract class HubTreeView
+    public abstract class BaseHubTreeView
     {
         private readonly string m_NodePath;
         private readonly string m_IconPath;
@@ -19,7 +19,7 @@ namespace LWCore.Editor
         /// </summary>
         /// <param name="nodePath">左侧树节点路径，例如："Event/EventMonitor"。</param>
         /// <param name="iconPath">图标资源路径（Assets/...png），可为空。</param>
-        protected HubTreeView(string nodePath, string iconPath)
+        protected BaseHubTreeView(string nodePath, string iconPath)
         {
             m_NodePath = nodePath;
             m_IconPath = iconPath;
@@ -41,13 +41,15 @@ namespace LWCore.Editor
                 {
                     return m_Icon;
                 }
-
                 if (string.IsNullOrEmpty(m_IconPath))
                 {
                     return null;
                 }
-
                 m_Icon = AssetDatabase.LoadAssetAtPath<Texture2D>(m_IconPath);
+                if (m_Icon == null)
+                {
+                    m_Icon = Resources.Load<Texture2D>(m_IconPath);
+                }
                 return m_Icon;
             }
         }

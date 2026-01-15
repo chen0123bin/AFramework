@@ -35,7 +35,13 @@ Usage notes:
 
 <skill>
 <name>uguitoolkit</name>
-<description>Unity UGUI 结构 JSON 生成与自动搭建工具箱。适用于把界面设计、布局适配、交互反馈落到一个可存储的 UGUI 结构 JSON（严格遵循 references/UGUITempView.json 规则），并在 Unity 中根据该 JSON 自动创建 UGUI 层级与组件（Canvas、RectTransform、Image/Text/Button/InputField/ScrollRect 等）。当用户提出“生成/保存 UGUI 结构 JSON”“按模板自动搭 UI”“按 UGUITempView 规则自动创建 UGUI”的需求时使用。</description>
+<description>Unity UGUI 结构 JSON 生成工具箱。适用于把界面设计、布局适配、交互反馈落到一个可存储的 UGUI 结构 JSON（严格遵循 references/UGUITempView.json 规则），并在 Unity 中根据该 JSON 自动创建 UGUI 层级与组件（Canvas、RectTransform、Image/Text/Button/InputField/ScrollRect 等）。当用户提出“生成/保存 UGUI 结构 JSON”“按模板自动搭 UI  JSON”“按 UGUITempView 规则自动创建 UGUI JSON”的需求时使用。</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>lwframework</name>
+<description>LWFramework 运行时核心接口速查与启动辅助。开发/生成代码优先通过 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr 调用能力，并对照 Assets/LWFramework/RunTime/Core/InterfaceManager 下的 IAssetsManager/IEventManager/IUIManager/IHotfixManager/IManager 核对签名与生命周期，完成启动注册、初始化与调用排查。</description>
 <location>project</location>
 </skill>
 

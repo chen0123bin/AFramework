@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using LitJson;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 namespace LWAssets.Editor
@@ -95,6 +96,225 @@ namespace LWAssets.Editor
             {
                 _bundleAssetMap = null;
             }
+        }
+
+        /// <summary>
+        /// 构建 Player：先构建 AssetBundle，再按 BuiltinTags 复制到 StreamingAssets，最后调用 Unity BuildPlayer。
+        /// </summary>
+        /// <param name="buildConfig">构建配置（决定 AssetBundle 输出与 BuiltinTags）。</param>
+        /// <param name="runtimeConfig">运行时配置（决定 manifest/version 文件名）。</param>
+        /// <param name="scenePaths">Build Settings 中启用的场景路径。</param>
+        /// <param name="buildTarget">目标平台。</param>
+        /// <param name="locationPathName">Player 输出路径。</param>
+        /// <returns>Unity BuildReport。</returns>
+        public static BuildReport BuildPlayerWithBuiltinTags(LWAssetsBuildConfig buildConfig, LWAssetsConfig runtimeConfig, string[] scenePaths, BuildTarget buildTarget, string locationPathName)
+        {
+            Build(buildConfig);
+            CopyToStreamingAssetsByBuiltinTags(buildConfig, runtimeConfig);
+            AssetDatabase.Refresh();
+
+            BuildPlayerOptions options = new BuildPlayerOptions();
+            options.scenes = scenePaths;
+            options.locationPathName = locationPathName;
+            options.target = buildTarget;
+            options.options = BuildOptions.None;
+
+            BuildReport report = BuildPipeline.BuildPlayer(options);
+            return report;
+        }
+
+        /// <summary>
+        /// 按 BuiltinTags 将构建输出复制到 StreamingAssets，并生成裁剪后的 manifest/version。
+        /// </summary>
+        /// <param name="buildConfig">构建配置。</param>
+        /// <param name="runtimeConfig">运行时配置（可为空）。</param>
+        public static void CopyToStreamingAssetsByBuiltinTags(LWAssetsBuildConfig buildConfig, LWAssetsConfig runtimeConfig)
+        {
+            if (buildConfig == null)
+            {
+                Debug.LogError("[LWAssets] Build config not found!");
+                return;
+            }
+
+            string outputPath = GetOutputPath(buildConfig);
+            string platformName = Path.GetFileName(outputPath);
+            string destPath = Path.Combine(Application.streamingAssetsPath, buildConfig.OutputPath, platformName);
+
+            if (!Directory.Exists(outputPath))
+            {
+                Debug.LogError("[LWAssets] Build output not found!");
+                return;
+            }
+
+            if (buildConfig.BuiltinTags == null || buildConfig.BuiltinTags.Count <= 0)
+            {
+                if (Directory.Exists(destPath))
+                {
+                    Directory.Delete(destPath, true);
+                }
+
+                FileUtility.CopyDirectory(outputPath, destPath);
+                AssetDatabase.Refresh();
+                Debug.Log($"[LWAssets] Copied to StreamingAssets: {destPath}");
+                return;
+            }
+
+            string manifestFileName = runtimeConfig != null ? runtimeConfig.ManifestFileName : "manifest.json";
+            string versionFileName = runtimeConfig != null ? runtimeConfig.VersionFileName : "version.json";
+            string manifestPath = Path.Combine(outputPath, manifestFileName);
+
+            if (!File.Exists(manifestPath))
+            {
+                Debug.LogError($"[LWAssets] Manifest not found: {manifestPath}");
+                return;
+            }
+
+            BundleManifest manifest;
+            try
+            {
+                string json = File.ReadAllText(manifestPath);
+                manifest = BundleManifest.FromJson(json);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[LWAssets] Load manifest failed: {ex.Message}");
+                return;
+            }
+
+            HashSet<string> bundleNamesToCopy = new HashSet<string>(StringComparer.Ordinal);
+            List<BundleInfo> hitBundles = manifest.GetBundlesByTags(buildConfig.BuiltinTags);
+            for (int i = 0; i < hitBundles.Count; i++)
+            {
+                BundleInfo hit = hitBundles[i];
+                if (hit == null || string.IsNullOrEmpty(hit.BundleName))
+                {
+                    continue;
+                }
+
+                bundleNamesToCopy.Add(hit.BundleName);
+
+                List<BundleInfo> deps = manifest.GetAllDependencies(hit.BundleName);
+                for (int d = 0; d < deps.Count; d++)
+                {
+                    BundleInfo dep = deps[d];
+                    if (dep == null || string.IsNullOrEmpty(dep.BundleName))
+                    {
+                        continue;
+                    }
+
+                    bundleNamesToCopy.Add(dep.BundleName);
+                }
+            }
+
+            if (bundleNamesToCopy.Count <= 0)
+            {
+                Debug.LogWarning($"[LWAssets] No bundles matched by tags: {string.Join(",", buildConfig.BuiltinTags)}");
+                return;
+            }
+
+            if (Directory.Exists(destPath))
+            {
+                Directory.Delete(destPath, true);
+            }
+            Directory.CreateDirectory(destPath);
+
+            HashSet<string> copiedBundleNames = new HashSet<string>(StringComparer.Ordinal);
+            List<BundleInfo> copiedBundleInfos = new List<BundleInfo>(bundleNamesToCopy.Count);
+
+            foreach (string bundleName in bundleNamesToCopy)
+            {
+                BundleInfo info = manifest.GetBundleInfo(bundleName);
+                if (info == null)
+                {
+                    Debug.LogWarning($"[LWAssets] BundleInfo not found in manifest: {bundleName}");
+                    continue;
+                }
+
+                string srcFile = Path.Combine(outputPath, info.GetFileName());
+                if (!File.Exists(srcFile))
+                {
+                    Debug.LogWarning($"[LWAssets] Bundle file not found: {srcFile}");
+                    continue;
+                }
+
+                string dstFile = Path.Combine(destPath, info.GetFileName());
+                File.Copy(srcFile, dstFile, true);
+
+                copiedBundleNames.Add(info.BundleName);
+                copiedBundleInfos.Add(info);
+            }
+
+            if (copiedBundleInfos.Count <= 0)
+            {
+                Debug.LogWarning("[LWAssets] No bundle files copied, skip manifest/version generation.");
+                return;
+            }
+
+            BundleManifest newManifest = new BundleManifest
+            {
+                Version = manifest.Version,
+                BuildTime = manifest.BuildTime,
+                Platform = manifest.Platform,
+                Bundles = new List<BundleInfo>(copiedBundleInfos.Count)
+            };
+
+            for (int i = 0; i < copiedBundleInfos.Count; i++)
+            {
+                BundleInfo srcInfo = copiedBundleInfos[i];
+                BundleInfo dstInfo = new BundleInfo
+                {
+                    BundleName = srcInfo.BundleName,
+                    Hash = srcInfo.Hash,
+                    CRC = srcInfo.CRC,
+                    Size = srcInfo.Size,
+                    IsRawFile = srcInfo.IsRawFile,
+                    IsEncrypted = srcInfo.IsEncrypted,
+                    Tags = srcInfo.Tags != null ? new List<string>(srcInfo.Tags) : new List<string>(),
+                    Dependencies = new List<string>(),
+                    Assets = srcInfo.Assets != null ? new List<string>(srcInfo.Assets) : new List<string>()
+                };
+
+                if (srcInfo.Dependencies != null)
+                {
+                    for (int d = 0; d < srcInfo.Dependencies.Count; d++)
+                    {
+                        string depName = srcInfo.Dependencies[d];
+                        if (string.IsNullOrEmpty(depName))
+                        {
+                            continue;
+                        }
+
+                        if (copiedBundleNames.Contains(depName))
+                        {
+                            dstInfo.Dependencies.Add(depName);
+                        }
+                    }
+                }
+
+                newManifest.Bundles.Add(dstInfo);
+            }
+
+            newManifest.BuildIndex();
+
+            string newManifestPath = Path.Combine(destPath, manifestFileName);
+            File.WriteAllText(newManifestPath, newManifest.ToJson());
+
+            string newManifestHash = HashUtility.ComputeFileMD5(newManifestPath);
+            long newManifestSize = new FileInfo(newManifestPath).Length;
+            VersionInfo version = new VersionInfo
+            {
+                Version = manifest.Version,
+                ManifestHash = newManifestHash,
+                ManifestSize = newManifestSize,
+                BuildTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                MinAppVersion = Application.version,
+                ForceUpdate = false
+            };
+            string newVersionPath = Path.Combine(destPath, versionFileName);
+            File.WriteAllText(newVersionPath, JsonUtility.ToJson(version, true));
+
+            AssetDatabase.Refresh();
+            Debug.Log($"[LWAssets] Copied {copiedBundleInfos.Count} bundles to StreamingAssets: {destPath}");
         }
 
         /// <summary>
@@ -496,7 +716,7 @@ namespace LWAssets.Editor
             var manifestHash = HashUtility.ComputeFileMD5(manifestPath);
             var manifestSize = new FileInfo(manifestPath).Length;
 
-            
+
 
             var version = new VersionInfo
             {
@@ -511,7 +731,7 @@ namespace LWAssets.Editor
             var versionPath = Path.Combine(outputPath, "version.json");
             File.WriteAllText(versionPath, JsonUtility.ToJson(version, true));
 
-          
+
         }
 
         /// <summary>
@@ -520,7 +740,7 @@ namespace LWAssets.Editor
         private static int AllocateNextBuildVersion(LWAssetsBuildConfig config)
         {
             string key = $"{config.OutputPath}|{EditorUserBuildSettings.activeBuildTarget}";
-            string path = Path.Combine(Application.dataPath,  "LWAssetsBuildVersions.json");
+            string path = Path.Combine(Application.dataPath, "LWAssetsBuildVersions.json");
 
             Dictionary<string, int> buildVersions = new Dictionary<string, int>(StringComparer.Ordinal);
             if (File.Exists(path))
@@ -560,7 +780,7 @@ namespace LWAssets.Editor
 
             return nextVersion;
         }
-      
+
 
         /// <summary>
         /// 清理输出目录

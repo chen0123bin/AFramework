@@ -1,0 +1,14 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+
+[CreateAssetMenu(fileName = "Abc", menuName = "Menu/Abc", order = 0)]
+public class #SCRIPTNAME# :ScriptableObject // SerializedMonoBehaviour // SerializedScriptableObject   //Serializable   
+{
+    public List<TestData>list;
+}
+[Serializable]
+public class TestData {
+    public string Name;   
+}

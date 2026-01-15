@@ -1,6 +1,6 @@
 ---
 name: uguitoolkit
-description: Unity UGUI 结构 JSON 生成与自动搭建工具箱。适用于把界面设计、布局适配、交互反馈落到一个可存储的 UGUI 结构 JSON（严格遵循 references/UGUITempView.json 规则），并在 Unity 中根据该 JSON 自动创建 UGUI 层级与组件（Canvas、RectTransform、Image/Text/Button/InputField/ScrollRect 等）。当用户提出“生成/保存 UGUI 结构 JSON”“按模板自动搭 UI”“按 UGUITempView 规则自动创建 UGUI”的需求时使用。
+description: Unity UGUI 结构 JSON 生成工具箱。适用于把界面设计、布局适配、交互反馈落到一个可存储的 UGUI 结构 JSON（严格遵循 references/UGUITempView.json 规则），并在 Unity 中根据该 JSON 自动创建 UGUI 层级与组件（Canvas、RectTransform、Image/Text/Button/InputField/ScrollRect 等）。当用户提出“生成/保存 UGUI 结构 JSON”“按模板自动搭 UI  JSON”“按 UGUITempView 规则自动创建 UGUI JSON”的需求时使用。。
 ---
 
 # Unity UGUI JSON 模板生成与自动搭建
@@ -91,7 +91,9 @@ components 结构：
 
 ## 结构字段自检（不执行命令）
 
-本技能不执行任何powershell命令行校验；只做“结构 + 字段 + 引用路径”自检。生成 JSON 时按以下清单逐项对照：
+本技能不执行任何powershell命令行校验；只做“结构 + 字段 + 引用路径”自检。生成 JSON 时按以下清单逐项对照即可；
+也不需要校验组件字段是否与参考 JSON 对齐，因为这是在 Unity 中校验的。
+不需要去使用UguiJsonToUguiBuilder脚本，因为本技能是直接生成 JSON，而不是从 JSON 自动搭建 UGUI。
 
 1. Root 结构
    - 顶层必须包含 `Root`

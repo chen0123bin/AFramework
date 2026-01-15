@@ -17,9 +17,9 @@ public static class LWFrameworkCSharpProjectQuickOpenerMenuGenerated
     [MenuItem("Assets/LWFramework/C#工程/用槽位打开/槽位2 - devenv", true)]
     private static bool OpenWithSlot1Validate() { return LWFrameworkCSharpProjectQuickOpener.CanOpenSlot(1); }
 
-    [MenuItem("Assets/LWFramework/C#工程/用槽位打开/槽位3 - 未设置", false, 2003)]
+    [MenuItem("Assets/LWFramework/C#工程/用槽位打开/槽位3 - Trae CN", false, 2003)]
     private static void OpenWithSlot2() { LWFrameworkCSharpProjectQuickOpener.OpenCSharpProjectWithSlot(2); }
-    [MenuItem("Assets/LWFramework/C#工程/用槽位打开/槽位3 - 未设置", true)]
+    [MenuItem("Assets/LWFramework/C#工程/用槽位打开/槽位3 - Trae CN", true)]
     private static bool OpenWithSlot2Validate() { return LWFrameworkCSharpProjectQuickOpener.CanOpenSlot(2); }
 
     [MenuItem("Assets/LWFramework/C#工程/用槽位打开/槽位4 - 未设置", false, 2004)]
@@ -42,10 +42,10 @@ public static class LWFrameworkCSharpProjectQuickOpenerMenuGenerated
     [MenuItem("Assets/LWFramework/C#工程/设为默认/槽位2 - devenv", true)]
     private static bool SetDefaultSlot1Validate() { Menu.SetChecked("Assets/LWFramework/C#工程/设为默认/槽位2 - devenv", LWFrameworkCSharpProjectQuickOpener.GetDefaultSlotIndex() == 1); return !EditorApplication.isCompiling; }
 
-    [MenuItem("Assets/LWFramework/C#工程/设为默认/槽位3 - 未设置", false, 2203)]
+    [MenuItem("Assets/LWFramework/C#工程/设为默认/槽位3 - Trae CN", false, 2203)]
     private static void SetDefaultSlot2() { LWFrameworkCSharpProjectQuickOpener.SetDefaultSlotIndex(2); }
-    [MenuItem("Assets/LWFramework/C#工程/设为默认/槽位3 - 未设置", true)]
-    private static bool SetDefaultSlot2Validate() { Menu.SetChecked("Assets/LWFramework/C#工程/设为默认/槽位3 - 未设置", LWFrameworkCSharpProjectQuickOpener.GetDefaultSlotIndex() == 2); return !EditorApplication.isCompiling; }
+    [MenuItem("Assets/LWFramework/C#工程/设为默认/槽位3 - Trae CN", true)]
+    private static bool SetDefaultSlot2Validate() { Menu.SetChecked("Assets/LWFramework/C#工程/设为默认/槽位3 - Trae CN", LWFrameworkCSharpProjectQuickOpener.GetDefaultSlotIndex() == 2); return !EditorApplication.isCompiling; }
 
     [MenuItem("Assets/LWFramework/C#工程/设为默认/槽位4 - 未设置", false, 2204)]
     private static void SetDefaultSlot3() { LWFrameworkCSharpProjectQuickOpener.SetDefaultSlotIndex(3); }
@@ -67,9 +67,9 @@ public static class LWFrameworkCSharpProjectQuickOpenerMenuGenerated
     [MenuItem("Assets/LWFramework/C#工程/清空槽位/槽位2 - devenv", true)]
     private static bool ClearSlot1Validate() { return LWFrameworkCSharpProjectQuickOpener.CanClearSlot(1); }
 
-    [MenuItem("Assets/LWFramework/C#工程/清空槽位/槽位3 - 未设置", false, 2303)]
+    [MenuItem("Assets/LWFramework/C#工程/清空槽位/槽位3 - Trae CN", false, 2303)]
     private static void ClearSlot2() { LWFrameworkCSharpProjectQuickOpener.ClearEditorSlot(2); }
-    [MenuItem("Assets/LWFramework/C#工程/清空槽位/槽位3 - 未设置", true)]
+    [MenuItem("Assets/LWFramework/C#工程/清空槽位/槽位3 - Trae CN", true)]
     private static bool ClearSlot2Validate() { return LWFrameworkCSharpProjectQuickOpener.CanClearSlot(2); }
 
     [MenuItem("Assets/LWFramework/C#工程/清空槽位/槽位4 - 未设置", false, 2304)]

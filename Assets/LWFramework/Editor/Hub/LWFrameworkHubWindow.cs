@@ -26,10 +26,10 @@ namespace LWCore.Editor
         private float m_LeftPanelWidth;
         private bool m_IsResizingLeftPanel;
 
-        private readonly List<HubTreeView> m_Views = new List<HubTreeView>();
-        private HubTreeView m_ActiveView;
+        private readonly List<BaseHubTreeView> m_Views = new List<BaseHubTreeView>();
+        private BaseHubTreeView m_ActiveView;
 
-        private readonly Dictionary<HubTreeView, int> m_ViewToId = new Dictionary<HubTreeView, int>();
+        private readonly Dictionary<BaseHubTreeView, int> m_ViewToId = new Dictionary<BaseHubTreeView, int>();
 
         /// <summary>
         /// 打开 Hub 窗口。
@@ -195,13 +195,20 @@ namespace LWCore.Editor
         {
             m_Views.Clear();
 
-            m_Views.Add(new WelcomeHubView("首页/欢迎", string.Empty));
+            m_Views.Add(new WelcomeHubView("首页", "Gizmos/About"));
+            m_Views.Add(new WelcomeHubView("Event", "Gizmos/目录"));
+            m_Views.Add(new ExecuteMenuHubView("Event/Runtime Monitor", string.Empty, "LWFramework/Event/Runtime Monitor"));
 
-            m_Views.Add(new MenuItemHubView("Event/Runtime Monitor", string.Empty, "LWFramework/Event/Runtime Monitor"));
-            m_Views.Add(new MenuItemHubView("Assets/Dashboard", string.Empty, "LWFramework/Assets/Dashboard"));
+            m_Views.Add(new WelcomeHubView("Assets", "Gizmos/目录"));
+            m_Views.Add(new LWAssets.Editor.LWAssetsTreeView("Assets/Dashboard", "Gizmos/Asset"));
 
-            m_Views.Add(new ScriptableObjectTypeHubView("配置/LWAssetsBuildConfig", string.Empty, typeof(LWAssets.Editor.LWAssetsBuildConfig)));
-            m_Views.Add(new ScriptableObjectTypeHubView("配置/LWAssetsConfig", string.Empty, typeof(LWAssets.LWAssetsConfig)));
+            m_Views.Add(new WelcomeHubView("UI", "Gizmos/目录"));
+            m_Views.Add(new UGUIJsonParser("UI/解析UGUI JSON", "Gizmos/UI"));
+
+            m_Views.Add(new WelcomeHubView("配置", "Gizmos/目录"));
+            m_Views.Add(new ScriptableObjectHubView("配置/打包设置", "Gizmos/Setting", typeof(LWAssets.Editor.LWAssetsBuildConfig)));
+            m_Views.Add(new ScriptableObjectHubView("配置/资源配置", "Gizmos/配置项", typeof(LWAssets.LWAssetsConfig)));
+
         }
 
         /// <summary>
@@ -211,12 +218,12 @@ namespace LWCore.Editor
         {
             TreeViewItem root = new TreeViewItem(0, -1, "Root");
             int idCounter = 1;
-            Dictionary<int, HubTreeView> idToView = new Dictionary<int, HubTreeView>();
+            Dictionary<int, BaseHubTreeView> idToView = new Dictionary<int, BaseHubTreeView>();
             m_ViewToId.Clear();
 
             for (int i = 0; i < m_Views.Count; i++)
             {
-                HubTreeView view = m_Views[i];
+                BaseHubTreeView view = m_Views[i];
                 if (view == null || string.IsNullOrEmpty(view.NodePath))
                 {
                     continue;
@@ -246,7 +253,7 @@ namespace LWCore.Editor
 
             for (int i = 0; i < m_Views.Count; i++)
             {
-                HubTreeView view = m_Views[i];
+                BaseHubTreeView view = m_Views[i];
                 if (view != null && m_ViewToId.TryGetValue(view, out int id))
                 {
                     m_NavigationTreeView.SetSelection(new List<int>(1) { id }, TreeViewSelectionOptions.FireSelectionChanged);
@@ -259,7 +266,7 @@ namespace LWCore.Editor
         /// 左侧选中某个页面时切换右侧内容。
         /// </summary>
         /// <param name="view">选中的页面。</param>
-        private void OnSelectView(HubTreeView view)
+        private void OnSelectView(BaseHubTreeView view)
         {
             if (view == null)
             {
@@ -284,7 +291,7 @@ namespace LWCore.Editor
         /// <summary>
         /// 将形如 "Event/EventMonitor" 的路径拆成多级节点并挂到树上。
         /// </summary>
-        private void AddPathAsNodes(TreeViewItem root, string nodePath, Texture2D icon, HubTreeView view, ref int idCounter, Dictionary<int, HubTreeView> idToView)
+        private void AddPathAsNodes(TreeViewItem root, string nodePath, Texture2D icon, BaseHubTreeView view, ref int idCounter, Dictionary<int, BaseHubTreeView> idToView)
         {
             string[] parts = nodePath.Split('/');
             TreeViewItem current = root;
@@ -334,18 +341,18 @@ namespace LWCore.Editor
             }
         }
 
-        private sealed class HubNavigationTreeView : TreeView
+        private class HubNavigationTreeView : TreeView
         {
-            private readonly Action<HubTreeView> m_OnSelectView;
+            private readonly Action<BaseHubTreeView> m_OnSelectView;
             private TreeViewItem m_Root;
-            private Dictionary<int, HubTreeView> m_IdToView;
+            private Dictionary<int, BaseHubTreeView> m_IdToView;
 
             /// <summary>
             /// 创建左侧导航树。
             /// </summary>
             /// <param name="state">TreeView 状态。</param>
             /// <param name="onSelectView">选中页面回调。</param>
-            public HubNavigationTreeView(TreeViewState state, Action<HubTreeView> onSelectView)
+            public HubNavigationTreeView(TreeViewState state, Action<BaseHubTreeView> onSelectView)
                 : base(state)
             {
                 m_OnSelectView = onSelectView;
@@ -355,7 +362,7 @@ namespace LWCore.Editor
             /// <summary>
             /// 设置树数据源。
             /// </summary>
-            public void SetData(TreeViewItem root, Dictionary<int, HubTreeView> idToView)
+            public void SetData(TreeViewItem root, Dictionary<int, BaseHubTreeView> idToView)
             {
                 m_Root = root;
                 m_IdToView = idToView;
@@ -380,7 +387,7 @@ namespace LWCore.Editor
                 }
 
                 int id = selectedIds[0];
-                if (m_IdToView == null || !m_IdToView.TryGetValue(id, out HubTreeView view))
+                if (m_IdToView == null || !m_IdToView.TryGetValue(id, out BaseHubTreeView view))
                 {
                     return;
                 }
@@ -389,200 +396,6 @@ namespace LWCore.Editor
             }
         }
 
-        private sealed class WelcomeHubView : HubTreeView
-        {
-            public WelcomeHubView(string nodePath, string iconPath)
-                : base(nodePath, iconPath)
-            {
-            }
-
-            protected override void DrawContent()
-            {
-                GUILayout.Space(8);
-                EditorGUILayout.LabelField("LWFramework Hub", EditorStyles.largeLabel);
-                EditorGUILayout.Space(6);
-                EditorGUILayout.HelpBox("这是一个手动注册的 Hub 示例页。\n你可以通过 new XxxTreeView(\"模块/页面\", \"iconPath\") 把页面挂到左侧树上。", MessageType.Info);
-            }
-        }
-
-        private sealed class MenuItemHubView : HubTreeView
-        {
-            private readonly string m_MenuPath;
-
-            /// <summary>
-            /// 创建菜单入口页。
-            /// </summary>
-            /// <param name="nodePath">左侧树节点路径。</param>
-            /// <param name="iconPath">图标路径。</param>
-            /// <param name="menuPath">Unity 菜单路径（用于 ExecuteMenuItem）。</param>
-            public MenuItemHubView(string nodePath, string iconPath, string menuPath)
-                : base(nodePath, iconPath)
-            {
-                m_MenuPath = menuPath;
-            }
-
-            protected override void DrawContent()
-            {
-                GUILayout.Space(8);
-                EditorGUILayout.LabelField(m_MenuPath, EditorStyles.boldLabel);
-                EditorGUILayout.Space(8);
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    if (GUILayout.Button("打开/执行", GUILayout.Width(120)))
-                    {
-                        EditorApplication.ExecuteMenuItem(m_MenuPath);
-                    }
-
-                    if (GUILayout.Button("复制路径", GUILayout.Width(100)))
-                    {
-                        EditorGUIUtility.systemCopyBuffer = m_MenuPath;
-                    }
-
-                    GUILayout.FlexibleSpace();
-                }
-            }
-        }
-
-        private sealed class ScriptableObjectTypeHubView : HubTreeView
-        {
-            private readonly Type m_AssetType;
-            private UnityEngine.Object m_Asset;
-            private UnityEditor.Editor m_Inspector;
-            private Vector2 m_Scroll;
-
-            /// <summary>
-            /// 创建 ScriptableObject 配置页（按类型查找/创建并内嵌 Inspector）。
-            /// </summary>
-            /// <param name="nodePath">左侧树节点路径。</param>
-            /// <param name="iconPath">图标路径。</param>
-            /// <param name="assetType">ScriptableObject 类型。</param>
-            public ScriptableObjectTypeHubView(string nodePath, string iconPath, Type assetType)
-                : base(nodePath, iconPath)
-            {
-                m_AssetType = assetType;
-            }
-
-            public override void OnDeselected()
-            {
-                if (m_Inspector != null)
-                {
-                    DestroyImmediate(m_Inspector);
-                    m_Inspector = null;
-                }
-            }
-
-            protected override void DrawContent()
-            {
-                GUILayout.Space(8);
-                string title = m_AssetType != null ? m_AssetType.Name : "Config";
-                EditorGUILayout.LabelField(title, EditorStyles.largeLabel);
-                EditorGUILayout.Space(6);
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    m_Asset = EditorGUILayout.ObjectField("资源", m_Asset, m_AssetType, false);
-
-                    if (GUILayout.Button("查找", GUILayout.Width(60)))
-                    {
-                        FindFirstAsset();
-                    }
-
-                    using (new EditorGUI.DisabledScope(m_AssetType == null || !typeof(ScriptableObject).IsAssignableFrom(m_AssetType)))
-                    {
-                        if (GUILayout.Button("创建", GUILayout.Width(60)))
-                        {
-                            CreateAsset();
-                        }
-                    }
-
-                    using (new EditorGUI.DisabledScope(m_Asset == null))
-                    {
-                        if (GUILayout.Button("定位", GUILayout.Width(60)))
-                        {
-                            EditorGUIUtility.PingObject(m_Asset);
-                            Selection.activeObject = m_Asset;
-                        }
-                    }
-                }
-
-                EditorGUILayout.Space(6);
-
-                if (m_Asset == null)
-                {
-                    EditorGUILayout.HelpBox("未绑定资源，点击“查找”自动定位一个同类型资源，或点击“创建”生成新的资产。", MessageType.Info);
-                    return;
-                }
-
-                if (m_Inspector == null || m_Inspector.target != m_Asset)
-                {
-                    if (m_Inspector != null)
-                    {
-                        DestroyImmediate(m_Inspector);
-                        m_Inspector = null;
-                    }
-
-                    UnityEditor.Editor.CreateCachedEditor(m_Asset, null, ref m_Inspector);
-                }
-
-                using (EditorGUILayout.ScrollViewScope scrollViewScope = new EditorGUILayout.ScrollViewScope(m_Scroll))
-                {
-                    m_Scroll = scrollViewScope.scrollPosition;
-                    if (m_Inspector != null)
-                    {
-                        m_Inspector.OnInspectorGUI();
-                    }
-                }
-            }
-
-            /// <summary>
-            /// 查找同类型的第一个资源并绑定。
-            /// </summary>
-            private void FindFirstAsset()
-            {
-                if (m_AssetType == null)
-                {
-                    return;
-                }
-
-                string[] guids = AssetDatabase.FindAssets($"t:{m_AssetType.Name}");
-                if (guids == null || guids.Length <= 0)
-                {
-                    m_Asset = null;
-                    return;
-                }
-
-                string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-                m_Asset = AssetDatabase.LoadAssetAtPath(assetPath, m_AssetType);
-            }
-
-            /// <summary>
-            /// 创建新的 ScriptableObject 资产。
-            /// </summary>
-            private void CreateAsset()
-            {
-                if (m_AssetType == null || !typeof(ScriptableObject).IsAssignableFrom(m_AssetType))
-                {
-                    return;
-                }
-
-                string defaultName = m_AssetType.Name;
-                string path = EditorUtility.SaveFilePanelInProject("Create Config", defaultName, "asset", string.Empty);
-                if (string.IsNullOrEmpty(path))
-                {
-                    return;
-                }
-
-                ScriptableObject asset = ScriptableObject.CreateInstance(m_AssetType);
-                AssetDatabase.CreateAsset(asset, path);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-
-                m_Asset = asset;
-                EditorGUIUtility.PingObject(m_Asset);
-                Selection.activeObject = m_Asset;
-            }
-        }
     }
 }
 #endif

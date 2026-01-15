@@ -1,0 +1,94 @@
+using LWFramework.Audio;
+using LWFramework.Core;
+using LWFramework.FMS;
+using LWFramework.Message;
+using LWFramework.Other;
+using LWFramework.UI;
+using LWFramework.WebRequest;
+using System;
+using UnityEngine;
+[RequireComponent(typeof(KeyHelp))]
+[DefaultExecutionOrder(-1000)]
+public class StartupSimulation : MonoBehaviour
+{
+    public string procedureName;
+    public static Action OnStart { get; set; }
+    public static Action OnUpdate { get; set; }
+
+    async void Start()
+    {
+        if (GameObject.FindGameObjectsWithTag("LW").Length > 1)
+        {
+            GameObject.Destroy(gameObject);
+            return;
+        }
+
+
+        DontDestroyOnLoad(gameObject);
+        await LWUtility.ReadConfigAsync();
+        //设置LWDebug数据
+        LWDebug.SetLogConfig(LWUtility.GlobalConfig.lwGuiLog, LWUtility.GlobalConfig.logLevel, LWUtility.GlobalConfig.writeLog);
+        MainManager.Instance.Init();
+         //添加各种管理器      
+        switch ((HotfixCodeRunMode)LWUtility.GlobalConfig.hotfixCodeRunMode)
+        {
+            case HotfixCodeRunMode.ByHyBridCLR:
+#if HYBRIDCLR
+                MainManager.Instance.AddManager(typeof(IHotfixManager).ToString(), new HotFixHyBridCLRManager());
+#else
+                LWDebug.LogError("请开始HYBRIDCLR宏");
+#endif
+                break;
+            case HotfixCodeRunMode.ByReflection:
+                MainManager.Instance.AddManager(typeof(IHotfixManager).ToString(), new HotFixRefManager());
+                break;
+            case HotfixCodeRunMode.ByCode:
+                MainManager.Instance.AddManager(typeof(IHotfixManager).ToString(), new HotFixCodeManager());
+                break;
+            default:
+                break;
+        }
+        MainManager.Instance.AddManager(typeof(IUIManager).ToString(), new UIManager());
+        MainManager.Instance.AddManager(typeof(IAssetsManager).ToString(), new LWAssetsManager());     
+        MainManager.Instance.AddManager(typeof(IFSMManager).ToString(), new FSMManager());
+        MainManager.Instance.AddManager(typeof(IMessageManager).ToString(), new GlobalMessageManager());
+        MainManager.Instance.AddManager(typeof(IWebRequestManager).ToString(), new WebRequestManager());
+
+
+        ManagerUtility.AssetsMgr.OnInitUpdateComplete = OnUpdateCallback;
+        //设置第一个启动的流程
+        MainManager.Instance.FirstFSMState = Type.GetType(procedureName);
+        MainManager.Instance.MonoBehaviour = this;
+    }
+
+    /// <summary>
+    /// 默认资源更新完成
+    /// </summary>
+    /// <param name="obj"></param>
+    private async void OnUpdateCallback(bool obj)
+    {
+        for (int i = 0; LWUtility.GlobalConfig.hotfixArray!=null&&i < LWUtility.GlobalConfig.hotfixArray.Length; i++)
+        {
+            await ManagerUtility.HotfixMgr.LoadScriptAsync(LWUtility.GlobalConfig.hotfixArray[i]);
+        }
+
+        //设置第一个启动的流程
+        MainManager.Instance.FirstFSMState = ManagerUtility.HotfixMgr.GetTypeByName(procedureName);
+        MainManager.Instance.StartProcedure();
+    }
+    // Update is called once per frame
+    void Update()
+    {
+        MainManager.Instance.Update();
+    }
+  
+    void OnDestroy()
+    {
+        ManagerUtility.HotfixMgr.Destroy();
+        MainManager.Instance.ClearManager();
+    }
+    private void OnApplicationQuit()
+    {
+
+    }
+}

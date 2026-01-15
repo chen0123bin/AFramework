@@ -1,0 +1,499 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.Build.Reporting;
+using UnityEngine;
+using System.IO;
+using LWCore.Editor;
+
+namespace LWAssets.Editor
+{
+    /// <summary>
+    /// LWAssets主窗口
+    /// </summary>
+    public class LWAssetsTreeView : BaseHubTreeView
+    {
+        private LWAssetsBuildConfig m_BuildConfig;
+        private LWAssetsConfig m_RuntimeConfig;
+        private Vector2 m_ScrollPos;
+
+        private bool m_IsBuilding;
+        private bool m_IsBuildingPlayer;
+        private bool m_CopyToStreamingAssetsAfterBuild;
+
+        /// <summary>
+        /// 创建 LWAssets Hub 页面。
+        /// </summary>
+        /// <param name="nodePath">左侧树节点路径。</param>
+        /// <param name="iconPath">图标路径。</param>
+        public LWAssetsTreeView(string nodePath, string iconPath)
+            : base(nodePath, iconPath)
+        {
+        }
+
+        /// <summary>
+        /// 页面选中时刷新配置缓存。
+        /// </summary>
+        public override void OnSelected()
+        {
+            LoadConfigs();
+        }
+
+        /// <summary>
+        /// 页面取消选中时取消延迟构建回调，避免残留任务。
+        /// </summary>
+        public override void OnDeselected()
+        {
+            EditorApplication.delayCall -= ExecuteBuild;
+        }
+
+        /// <summary>
+        /// 读取构建配置与运行时配置。
+        /// </summary>
+        private void LoadConfigs()
+        {
+            // 加载构建配置
+            var buildConfigGuids = AssetDatabase.FindAssets("t:LWAssetsBuildConfig");
+            if (buildConfigGuids.Length > 0)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(buildConfigGuids[0]);
+                m_BuildConfig = AssetDatabase.LoadAssetAtPath<LWAssetsBuildConfig>(path);
+            }
+
+            // 加载运行时配置
+            m_RuntimeConfig = LWAssetsConfig.Load();
+        }
+
+        /// <summary>
+        /// Hub 右侧面板绘制入口。
+        /// </summary>
+        protected override void DrawContent()
+        {
+            m_ScrollPos = EditorGUILayout.BeginScrollView(m_ScrollPos);
+            try
+            {
+                DrawDashboard();
+            }
+            finally
+            {
+                EditorGUILayout.EndScrollView();
+            }
+        }
+
+        /// <summary>
+        /// 请求构建
+        /// </summary>
+        /// <param name="copyToStreamingAssets"></param>
+        private void RequestBuild(bool copyToStreamingAssets)
+        {
+            if (m_BuildConfig == null)
+            {
+                Debug.LogError("[LWAssets] Build config not found!");
+                return;
+            }
+
+            if (m_IsBuilding) return;
+
+            m_IsBuilding = true;
+            m_CopyToStreamingAssetsAfterBuild = copyToStreamingAssets;
+
+            EditorApplication.delayCall -= ExecuteBuild;
+            EditorApplication.delayCall += ExecuteBuild;
+        }
+        /// <summary>
+        /// 执行构建
+        /// </summary>
+        private void ExecuteBuild()
+        {
+            EditorApplication.delayCall -= ExecuteBuild;
+
+            try
+            {
+                LWAssetsBuildPipeline.Build(m_BuildConfig);
+
+                if (m_CopyToStreamingAssetsAfterBuild)
+                {
+                    CopyToStreamingAssets();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+            finally
+            {
+                m_IsBuilding = false;
+                m_CopyToStreamingAssetsAfterBuild = false;
+            }
+        }
+
+        /// <summary>
+        /// 绘制总览面板：统计信息、快捷操作、构建历史。
+        /// </summary>
+        private void DrawDashboard()
+        {
+            EditorGUILayout.LabelField("LWAssets Dashboard", EditorStyles.largeLabel);
+            EditorGUILayout.Space();
+
+            // 统计信息
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("Project Statistics", EditorStyles.boldLabel);
+
+            int assetCount = AssetDatabase.FindAssets("", new[] { "Assets" }).Length;
+            int prefabCount = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }).Length;
+            int textureCount = AssetDatabase.FindAssets("t:Texture", new[] { "Assets" }).Length;
+            int materialCount = AssetDatabase.FindAssets("t:Material", new[] { "Assets" }).Length;
+
+            EditorGUILayout.LabelField($"Total Assets: {assetCount}");
+            EditorGUILayout.LabelField($"Prefabs: {prefabCount}");
+            EditorGUILayout.LabelField($"Textures: {textureCount}");
+            EditorGUILayout.LabelField($"Materials: {materialCount}");
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space();
+
+            // 快捷操作
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("Quick Actions", EditorStyles.boldLabel);
+
+            EditorGUILayout.LabelField("窗口", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Open Bundle Viewer", GUILayout.Height(40)))
+                {
+                    BundleViewer.ShowWindow();
+                }
+
+                if (GUILayout.Button("Analyze Assets", GUILayout.Height(40)))
+                {
+                    AssetAnalyzer.ShowWindow();
+                }
+                if (GUILayout.Button("AssetRuntimeMonitorWindow", GUILayout.Height(40)))
+                {
+                    AssetRuntimeMonitorWindow.ShowWindow();
+                }
+
+                GUILayout.FlexibleSpace();
+            }
+
+            EditorGUILayout.Space(6);
+            EditorGUILayout.LabelField("资源管理器", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Open Build Folder", GUILayout.Height(40)))
+                {
+                    if (m_BuildConfig != null)
+                    {
+                        string path = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
+                        if (Directory.Exists(path))
+                        {
+                            EditorUtility.RevealInFinder(path);
+                        }
+                    }
+                }
+
+                if (GUILayout.Button("Open Download Folder", GUILayout.Height(40)))
+                {
+                    if (m_RuntimeConfig != null)
+                    {
+                        EditorUtility.RevealInFinder(m_RuntimeConfig.GetPersistentDataPath());
+                    }
+                }
+
+                GUILayout.FlexibleSpace();
+            }
+
+            EditorGUILayout.Space(6);
+            EditorGUILayout.LabelField("构建/拷贝", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Build AssetBundles", GUILayout.Height(40)))
+                {
+                    RequestBuild(false);
+                }
+
+                if (GUILayout.Button("Copy to StreamingAssets", GUILayout.Height(40)))
+                {
+                    if (EditorUtility.DisplayDialog("Copy to StreamingAssets",
+                        "Are you sure you want to copy the build assets to StreamingAssets folder?", "Yes", "No"))
+                    {
+                        CopyToStreamingAssets();
+                    }
+                }
+
+                if (GUILayout.Button("Copy by BuiltinTags", GUILayout.Height(40)))
+                {
+                    if (EditorUtility.DisplayDialog("Copy to StreamingAssets by BuiltinTags",
+                        "Are you sure you want to copy the build assets to StreamingAssets folder?", "Yes", "No"))
+                    {
+                        CopyToStreamingAssetsByTags();
+                    }
+                }
+                GUILayout.FlexibleSpace();
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Build And Copy", GUILayout.Height(40)))
+                {
+                    RequestBuild(true);
+                }
+
+                if (GUILayout.Button("Collect Shader Variants", GUILayout.Height(40)))
+                {
+                    ShaderProcessor.CollectShaderVariants();
+                }
+
+                if (GUILayout.Button("Clear Build Cache", GUILayout.Height(40)))
+                {
+                    if (EditorUtility.DisplayDialog("Clear Build Cache",
+                        "Are you sure you want to clear the build cache?", "Yes", "No"))
+                    {
+                        ClearBuildCache();
+                    }
+                }
+
+                GUILayout.FlexibleSpace();
+            }
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Build Player", GUILayout.Height(40)))
+                {
+                    BuildPlayerWithBuiltinTags();
+                }
+
+                GUILayout.FlexibleSpace();
+            }
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space();
+
+            // 构建历史
+            DrawBuildHistory();
+        }
+
+        /// <summary>
+        /// 绘制最近构建历史（从构建输出目录读取 manifest）。
+        /// </summary>
+        private void DrawBuildHistory()
+        {
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("Recent Builds", EditorStyles.boldLabel);
+
+            if (m_BuildConfig == null)
+            {
+                EditorGUILayout.LabelField("No build config selected.");
+            }
+            else
+            {
+                var buildPath = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
+
+                if (Directory.Exists(buildPath))
+                {
+                    string[] platforms = Directory.GetDirectories(buildPath);
+
+                    foreach (var platform in platforms)
+                    {
+                        string manifestPath = Path.Combine(platform, "manifest.json");
+                        if (File.Exists(manifestPath))
+                        {
+                            string json = File.ReadAllText(manifestPath);
+                            BundleManifest manifest = BundleManifest.FromJson(json);
+
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(Path.GetFileName(platform), GUILayout.Width(100));
+                            EditorGUILayout.LabelField($"v{manifest.Version}", GUILayout.Width(80));
+                            EditorGUILayout.LabelField(manifest.BuildTime, GUILayout.Width(150));
+                            EditorGUILayout.LabelField($"{manifest.Bundles.Count} bundles", GUILayout.Width(100));
+                            EditorGUILayout.LabelField(FileUtility.FormatFileSize(manifest.GetTotalSize()));
+                            EditorGUILayout.EndHorizontal();
+                        }
+                    }
+                }
+                else
+                {
+                    EditorGUILayout.LabelField("No builds found.");
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        /// <summary>
+        /// 清理构建输出目录（按当前构建配置）。
+        /// </summary>
+        private void ClearBuildCache()
+        {
+            if (m_BuildConfig != null)
+            {
+                var path = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, true);
+                    Debug.Log("[LWAssets] Build cache cleared.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 构建 Player：先构建 AssetBundle，再按 BuiltinTags 复制到 StreamingAssets，最后打包可运行程序。
+        /// </summary>
+        private void BuildPlayerWithBuiltinTags()
+        {
+            if (m_IsBuilding || m_IsBuildingPlayer)
+            {
+                return;
+            }
+
+            if (m_BuildConfig == null)
+            {
+                EditorUtility.DisplayDialog("Build Player", "Build config not found!", "OK");
+                return;
+            }
+
+            string[] scenePaths = GetEnabledScenePaths();
+            if (scenePaths == null || scenePaths.Length <= 0)
+            {
+                EditorUtility.DisplayDialog("Build Player", "No enabled scenes in Build Settings.", "OK");
+                return;
+            }
+
+            BuildTarget buildTarget = EditorUserBuildSettings.activeBuildTarget;
+            string playerPath = GetPlayerLocationPath(buildTarget);
+            if (string.IsNullOrEmpty(playerPath))
+            {
+                return;
+            }
+
+            m_IsBuildingPlayer = true;
+            try
+            {
+                BuildReport report = LWAssetsBuildPipeline.BuildPlayerWithBuiltinTags(m_BuildConfig, m_RuntimeConfig, scenePaths, buildTarget, playerPath);
+                if (report != null && report.summary.result != BuildResult.Succeeded)
+                {
+                    EditorUtility.DisplayDialog("Build Player", $"Build failed: {report.summary.result}", "OK");
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Build Player", "Build succeeded.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                EditorUtility.DisplayDialog("Build Player", ex.Message, "OK");
+            }
+            finally
+            {
+                m_IsBuildingPlayer = false;
+            }
+        }
+
+        /// <summary>
+        /// 获取 Build Settings 中启用的场景路径列表。
+        /// </summary>
+        private string[] GetEnabledScenePaths()
+        {
+            List<string> scenePaths = new List<string>();
+            EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
+            if (scenes == null || scenes.Length <= 0)
+            {
+                return scenePaths.ToArray();
+            }
+
+            for (int i = 0; i < scenes.Length; i++)
+            {
+                EditorBuildSettingsScene scene = scenes[i];
+                if (scene == null || !scene.enabled)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(scene.path))
+                {
+                    continue;
+                }
+
+                scenePaths.Add(scene.path);
+            }
+
+            return scenePaths.ToArray();
+        }
+
+        /// <summary>
+        /// 根据平台弹出保存对话框，获取 Player 输出路径。
+        /// </summary>
+        /// <param name="buildTarget">当前构建目标平台。</param>
+        private string GetPlayerLocationPath(BuildTarget buildTarget)
+        {
+            string defaultDirectory = Path.Combine(Application.dataPath, "..");
+            string productName = PlayerSettings.productName;
+            if (string.IsNullOrEmpty(productName))
+            {
+                productName = "Game";
+            }
+
+            if (buildTarget == BuildTarget.StandaloneWindows || buildTarget == BuildTarget.StandaloneWindows64)
+            {
+                return EditorUtility.SaveFilePanel("Build Player", defaultDirectory, productName, "exe");
+            }
+
+            if (buildTarget == BuildTarget.Android)
+            {
+                return EditorUtility.SaveFilePanel("Build Player", defaultDirectory, productName, "apk");
+            }
+
+            if (buildTarget == BuildTarget.iOS || buildTarget == BuildTarget.WebGL || buildTarget == BuildTarget.StandaloneOSX)
+            {
+                return EditorUtility.SaveFolderPanel("Build Player", defaultDirectory, productName);
+            }
+
+            return EditorUtility.SaveFolderPanel("Build Player", defaultDirectory, productName);
+        }
+
+        /// <summary>
+        /// 将构建输出完整复制到 StreamingAssets（不做标签过滤）。
+        /// </summary>
+        private void CopyToStreamingAssets()
+        {
+            if (m_BuildConfig == null) return;
+
+            var sourcePath = Path.Combine(Application.dataPath, "..",
+                m_BuildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
+            var destPath = Path.Combine(Application.streamingAssetsPath,
+                m_BuildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
+
+            if (!Directory.Exists(sourcePath))
+            {
+                Debug.LogError("[LWAssets] Build output not found!");
+                return;
+            }
+
+            if (Directory.Exists(destPath))
+            {
+                Directory.Delete(destPath, true);
+            }
+
+            FileUtility.CopyDirectory(sourcePath, destPath);
+            AssetDatabase.Refresh();
+
+            Debug.Log($"[LWAssets] Copied to StreamingAssets: {destPath}");
+        }
+
+        /// <summary>
+        /// 根据 BuiltinTags 将构建输出复制到 StreamingAssets，并生成裁剪后的 manifest/version。
+        /// </summary>
+        private void CopyToStreamingAssetsByTags()
+        {
+            if (m_BuildConfig == null)
+            {
+                Debug.LogError("[LWAssets] Build config not found!");
+                return;
+            }
+
+            LWAssetsBuildPipeline.CopyToStreamingAssetsByBuiltinTags(m_BuildConfig, m_RuntimeConfig);
+        }
+    }
+}
+#endif
