@@ -6,7 +6,6 @@
 - UI 设计与主题令牌（含深色模式）：design/ui-pro-max-ugui.md
 - 主题令牌 JSON：design/theme-tokens.json
 - 资源路径映射：spec/asset-path-mapping.md
-- 模板：templates/BentoGridView_Light.json / templates/BentoGridView_Dark.json
 
 ## 关键文件（严格对齐）
 
@@ -14,8 +13,11 @@
 - 示例：templates/QuizView.json
 - 示例：templates/LoadingView.json
 - 示例：templates/LoginView.json
-- Bento 模板（浅色）：templates/BentoGridView_Light.json
-- Bento 模板（深色）：templates/BentoGridView_Dark.json
+
+## 自定义组件（生成 JSON 时可用）
+
+- 组件描述库：components/*.md（或 *.json）
+- 示例组件：components/RoundedImage.md
 
 ## 关键词导航
 
@@ -27,7 +29,6 @@
 | 深色模式 / 主题 / 令牌 / RGBA | design/ui-pro-max-ugui.md |
 | Button 颜色状态 / ColorTint / navigation | design/ui-pro-max-ugui.md |
 | 资源路径 / Assets/Arts/BaseUI | spec/asset-path-mapping.md |
-| Bento / GridLayoutGroup / ContentSizeFitter / 卡片网格 | templates/BentoGridView_Light.json |
 | theme-tokens / 主题令牌 JSON / Primary / Border | design/theme-tokens.json |
 
 ## 怎么搜
@@ -37,3 +38,8 @@
 - python .claude/skills/uguitoolkit/scripts/search_refs.py 主题
 - python .claude/skills/uguitoolkit/scripts/search_refs.py 引用路径
 - python .claude/skills/uguitoolkit/scripts/search_refs.py Button
+
+列出/查询自定义组件：
+
+- python .claude/skills/uguitoolkit/scripts/search_refs.py --list-components
+- python .claude/skills/uguitoolkit/scripts/search_refs.py --show-component RoundedImage

@@ -4,6 +4,7 @@ using LitJson;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using LWUI;
 #if TMPRO
 using TMPro;
 #endif
@@ -186,6 +187,73 @@ internal sealed class UguiJsonToUguiBuilder
             return;
 
         Image image = GetOrAddComponent<Image>(go);
+        ApplyImageValues(image, imageData);
+    }
+
+    /// <summary>
+    /// 为节点添加并配置 RoundedImage（包含 Image 的通用参数 + 圆角/边框/镂空配置）。
+    /// </summary>
+    private void ApplyRoundedImage(GameObject go, JsonData roundedImageData)
+    {
+        if (roundedImageData == null)
+            return;
+
+        RoundedImage roundedImage = GetOrAddComponent<RoundedImage>(go);
+        ApplyImageValues(roundedImage, roundedImageData);
+
+        bool isIndependentCorners = m_Reader.GetBool(roundedImageData, "independentCorners", true);
+        if (isIndependentCorners)
+        {
+            float topLeftRadius = m_Reader.GetFloat(roundedImageData, "topLeftRadius", 16.0f);
+            float topRightRadius = m_Reader.GetFloat(roundedImageData, "topRightRadius", 16.0f);
+            float bottomRightRadius = m_Reader.GetFloat(roundedImageData, "bottomRightRadius", 16.0f);
+            float bottomLeftRadius = m_Reader.GetFloat(roundedImageData, "bottomLeftRadius", 16.0f);
+            roundedImage.SetCornerRadii(topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius);
+        }
+        else
+        {
+            float cornerRadius = m_Reader.GetFloat(roundedImageData, "cornerRadius", 16.0f);
+            roundedImage.SetCornerRadius(cornerRadius);
+        }
+
+        bool isBorderEnabled = m_Reader.GetBool(roundedImageData, "borderEnabled", false);
+        roundedImage.SetBorderEnabled(isBorderEnabled);
+
+        if (m_Reader.TryGetValue(roundedImageData, "borderColor", out JsonData borderColorData))
+            roundedImage.SetBorderColor(m_Reader.GetColor(borderColorData, Color.white));
+
+        float borderThickness = m_Reader.GetFloat(roundedImageData, "borderThickness", 0.0f);
+        roundedImage.SetBorderThickness(borderThickness);
+
+        bool isHollow = m_Reader.GetBool(roundedImageData, "hollow", false);
+        roundedImage.SetHollow(isHollow);
+
+        bool isHollowAreaRaycastEnabled = m_Reader.GetBool(roundedImageData, "hollowAreaRaycastEnabled", true);
+        roundedImage.SetHollowAreaRaycastEnabled(isHollowAreaRaycastEnabled);
+
+        bool isShaderRenderingEnabled = m_Reader.GetBool(roundedImageData, "shaderRenderingEnabled", true);
+        roundedImage.SetShaderRenderingEnabled(isShaderRenderingEnabled);
+
+        string roundedShaderMaterialPath = NormalizeNullableString(m_Reader.GetString(roundedImageData, "roundedShaderMaterial", string.Empty));
+        if (string.IsNullOrEmpty(roundedShaderMaterialPath))
+            roundedShaderMaterialPath = NormalizeNullableString(m_Reader.GetString(roundedImageData, "shaderMaterial", string.Empty));
+
+        if (!string.IsNullOrEmpty(roundedShaderMaterialPath))
+        {
+            Material roundedShaderMaterial = LoadMaterial(roundedShaderMaterialPath);
+            if (roundedShaderMaterial != null)
+                roundedImage.RoundedShaderMaterial = roundedShaderMaterial;
+        }
+    }
+
+    /// <summary>
+    /// 应用 Image 通用字段（用于 Image/RoundedImage 共用的 JSON 数据块）。
+    /// </summary>
+    private void ApplyImageValues(Image image, JsonData imageData)
+    {
+        if (image == null || imageData == null)
+            return;
+
         image.raycastTarget = m_Reader.GetBool(imageData, "raycastTarget", image.raycastTarget);
 
         if (m_Reader.TryGetValue(imageData, "color", out JsonData colorData))
@@ -902,6 +970,7 @@ internal sealed class UguiJsonToUguiBuilder
 
     private void RegisterDefaultComponentAppliers()
     {
+        RegisterComponentApplier("RoundedImage", ApplyRoundedImage);
         RegisterComponentApplier("Image", ApplyImage);
         RegisterComponentApplier("Text", ApplyText);
         RegisterComponentApplier("Button", ApplyButton);

@@ -1,137 +1,144 @@
-# UI Pro Max → Unity UGUI（可落地的设计与主题令牌）
 
-本文件把 ui-ux-pro-max 的 UI 理念、深色模式配色与交互原则，转换成 Unity UGUI（Image/Text/Button/InputField/ScrollRect 等）可直接落地的做法与数值建议。
+# UI Pro Max → Unity UGUI 迁移规范（设计 / 风格 / 颜色）
 
-## 核心理念（UGUI 适配）
+本文件用于把 ui-ux-pro-max 的“设计系统输出”（Pattern / Style / Colors / Typography / Effects / Anti-patterns）迁移到 uguitoolkit 的 UGUI JSON 生产流程中。
 
-- 层级优先：用“背景 / 容器 / 内容 / 强调”的 4 层结构组织界面；不要用同一个颜色承担多个层级职责
-- 玻璃质感要可见：浅色模式下透明度不能过低，避免“卡片消失”；深色模式下也必须保留边界（Border/描边/分隔）
-- 对比度达标：正文文本与背景对比度至少 4.5:1；低优先级信息用颜色与字号双重降级
-- 交互有反馈：所有可点区域都要有 Selectable 状态（highlight/pressed/disabled），并且能被键盘/手柄导航
-- 动效克制：不使用持续循环装饰动效；需要动效时提供“减少动态”的开关（通过全局配置关闭 Tweens/Animator）
-- 图标统一：不用 emoji 当图标；统一使用同一套 Sprite 风格与尺寸
+目标：让你在生成 UGUI JSON 时，不只是“结构正确”，还能具备统一的视觉语言、颜色语义与交互反馈。
 
-推荐的 UGUI 结构：
+---
 
-- Root
-  - ImgBackground（全屏背景）
-  - PnlLayout（内容根容器）
-    - PnlHeader（标题区，可固定）
-    - PnlContent（ScrollRect 或静态内容）
-    - PnlFooter（按钮区/提示区，可选）
+## 1. 主题令牌（Theme Tokens）
 
-## 主题令牌（浅色 / 深色）
+主题令牌统一存放在 [theme-tokens.json](theme-tokens.json)。
 
-本节使用 ui-ux-pro-max 的 Portfolio/Personal + Developer Tool/IDE 的倾向配色，并给出 UGUI 可直接填入 JSON 的 RGBA（0-1 浮点）。
+### 1.1 选择主题
 
-浅色（Light）：
+根据需要生成的内容自动推荐使用的主题（对应 ui-ux-pro-max 常见风格落地）
+或者使用指定的主题（如Light_Wellness_SoftUI）。
 
-| 令牌 | Hex | RGBA |
-|---|---|---|
-| Background | #FAFAFA | [0.980392, 0.980392, 0.980392, 1.0] |
-| Surface | #FFFFFF | [1.0, 1.0, 1.0, 1.0] |
-| Text | #09090B | [0.035294, 0.035294, 0.043137, 1.0] |
-| Muted | #3F3F46 | [0.247059, 0.247059, 0.274510, 1.0] |
-| Border | #E4E4E7 | [0.894118, 0.894118, 0.905882, 1.0] |
-| Primary（CTA） | #2563EB | [0.145098, 0.388235, 0.921569, 1.0] |
 
-深色（Dark）：
 
-| 令牌 | Hex | RGBA |
-|---|---|---|
-| Background | #09090B | [0.035294, 0.035294, 0.043137, 1.0] |
-| Surface | #18181B | [0.094118, 0.094118, 0.105882, 1.0] |
-| Text | #FAFAFA | [0.980392, 0.980392, 0.980392, 1.0] |
-| Muted | #A1A1AA | [0.631373, 0.631373, 0.666667, 1.0] |
-| Border | #3F3F46 | [0.247059, 0.247059, 0.274510, 1.0] |
-| Primary（CTA） | #60A5FA | [0.376471, 0.647059, 0.980392, 1.0] |
+### 1.2 Token → UGUI JSON 映射
 
-状态色（两套主题都可复用）：
+UGUI JSON 中颜色字段都是 `[r,g,b,a]`（0~1）。使用 token 时按组件类型映射：
 
-| 令牌 | Hex | RGBA |
-|---|---|---|
-| Success | #16A34A | [0.086275, 0.639216, 0.290196, 1.0] |
-| Warning | #F59E0B | [0.960784, 0.619608, 0.043137, 1.0] |
-| Danger | #EF4444 | [0.937255, 0.266667, 0.266667, 1.0] |
+- 背景大图（ImgBackground.Image.color）→ `Bg`
+- 卡片/面板（Pnl*/Img*.Image.color）→ `Surface` / `SurfaceAlt` / `SurfaceGlass*`
+- 主要按钮底（Btn*.Image.color + Btn*.Button.colors.normalColor）→ `Primary` 或 `CTA`
+- 辅助按钮底 → `Secondary`
+- 主文本（Txt*.Text.color）→ `TextPrimary`
+- 次文本/说明（Txt*.Text.color）→ `TextSecondary` 或在 `TextPrimary` 基础上降低 alpha
+- 边框（Image.borderColor）→ `Border` 或 `BorderGlass`
+- 弹窗遮罩（ImgMask.Image.color）→ `Overlay`
 
-## 令牌到 UGUI 组件的映射
+---
 
-- ImgBackground（Image.color）：Background
-- 面板/卡片（Image.color）：Surface + alpha
-  - 浅色推荐 alpha 0.88～0.96（不要低于 0.75）
-  - 深色推荐 alpha 0.55～0.78（但需要有边界）
-- 分割线/描边（Image + Sliced 边框图 或 叠一层 Image）：Border（alpha 0.6～1.0）
-- 标题（Text.color）：Text；正文（Text.color）：Muted
-- 强调元素（按钮/标签/高亮 icon）：Primary 或状态色
+## 2. UGUI 设计规范（结构、适配、性能）
 
-## Selectable 交互状态（Button / Toggle / InputField）
+### 2.1 层级结构（建议三层）
 
-UGUI 中“hover/pressed/disabled”优先用 Selectable（Button/Toggle/InputField）自带状态，不依赖脚本也能获得一致反馈（鼠标 + 手柄/键盘导航）。
+- 背景层：ImgBackground（全屏 Image）
+- 内容层：PnlLayout（承载主要布局与内容）
+- 浮层：PnlPopup / PnlToast / PnlGuide（弹窗、提示、引导）
 
-通用建议：
+### 2.2 分辨率与适配
 
-- transition：ColorTint
-- fadeDuration：0.10～0.18
-- navigation.mode：Automatic（需要键盘/手柄时更稳）
+UGUI JSON 只描述 RectTransform，但你在设计时要遵守一致的“锚点策略”：
 
-主要按钮（Primary）建议：
+- 全屏背景：anchorMin=(0,0) anchorMax=(1,1) sizeDelta=(0,0)
+- 顶部条：anchorMin=(0,1) anchorMax=(1,1) pivot=(0.5,1)
+- 底部条：anchorMin=(0,0) anchorMax=(1,0) pivot=(0.5,0)
+- 居中卡片/弹窗：anchorMin=anchorMax=(0.5,0.5)
 
-- Image.color：Primary
-- Button.colors：
-  - normalColor：Primary
-  - highlightedColor：Primary 稍亮（RGB + 0.04～0.08，最大不超过 1.0）
-  - pressedColor：Primary 稍暗（RGB - 0.08～0.14，最小不低于 0.0）
-  - disabledColor：Border（alpha 0.45～0.6）
+### 2.3 Layout 组件使用边界
 
-次要按钮（Surface）建议：
+除 ScrollRect 的 Content 外，默认不使用 Layout 组件。具体规则以 [ugui-json-rules.md](../spec/ugui-json-rules.md) 为准。
 
-- Image.color：Surface（alpha 0.8～0.95）
-- Button.colors：
-  - normalColor：Surface（alpha 0.8～0.95）
-  - highlightedColor：Surface 更接近不透明（alpha + 0.05～0.10）
-  - pressedColor：Surface 略暗（RGB - 0.03～0.08）
-  - disabledColor：Border（alpha 0.35～0.55）
+---
+
+## 3. 风格落地到 UGUI 组件（最常用的两套）
+
+### 3.1 Soft UI Evolution（推荐用于：健康/美容/服务型界面）
+
+核心要点：柔和底色 + 可读性优先 + 有层次但不过度拟物。
+
+组件建议：
+
+- 面板/卡片
+  - Image.color：`Surface` 或 `SurfaceAlt`
+  - Image.imageType：Sliced（配合圆角九宫格）
+  - Image.cornerRadius：12~16（与模板字段一致）
+  - Image.borderEnabled：true
+  - Image.borderColor：`Border`
+  - Image.borderThickness：1~2
+
+- 主按钮（CTA）
+  - Button.transition：ColorTint
+  - Button.colors.normalColor：`CTA`
+  - highlightedColor：在 normalColor 基础上提高亮度或提高 alpha（参考 theme-tokens.json 的状态倍率）
+  - pressedColor：在 normalColor 基础上降低亮度
+  - disabledColor：使用 `Border` 并降低 alpha
+
+- 文本
+  - 标题：TxtTitle（字体更粗/更大）
+  - 正文：TxtDesc（16px 起步的“可读字号思路”迁移到 UGUI：在 1080p 画布建议 20~26）
+
+示例主题（与 ui-ux-pro-max 的 Serenity Spa 设计系统一致）：
+
+- Primary：#10B981
+- CTA：#8B5CF6
+- Background：#ECFDF5
+- Text：#064E3B
+
+### 3.2 Glassmorphism（推荐用于：金融/科技暗色界面）
+
+核心要点：暗底 + 半透明卡片 + 明确的文字对比度。
+
+UGUI 约束：纯 UGUI 无真实背景模糊时，用“半透明 Surface + 轻边框 + 亮点缀色”模拟玻璃感。
+
+组件建议：
+
+- 玻璃卡片
+  - Image.color：`SurfaceGlass` 或 `SurfaceGlassStrong`
+  - Image.borderEnabled：true
+  - Image.borderColor：`BorderGlass`
+  - Image.borderThickness：1
+  - Image.cornerRadius：14~18
+
+- 主文本与次文本
+  - 主文本：`TextPrimary`（必须保证可读）
+  - 次文本：`TextSecondary` 或降低 alpha
+
+示例主题（与 ui-ux-pro-max 的 VaultX 设计系统一致）：
+
+- Background：#0F172A
+- Primary：#F59E0B
+- CTA：#8B5CF6
+- Text：#F8FAFC
+
+---
+
+## 4. 交互状态规范（Button / Toggle / InputField）
+
+UGUI JSON 的 Button 使用 `ColorTint` 时，建议统一采用同一套状态策略（在 [theme-tokens.json](theme-tokens.json) 的 `status.Selectable_ColorTint`）：
+
+- normal：基准色
+- highlighted：基准色 * 1.08（或轻微提高 alpha）
+- pressed：基准色 * 0.92（或轻微降低 alpha）
+- selected：基准色 * 1.02
+- disabled：alpha = 0.55（并降低饱和度/使用 Border 近似）
 
 InputField 建议：
 
-- 输入文本（InputField.textComponent 对应的 Text.color）：Text
-- Placeholder（InputField.placeholder 对应的 Text.color）：Muted（alpha 0.7～0.85）
-- 底（Image.color）：Surface（alpha 0.8～0.95），边界用 Border
+- 输入框底（ImgInputBg）：Surface/SurfaceAlt
+- Placeholder：TextPrimary + mutedAlpha
+- Text：TextPrimary
 
-Toggle 建议：
+---
 
-- targetGraphic（底）：Surface
-- graphic（勾）：Primary 或 Success
+## 5. 自检要点（迁移 ui-ux-pro-max 规则到 UGUI）
 
-## 字体与排版（Text）
-
-UGUI（Text）落地时不绑定具体字体文件，只给可执行策略：
-
-- 字体：标题与正文使用同一套无衬线（中文优先），避免混用过多字体
-- 字号层级：标题 28～40（移动端可下调），小标题 20～24，正文 16～18，辅助信息 12～14
-- 行距：lineSpacing 1.10～1.30；正文不要低于 1.10
-- 对齐：标题常用 MiddleLeft；按钮文字常用 MiddleCenter
-
-## Bento 卡片网格在 UGUI 的实现
-
-推荐把 Bento Grid 放在 ScrollRect.content 内，并使用 GridLayoutGroup + ContentSizeFitter（只在 ScrollRect Content 上允许）：
-
-- ScrollRect
-  - Viewport（Mask）
-    - Content（GridLayoutGroup + ContentSizeFitter）
-      - CardItem（Image + Button + 子 Text/Icon）
-
-CardItem 的视觉建议：
-
-- 圆角：使用 9-sliced Sprite（Image.imageType=Sliced）实现稳定圆角
-- 阴影：不建议大面积实时阴影；用轻阴影底图或加一层半透明 Image 模拟
-- Hover：只做颜色/描边/阴影强度变化，不做 scale 抖动（避免布局跳动）
-
-## 交付自检（UGUI 版本）
-
-- 亮/暗主题都可读：正文 Text 与背景对比度达标，Muted 不“发灰看不清”
-- 卡片在浅色不消失：Surface 的 alpha 不低于 0.75，并且有 Border/分隔
-- 所有可点区域有状态：Button/Toggle/InputField 都有 ColorTint 状态（含 disabled）
-- 导航可用：Selectable.navigation.mode 为 Automatic，重要按钮可被 Tab/手柄聚焦
-- 不做布局抖动：Hover 不用缩放，避免 Grid/Layout 重新计算导致跳动
-
+- 浅色模式不要过透明：卡片/面板 alpha 太低会“看不见”
+- 文本对比度优先：主文本与背景必须有明显区分
+- hover/press 不要改变布局：只改色/透明度，不改 sizeDelta
+- 交互元素都有反馈：Button/Toggle/InputField 需要高亮/按压/禁用态

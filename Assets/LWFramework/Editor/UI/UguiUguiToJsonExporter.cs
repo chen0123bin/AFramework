@@ -4,6 +4,7 @@ using LitJson;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using LWUI;
 #if TMPRO
 using TMPro;
 #endif
@@ -152,9 +153,17 @@ internal sealed class UguiUguiToJsonExporter
         if (canvasGroup != null)
             AddComponent(list, "CanvasGroup", ExportCanvasGroup(canvasGroup));
 
-        Image image = element.GetComponent<Image>();
-        if (image != null)
-            AddComponent(list, "Image", ExportImage(image));
+        RoundedImage roundedImage = element.GetComponent<RoundedImage>();
+        if (roundedImage != null)
+        {
+            AddComponent(list, "RoundedImage", ExportRoundedImage(roundedImage));
+        }
+        else
+        {
+            Image image = element.GetComponent<Image>();
+            if (image != null)
+                AddComponent(list, "Image", ExportImage(image));
+        }
 
         RawImage rawImage = element.GetComponent<RawImage>();
         if (rawImage != null)
@@ -275,6 +284,35 @@ internal sealed class UguiUguiToJsonExporter
         data["fillAmount"] = (double)image.fillAmount;
         data["fillClockwise"] = image.fillClockwise;
         data["fillOrigin"] = image.fillOrigin;
+        return data;
+    }
+
+    /// <summary>
+    /// 导出 RoundedImage 数据块（在 Image 基础上增加圆角/边框/镂空相关字段）。
+    /// </summary>
+    private JsonData ExportRoundedImage(RoundedImage roundedImage)
+    {
+        JsonData data = ExportImage(roundedImage);
+        if (roundedImage == null)
+            return data;
+
+        data["independentCorners"] = roundedImage.IsIndependentCorners;
+        data["cornerRadius"] = (double)roundedImage.CornerRadius;
+        data["topLeftRadius"] = (double)roundedImage.TopLeftRadius;
+        data["topRightRadius"] = (double)roundedImage.TopRightRadius;
+        data["bottomRightRadius"] = (double)roundedImage.BottomRightRadius;
+        data["bottomLeftRadius"] = (double)roundedImage.BottomLeftRadius;
+
+        data["borderEnabled"] = roundedImage.IsBorderEnabled;
+        data["borderColor"] = NewColor(roundedImage.BorderColor);
+        data["borderThickness"] = (double)roundedImage.BorderThickness;
+
+        data["hollow"] = roundedImage.IsHollow;
+        data["hollowAreaRaycastEnabled"] = roundedImage.IsHollowAreaRaycastEnabled;
+        data["shaderRenderingEnabled"] = roundedImage.IsShaderRenderingEnabled;
+
+        data["roundedShaderMaterial"] = GetMaterialPath(roundedImage.RoundedShaderMaterial);
+
         return data;
     }
 

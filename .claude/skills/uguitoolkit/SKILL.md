@@ -9,6 +9,8 @@ description: Unity UGUI 结构 JSON 生成工具箱。适用于把界面设计�
 
 - 规则与自检：references/spec/ugui-json-rules.md
 - UI 设计与主题令牌（含深色模式）：references/design/ui-pro-max-ugui.md
+- 主题令牌查询命令：python .claude/skills/uguitoolkit/scripts/search_refs.py 主题 --list-themes
+- 自定义组件查询命令：python .claude/skills/uguitoolkit/scripts/search_refs.py --list-components
 - 资源路径映射：references/spec/asset-path-mapping.md
 - 参考与索引：references/index.md
 
@@ -22,7 +24,7 @@ description: Unity UGUI 结构 JSON 生成工具箱。适用于把界面设计�
 - 目标平台（PC/移动端/横屏/竖屏）
 - 交互清单（按钮/输入框/滚动列表/弹窗等）
 - 资源信息（sprite/字体/材质，未知可用 null 或空字符串）
-- 主题偏好（Light/Dark，可选；影响默认颜色令牌）
+- 主题偏好（影响默认颜色令牌）
 
 ## 输出
 
@@ -34,7 +36,8 @@ description: Unity UGUI 结构 JSON 生成工具箱。适用于把界面设计�
 2. 把适配策略翻译成 RectTransform：anchorMin/anchorMax/pivot/sizeDelta/anchoredPosition
 3. 把交互翻译成组件 data：Button/Toggle/InputField/ScrollRect 的关键字段与引用路径
 4. 选主题令牌（可选）：按 references/design/ui-pro-max-ugui.md 给 Image/Text/Selectable 套默认色与状态色
-5. 做自检：按 references/spec/ugui-json-rules.md 的清单检查字段、引用路径、白名单
+5. 若用到自定义组件：先查 references/components/*.md（或 *.json），按组件描述补齐 type/data
+6. 做自检：按 references/spec/ugui-json-rules.md 的清单检查字段、引用路径、白名单
 
 ## 默认约束（性能与稳定性）
 

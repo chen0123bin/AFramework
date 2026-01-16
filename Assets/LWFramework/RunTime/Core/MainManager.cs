@@ -49,6 +49,10 @@ namespace LWCore
 
         public void ClearManager()
         {
+            if (m_ManagerDic == null || m_ManagerDic.Count <= 0)
+            {
+                return;
+            }
             GetManager<IFSMManager>().GetFSMProcedure().TerminationFMS();
             if (m_ManagerDic != null && m_ManagerDic.Count > 0)
             {

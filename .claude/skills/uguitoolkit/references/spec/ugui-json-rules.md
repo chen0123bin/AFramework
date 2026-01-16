@@ -64,7 +64,7 @@ components 结构：
 
 4. 组件字段
    - components 中每一项必须包含 type 与 data
-   - type 必须是模板中出现过的组件类型
+   - type 必须是模板中出现过的组件类型；或在 components/*.md（或 *.json）中有对应组件描述
    - data 字段名与枚举字符串必须与 UGUITempView.json 对齐：不新增字段、不漏字段、不随意改枚举字符串
 
 5. 引用路径一致性（最容易出错）
