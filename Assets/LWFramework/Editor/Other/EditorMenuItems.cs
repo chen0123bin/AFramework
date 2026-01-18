@@ -89,7 +89,27 @@ public class EditorMenuItems
         CreateView(viewName, savePath, gameObject, chooseGameObjectList);
 
     }
-
+    [MenuItem("GameObject/UIFramework/创建脚本/CopyComponet", false, -100)]
+    static void CopyComponet()
+    {
+        Object[] array = Selection.objects;
+        List<GameObject> chooseGameObjectList;
+        GameObject gameObject;
+        GetGameObject(array, out gameObject, out chooseGameObjectList);
+        var strBuilder = new StringBuilder();
+        //获取view上的组建
+        foreach (var item in chooseGameObjectList)
+        {
+            string childName = item.name;
+            string componentName = GetComponetName(item);
+            strBuilder.AppendFormat("\t[UIElement(\"{0}\")]", GetParentPath(gameObject, item, ""));
+            strBuilder.AppendLine();
+            strBuilder.AppendFormat("\tprivate {0} {1};", componentName, ConvertName(childName));
+            strBuilder.AppendLine();
+        }
+        GUIUtility.systemCopyBuffer = strBuilder.ToString();
+        Debug.Log(strBuilder.ToString());
+    }
     static bool CheckView(Object obj)
     {
         bool ret = true;

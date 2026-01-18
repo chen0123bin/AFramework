@@ -1,0 +1,9 @@
+StatusGroup,StatusKey,StatusValue
+Selectable_ColorTint,disabledAlpha,0.55
+Selectable_ColorTint,fadeDuration,0.1
+Selectable_ColorTint,highlightedMultiplier,1.08
+Selectable_ColorTint,normalMultiplier,1.0
+Selectable_ColorTint,pressedMultiplier,0.92
+Selectable_ColorTint,selectedMultiplier,1.02
+Text,disabledAlpha,0.5
+Text,mutedAlpha,0.72

@@ -45,7 +45,7 @@ namespace LWAssets.Editor
         /// </summary>
         public override void OnDeselected()
         {
-            EditorApplication.delayCall -= ExecuteBuild;
+            EditorApplication.delayCall -= ExecuteBuildAsset;
         }
 
         /// <summary>
@@ -81,52 +81,6 @@ namespace LWAssets.Editor
             }
         }
 
-        /// <summary>
-        /// 请求构建
-        /// </summary>
-        /// <param name="copyToStreamingAssets"></param>
-        private void RequestBuild(bool copyToStreamingAssets)
-        {
-            if (m_BuildConfig == null)
-            {
-                Debug.LogError("[LWAssets] Build config not found!");
-                return;
-            }
-
-            if (m_IsBuilding) return;
-
-            m_IsBuilding = true;
-            m_CopyToStreamingAssetsAfterBuild = copyToStreamingAssets;
-
-            EditorApplication.delayCall -= ExecuteBuild;
-            EditorApplication.delayCall += ExecuteBuild;
-        }
-        /// <summary>
-        /// 执行构建
-        /// </summary>
-        private void ExecuteBuild()
-        {
-            EditorApplication.delayCall -= ExecuteBuild;
-
-            try
-            {
-                LWAssetsBuildPipeline.Build(m_BuildConfig);
-
-                if (m_CopyToStreamingAssetsAfterBuild)
-                {
-                    CopyToStreamingAssets();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-            finally
-            {
-                m_IsBuilding = false;
-                m_CopyToStreamingAssetsAfterBuild = false;
-            }
-        }
 
         /// <summary>
         /// 绘制总览面板：统计信息、快捷操作、构建历史。
@@ -210,7 +164,7 @@ namespace LWAssets.Editor
             {
                 if (GUILayout.Button("Build AssetBundles", GUILayout.Height(40)))
                 {
-                    RequestBuild(false);
+                    RequestBuildAsset(false);
                 }
 
                 if (GUILayout.Button("Copy to StreamingAssets", GUILayout.Height(40)))
@@ -218,7 +172,7 @@ namespace LWAssets.Editor
                     if (EditorUtility.DisplayDialog("Copy to StreamingAssets",
                         "Are you sure you want to copy the build assets to StreamingAssets folder?", "Yes", "No"))
                     {
-                        CopyToStreamingAssets();
+                        LWAssetsBuildPipeline.CopyToStreamingAssets(m_BuildConfig);
                     }
                 }
 
@@ -227,7 +181,7 @@ namespace LWAssets.Editor
                     if (EditorUtility.DisplayDialog("Copy to StreamingAssets by BuiltinTags",
                         "Are you sure you want to copy the build assets to StreamingAssets folder?", "Yes", "No"))
                     {
-                        CopyToStreamingAssetsByTags();
+                        LWAssetsBuildPipeline.CopyToStreamingAssetsByBuiltinTags(m_BuildConfig, m_RuntimeConfig);
                     }
                 }
                 GUILayout.FlexibleSpace();
@@ -237,7 +191,7 @@ namespace LWAssets.Editor
             {
                 if (GUILayout.Button("Build And Copy", GUILayout.Height(40)))
                 {
-                    RequestBuild(true);
+                    RequestBuildAsset(true);
                 }
 
                 if (GUILayout.Button("Collect Shader Variants", GUILayout.Height(40)))
@@ -260,7 +214,7 @@ namespace LWAssets.Editor
             {
                 if (GUILayout.Button("Build Player", GUILayout.Height(40)))
                 {
-                    BuildPlayerWithBuiltinTags();
+                    RequestBuildPlayer();
                 }
 
                 GUILayout.FlexibleSpace();
@@ -319,7 +273,119 @@ namespace LWAssets.Editor
 
             EditorGUILayout.EndVertical();
         }
+        /// <summary>
+        /// 请求构建
+        /// </summary>
+        /// <param name="copyToStreamingAssets"></param>
+        private void RequestBuildAsset(bool copyToStreamingAssets)
+        {
+            if (m_BuildConfig == null)
+            {
+                Debug.LogError("[LWAssets] Build config not found!");
+                return;
+            }
 
+            if (m_IsBuilding) return;
+
+            m_IsBuilding = true;
+            m_CopyToStreamingAssetsAfterBuild = copyToStreamingAssets;
+
+            EditorApplication.delayCall -= ExecuteBuildAsset;
+            EditorApplication.delayCall += ExecuteBuildAsset;
+        }
+        /// <summary>
+        /// 执行构建
+        /// </summary>
+        private void ExecuteBuildAsset()
+        {
+            EditorApplication.delayCall -= ExecuteBuildAsset;
+
+            try
+            {
+                LWAssetsBuildPipeline.Build(m_BuildConfig);
+
+                if (m_CopyToStreamingAssetsAfterBuild)
+                {
+                    LWAssetsBuildPipeline.CopyToStreamingAssets(m_BuildConfig);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+            finally
+            {
+                m_IsBuilding = false;
+                m_CopyToStreamingAssetsAfterBuild = false;
+            }
+        }
+        /// <summary>
+        /// 请求构建Player
+        /// </summary>
+        private void RequestBuildPlayer()
+        {
+
+
+            EditorApplication.delayCall -= ExecuteBuildPlayer;
+            EditorApplication.delayCall += ExecuteBuildPlayer;
+        }
+
+        /// <summary>
+        /// 执行构建Player
+        /// </summary>
+        private void ExecuteBuildPlayer()
+        {
+            EditorApplication.delayCall -= ExecuteBuildPlayer;
+            try
+            {
+                if (m_IsBuilding || m_IsBuildingPlayer)
+                {
+                    return;
+                }
+
+                if (m_BuildConfig == null)
+                {
+                    EditorUtility.DisplayDialog("Build Player", "Build config not found!", "OK");
+                    return;
+                }
+
+                string[] scenePaths = GetEnabledScenePaths();
+                if (scenePaths == null || scenePaths.Length <= 0)
+                {
+                    EditorUtility.DisplayDialog("Build Player", "No enabled scenes in Build Settings.", "OK");
+                    return;
+                }
+
+                BuildTarget buildTarget = EditorUserBuildSettings.activeBuildTarget;
+                string playerPath = GetPlayerLocationPath(buildTarget);
+                if (string.IsNullOrEmpty(playerPath))
+                {
+                    return;
+                }
+
+                m_IsBuildingPlayer = true;
+                BuildReport report = LWAssetsBuildPipeline.BuildPlayerAndCopyAsset(m_BuildConfig, m_RuntimeConfig, scenePaths, buildTarget, playerPath);
+                if (report != null && report.summary.result != BuildResult.Succeeded)
+                {
+                    EditorUtility.DisplayDialog("Build Player", $"Build failed: {report.summary.result}", "OK");
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Build Player", "Build succeeded.", "OK");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                EditorUtility.DisplayDialog("Build Player", ex.Message, "OK");
+            }
+            finally
+            {
+                m_IsBuilding = false;
+                m_CopyToStreamingAssetsAfterBuild = false;
+            }
+        }
         /// <summary>
         /// 清理构建输出目录（按当前构建配置）。
         /// </summary>
@@ -336,59 +402,6 @@ namespace LWAssets.Editor
             }
         }
 
-        /// <summary>
-        /// 构建 Player：先构建 AssetBundle，再按 BuiltinTags 复制到 StreamingAssets，最后打包可运行程序。
-        /// </summary>
-        private void BuildPlayerWithBuiltinTags()
-        {
-            if (m_IsBuilding || m_IsBuildingPlayer)
-            {
-                return;
-            }
-
-            if (m_BuildConfig == null)
-            {
-                EditorUtility.DisplayDialog("Build Player", "Build config not found!", "OK");
-                return;
-            }
-
-            string[] scenePaths = GetEnabledScenePaths();
-            if (scenePaths == null || scenePaths.Length <= 0)
-            {
-                EditorUtility.DisplayDialog("Build Player", "No enabled scenes in Build Settings.", "OK");
-                return;
-            }
-
-            BuildTarget buildTarget = EditorUserBuildSettings.activeBuildTarget;
-            string playerPath = GetPlayerLocationPath(buildTarget);
-            if (string.IsNullOrEmpty(playerPath))
-            {
-                return;
-            }
-
-            m_IsBuildingPlayer = true;
-            try
-            {
-                BuildReport report = LWAssetsBuildPipeline.BuildPlayerWithBuiltinTags(m_BuildConfig, m_RuntimeConfig, scenePaths, buildTarget, playerPath);
-                if (report != null && report.summary.result != BuildResult.Succeeded)
-                {
-                    EditorUtility.DisplayDialog("Build Player", $"Build failed: {report.summary.result}", "OK");
-                }
-                else
-                {
-                    EditorUtility.DisplayDialog("Build Player", "Build succeeded.", "OK");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-                EditorUtility.DisplayDialog("Build Player", ex.Message, "OK");
-            }
-            finally
-            {
-                m_IsBuildingPlayer = false;
-            }
-        }
 
         /// <summary>
         /// 获取 Build Settings 中启用的场景路径列表。
@@ -452,48 +465,7 @@ namespace LWAssets.Editor
             return EditorUtility.SaveFolderPanel("Build Player", defaultDirectory, productName);
         }
 
-        /// <summary>
-        /// 将构建输出完整复制到 StreamingAssets（不做标签过滤）。
-        /// </summary>
-        private void CopyToStreamingAssets()
-        {
-            if (m_BuildConfig == null) return;
 
-            var sourcePath = Path.Combine(Application.dataPath, "..",
-                m_BuildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
-            var destPath = Path.Combine(Application.streamingAssetsPath,
-                m_BuildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
-
-            if (!Directory.Exists(sourcePath))
-            {
-                Debug.LogError("[LWAssets] Build output not found!");
-                return;
-            }
-
-            if (Directory.Exists(destPath))
-            {
-                Directory.Delete(destPath, true);
-            }
-
-            FileUtility.CopyDirectory(sourcePath, destPath);
-            AssetDatabase.Refresh();
-
-            Debug.Log($"[LWAssets] Copied to StreamingAssets: {destPath}");
-        }
-
-        /// <summary>
-        /// 根据 BuiltinTags 将构建输出复制到 StreamingAssets，并生成裁剪后的 manifest/version。
-        /// </summary>
-        private void CopyToStreamingAssetsByTags()
-        {
-            if (m_BuildConfig == null)
-            {
-                Debug.LogError("[LWAssets] Build config not found!");
-                return;
-            }
-
-            LWAssetsBuildPipeline.CopyToStreamingAssetsByBuiltinTags(m_BuildConfig, m_RuntimeConfig);
-        }
     }
 }
 #endif

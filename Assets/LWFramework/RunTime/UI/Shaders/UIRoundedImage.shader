@@ -134,11 +134,6 @@ Shader "UI/LWFramework/RoundedImage"
 
                 float clipFactor = 1.0;
 
-                #ifdef UNITY_UI_CLIP_RECT
-                clipFactor = UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
-                texColor.a *= clipFactor;
-                #endif
-
                 float2 pCanvas = i.worldPosition.xy - _RectCenter.xy;
                 float2 p = float2(dot(pCanvas, _RectAxisRight.xy), dot(pCanvas, _RectAxisUp.xy));
                 float2 halfSize = _RectHalfSize.xy;

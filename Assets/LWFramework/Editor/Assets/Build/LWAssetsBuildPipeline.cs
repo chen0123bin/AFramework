@@ -107,10 +107,19 @@ namespace LWAssets.Editor
         /// <param name="buildTarget">目标平台。</param>
         /// <param name="locationPathName">Player 输出路径。</param>
         /// <returns>Unity BuildReport。</returns>
-        public static BuildReport BuildPlayerWithBuiltinTags(LWAssetsBuildConfig buildConfig, LWAssetsConfig runtimeConfig, string[] scenePaths, BuildTarget buildTarget, string locationPathName)
+        public static BuildReport BuildPlayerAndCopyAsset(LWAssetsBuildConfig buildConfig, LWAssetsConfig runtimeConfig, string[] scenePaths, BuildTarget buildTarget, string locationPathName)
         {
             Build(buildConfig);
-            CopyToStreamingAssetsByBuiltinTags(buildConfig, runtimeConfig);
+            //Offline 模式下，直接复制到 StreamingAssets
+            if (runtimeConfig.PlayMode == PlayMode.Offline)
+            {
+                CopyToStreamingAssets(buildConfig);
+            }
+            //Online 模式下，按 BuiltinTags 复制到 StreamingAssets
+            else
+            {
+                CopyToStreamingAssetsByBuiltinTags(buildConfig, runtimeConfig);
+            }
             AssetDatabase.Refresh();
 
             BuildPlayerOptions options = new BuildPlayerOptions();
@@ -122,7 +131,34 @@ namespace LWAssets.Editor
             BuildReport report = BuildPipeline.BuildPlayer(options);
             return report;
         }
+        /// <summary>
+        /// 将构建输出完整复制到 StreamingAssets（不做标签过滤）。
+        /// </summary>
+        public static void CopyToStreamingAssets(LWAssetsBuildConfig buildConfig)
+        {
+            if (buildConfig == null) return;
 
+            var sourcePath = Path.Combine(Application.dataPath, "..",
+                buildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
+            var destPath = Path.Combine(Application.streamingAssetsPath,
+                buildConfig.OutputPath, LWAssetsConfig.GetPlatformName());
+
+            if (!Directory.Exists(sourcePath))
+            {
+                Debug.LogError("[LWAssets] Build output not found!");
+                return;
+            }
+
+            if (Directory.Exists(destPath))
+            {
+                Directory.Delete(destPath, true);
+            }
+
+            FileUtility.CopyDirectory(sourcePath, destPath);
+            AssetDatabase.Refresh();
+
+            Debug.Log($"[LWAssets] Copied to StreamingAssets: {destPath}");
+        }
         /// <summary>
         /// 按 BuiltinTags 将构建输出复制到 StreamingAssets，并生成裁剪后的 manifest/version。
         /// </summary>

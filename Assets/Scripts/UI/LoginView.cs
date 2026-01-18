@@ -10,17 +10,24 @@ public class LoginView : BaseUIView
     private const string EVENT_LOGIN_CANCEL = "Auth.Login.Cancel";
     private const string PLAYER_PREFS_REMEMBER = "Auth.Login.Remember";
     private const string PLAYER_PREFS_USER = "Auth.Login.User";
+    private const string PLAYER_PREFS_PASSWORD = "Auth.Login.Password";
 
-    [UIElement("PnlMain/IpfUser")]
-    private InputField m_IpfUser;
-    [UIElement("IpfPassword")]
+
+    [UIElement("PnlCard/IpfAccount")]
+    private InputField m_IpfAccount;
+    [UIElement("PnlCard/IpfPassword")]
     private InputField m_IpfPassword;
-    [UIElement("TglRemember")]
+    [UIElement("PnlCard/PnlOptions/TglRemember")]
     private Toggle m_TglRemember;
-    [UIElement("BtnLogin")]
+    [UIElement("PnlCard/PnlOptions/BtnForgot")]
+    private Button m_BtnForgot;
+    [UIElement("PnlCard/BtnLogin")]
     private Button m_BtnLogin;
+    [UIElement("PnlCard/PnlRegister/BtnRegister")]
+    private Button m_BtnRegister;
     [UIElement("BtnClose")]
     private Button m_BtnClose;
+
 
     /// <summary>
     /// 创建并初始化登录界面（绑定控件与按钮事件）。
@@ -77,7 +84,7 @@ public class LoginView : BaseUIView
     /// </summary>
     private void OnClickLogin()
     {
-        string userName = GetTrimmedText(m_IpfUser);
+        string userName = GetTrimmedText(m_IpfAccount);
         string password = GetText(m_IpfPassword);
         bool isRemember = m_TglRemember != null && m_TglRemember.isOn;
 
@@ -101,14 +108,19 @@ public class LoginView : BaseUIView
         int rememberValue = PlayerPrefs.GetInt(PLAYER_PREFS_REMEMBER, 0);
         bool isRemember = rememberValue == 1;
         string userName = PlayerPrefs.GetString(PLAYER_PREFS_USER, string.Empty);
+        string password = PlayerPrefs.GetString(PLAYER_PREFS_PASSWORD, string.Empty);
 
         if (m_TglRemember != null)
         {
             m_TglRemember.isOn = isRemember;
         }
-        if (isRemember && m_IpfUser != null)
+        if (isRemember && m_IpfAccount != null)
         {
-            m_IpfUser.text = userName;
+            m_IpfAccount.text = userName;
+        }
+        if (isRemember && m_IpfPassword != null)
+        {
+            m_IpfPassword.text = password;
         }
     }
 
@@ -123,11 +135,14 @@ public class LoginView : BaseUIView
         if (isRemember)
         {
             PlayerPrefs.SetString(PLAYER_PREFS_USER, userName);
+            PlayerPrefs.SetString(PLAYER_PREFS_PASSWORD, m_IpfPassword.text);
         }
         else
         {
+            PlayerPrefs.DeleteKey(PLAYER_PREFS_PASSWORD);
             PlayerPrefs.DeleteKey(PLAYER_PREFS_USER);
         }
+
         PlayerPrefs.Save();
     }
 

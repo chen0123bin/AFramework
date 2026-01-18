@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace LWUI
 {
-    [ExecuteAlways]
+    //[ExecuteAlways]
     [AddComponentMenu("UI/Rounded Image", 11)]
     public class RoundedImage : Image
     {
@@ -73,8 +73,6 @@ namespace LWUI
         private Material m_RuntimeRoundedMaterial;
         private Material m_RuntimePerInstanceMaterial;
         private Material m_LastSourceModifiedMaterial;
-
-        private readonly Vector3[] m_WorldCorners = new Vector3[4];
 
         private static readonly int SHADER_ID_ROUNDED_RECT = Shader.PropertyToID("_RoundedRect");
         private static readonly int SHADER_ID_CORNER_RADII = Shader.PropertyToID("_CornerRadii");
@@ -444,24 +442,24 @@ namespace LWUI
         /// <summary>
         /// 编辑器参数变化时自动校验。
         /// </summary>
-        protected override void OnValidate()
-        {
-            base.OnValidate();
+        // protected override void OnValidate()
+        // {
+        //     base.OnValidate();
 
-            m_CornerRadius = Mathf.Max(0.0f, m_CornerRadius);
-            m_TopLeftRadius = Mathf.Max(0.0f, m_TopLeftRadius);
-            m_TopRightRadius = Mathf.Max(0.0f, m_TopRightRadius);
-            m_BottomRightRadius = Mathf.Max(0.0f, m_BottomRightRadius);
-            m_BottomLeftRadius = Mathf.Max(0.0f, m_BottomLeftRadius);
+        //     m_CornerRadius = Mathf.Max(0.0f, m_CornerRadius);
+        //     m_TopLeftRadius = Mathf.Max(0.0f, m_TopLeftRadius);
+        //     m_TopRightRadius = Mathf.Max(0.0f, m_TopRightRadius);
+        //     m_BottomRightRadius = Mathf.Max(0.0f, m_BottomRightRadius);
+        //     m_BottomLeftRadius = Mathf.Max(0.0f, m_BottomLeftRadius);
 
-            m_BorderThickness = Mathf.Max(0.0f, m_BorderThickness);
-            if (m_IsHollow)
-            {
-                m_IsBorderEnabled = true;
-            }
+        //     m_BorderThickness = Mathf.Max(0.0f, m_BorderThickness);
+        //     if (m_IsHollow)
+        //     {
+        //         m_IsBorderEnabled = true;
+        //     }
 
-            MarkGeometryOrMaterialDirty();
-        }
+        //     MarkGeometryOrMaterialDirty();
+        // }
 
         /// <summary>
         /// Shader 渲染模式下返回带圆角裁剪的材质。

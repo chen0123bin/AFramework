@@ -471,6 +471,184 @@ public class HotfixExamples
 }
 ```
 
+## IAudioManager：播放 / 停止 / 暂停 / 全局音量
+
+```csharp
+using LWAudio;
+using LWCore;
+using UnityEngine;
+
+public class AudioManagerExamples : MonoBehaviour
+{
+    [SerializeField] private AudioClip m_UIClickClip;
+    [SerializeField] private AudioClip m_ExplosionClip;
+    [SerializeField] private Transform m_Emitter;
+
+    private AudioChannel m_UIClickChannel;
+
+    /// <summary>
+    /// 播放 2D 音效：返回的 AudioChannel 可用于后续控制
+    /// </summary>
+    public void PlayUIClick()
+    {
+        if (m_UIClickClip == null)
+        {
+            return;
+        }
+
+        m_UIClickChannel = ManagerUtility.AudioMgr.Play(m_UIClickClip, loop: false, fadeInSeconds: 0f, volume: -1f);
+    }
+
+    /// <summary>
+    /// 播放 3D 音效：跟随挂点，并可按需覆写 3D 参数
+    /// </summary>
+    public void PlayExplosionOnEmitter()
+    {
+        if (m_ExplosionClip == null)
+        {
+            return;
+        }
+
+        Audio3DSettings audio3DSettings = Audio3DSettings.Default3D;
+        audio3DSettings.MinDistance = 2f;
+        audio3DSettings.MaxDistance = 30f;
+
+        ManagerUtility.AudioMgr.Play(
+            m_ExplosionClip,
+            m_Emitter,
+            loop: false,
+            fadeInSeconds: 0.05f,
+            volume: -1f,
+            settings: audio3DSettings);
+    }
+
+    /// <summary>
+    /// 设置全局音量：会作用于当前已激活的所有通道
+    /// </summary>
+    public void SetGlobalVolume(float volume01)
+    {
+        float volume = Mathf.Clamp01(volume01);
+        ManagerUtility.AudioMgr.AudioVolume = volume;
+    }
+
+    /// <summary>
+    /// 控制指定通道：暂停/恢复/停止（Stop 会触发淡出逻辑，取决于 Play 配置）
+    /// </summary>
+    public void ControlChannel()
+    {
+        if (m_UIClickChannel == null)
+        {
+            return;
+        }
+
+        ManagerUtility.AudioMgr.Pause(m_UIClickChannel);
+        ManagerUtility.AudioMgr.Resume(m_UIClickChannel);
+        ManagerUtility.AudioMgr.Stop(m_UIClickChannel);
+        m_UIClickChannel = null;
+    }
+
+    /// <summary>
+    /// 停止所有通道：适用于切场景/回主城/进入战斗等全局切换
+    /// </summary>
+    public void StopAll()
+    {
+        ManagerUtility.AudioMgr.StopAll();
+    }
+}
+```
+
+## GameObjectPool：创建 / 借出 / 归还 / 清理
+
+```csharp
+using LWCore;
+using UnityEngine;
+
+public sealed class BulletPoolItem : PoolGameObject
+{
+    /// <summary>
+    /// 对象从池中借出时回调：做初始化/重置
+    /// </summary>
+    public override void OnSpawn()
+    {
+        if (m_Entity == null)
+        {
+            return;
+        }
+
+        m_Entity.transform.localPosition = Vector3.zero;
+        m_Entity.transform.localRotation = Quaternion.identity;
+    }
+
+    /// <summary>
+    /// 对象归还进池时回调：做清理/取消绑定
+    /// </summary>
+    public override void OnUnSpawn()
+    {
+    }
+}
+
+public class ObjectPoolExamples : MonoBehaviour
+{
+    [SerializeField] private GameObject m_BulletTemplate;
+    [SerializeField] private Transform m_PoolRoot;
+
+    private GameObjectPool<BulletPoolItem> m_BulletPool;
+
+    /// <summary>
+    /// 初始化对象池：template 会被 SetActive(false) 作为克隆源
+    /// </summary>
+    public void Initialize()
+    {
+        if (m_BulletTemplate == null)
+        {
+            return;
+        }
+
+        m_BulletPool = new GameObjectPool<BulletPoolItem>(poolMaxSize: 64, template: m_BulletTemplate, parent: m_PoolRoot, ownsTemplate: false);
+    }
+
+    /// <summary>
+    /// 借出对象：必要时会自动克隆 template
+    /// </summary>
+    public BulletPoolItem SpawnBullet()
+    {
+        if (m_BulletPool == null)
+        {
+            return null;
+        }
+
+        BulletPoolItem bullet = m_BulletPool.Spawn();
+        return bullet;
+    }
+
+    /// <summary>
+    /// 归还对象：超出容量会直接释放
+    /// </summary>
+    public void UnspawnBullet(BulletPoolItem bullet)
+    {
+        if (m_BulletPool == null)
+        {
+            return;
+        }
+
+        m_BulletPool.Unspawn(bullet);
+    }
+
+    /// <summary>
+    /// 清空对象池：可选择是否释放“已借出”的对象
+    /// </summary>
+    public void ClearPool(bool releaseInUseObjects)
+    {
+        if (m_BulletPool == null)
+        {
+            return;
+        }
+
+        m_BulletPool.Clear(releaseInUseObjects);
+    }
+}
+```
+
 ## IManager：自定义管理器与注册
 
 ```csharp

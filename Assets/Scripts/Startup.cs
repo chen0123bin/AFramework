@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LWAssets;
+using LWAudio;
 using LWCore;
 using LWFMS;
 using LWHotfix;
@@ -33,7 +34,7 @@ public class Startup : MonoBehaviour
         ManagerUtility.MainMgr.AddManager(typeof(IUIManager).ToString(), new UIManager());
         ManagerUtility.MainMgr.AddManager(typeof(IHotfixManager).ToString(), new HotFixCodeManager());
         ManagerUtility.MainMgr.AddManager(typeof(IFSMManager).ToString(), new FSMManager());
-
+        ManagerUtility.MainMgr.AddManager(typeof(IAudioManager).ToString(), new AudioManager());
         await ManagerUtility.AssetsMgr.InitializeAsync();
         ManagerUtility.MainMgr.MonoBehaviour = this;
         if (ManagerUtility.AssetsMgr.CurrentPlayMode == LWAssets.PlayMode.Online)

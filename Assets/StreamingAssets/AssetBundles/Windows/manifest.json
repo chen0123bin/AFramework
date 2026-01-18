@@ -1,14 +1,14 @@
 
 {
-    "Version" : 3,
-    "BuildTime" : "2026-01-12 16:55:20",
+    "Version" : 8,
+    "BuildTime" : "2026-01-17 21:33:20",
     "Platform"  : "Windows",
     "Bundles"   : [
         {
             "BundleName" : "mytest_prefabs",
-            "Hash"       : "ba65869348df997cd485953431a0b981",
-            "CRC"        : 3348105728,
-            "Size"       : 454950,
+            "Hash"       : "f455e43a6cf29ef4c09bb5de0a4627b5",
+            "CRC"        : 2266408950,
+            "Size"       : 464995,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -28,14 +28,17 @@
                 "Assets/0Res/Prefabs/SnowVFX.prefab",
                 "Assets/0Res/Prefabs/Sphere.prefab",
                 "Assets/0Res/Prefabs/UI/LoadingView.prefab",
+                "Assets/0Res/Prefabs/UI/LoadingView_.prefab",
+                "Assets/0Res/Prefabs/UI/LoginView.prefab",
+                "Assets/0Res/Prefabs/UI/ShowcaseView.prefab",
                 "Assets/0Res/Prefabs/UI/TestView.prefab"
             ]
         },
         {
             "BundleName" : "scene2_scenes2",
-            "Hash"       : "56cf5652e500c6b394a4b0f45c20ae16",
-            "CRC"        : 4056577629,
-            "Size"       : 93312,
+            "Hash"       : "33f558518d79b26dfc5f7e8426a6198d",
+            "CRC"        : 2599688273,
+            "Size"       : 93304,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -51,9 +54,9 @@
         },
         {
             "BundleName" : "scenes_scenes",
-            "Hash"       : "80bed2364a44d50c62b9944775c53b1d",
-            "CRC"        : 646458044,
-            "Size"       : 93256,
+            "Hash"       : "797dc40529973b9e63827da2c493ab64",
+            "CRC"        : 3089844192,
+            "Size"       : 93257,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -69,9 +72,9 @@
         },
         {
             "BundleName" : "shaders",
-            "Hash"       : "da672723f9b21edfa7e3b89897259792",
-            "CRC"        : 1960432424,
-            "Size"       : 35776,
+            "Hash"       : "1c1765a18d805e82c96d7642bbd87bd2",
+            "CRC"        : 1144943851,
+            "Size"       : 37076,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -84,6 +87,7 @@
                 "Assets/Arts/Shaders/HoloScan.shader",
                 "Assets/Arts/Shaders/MCP_CoolNeon.shader",
                 "Assets/Arts/Shaders/PipeFlow.shader",
+                "Assets/LWFramework/RunTime/UI/Shaders/UIRoundedImage.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Custom-Atlas.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Bitmap.shader",

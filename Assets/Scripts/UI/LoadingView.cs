@@ -7,12 +7,14 @@ using System.Collections.Generic;
 public class LoadingBarView : BaseUIView
 {
 
-	[UIElement("SldProgress")]
-	private Slider m_SldProgress;
-	[UIElement("TxtProgress")]
-	private Text m_TxtProgress;
-	[UIElement("TxtTip")]
+	[UIElement("PnlCard/TxtTip")]
 	private Text m_TxtTip;
+	[UIElement("PnlCard/SldProgress")]
+	private Slider m_SldProgress;
+	[UIElement("PnlCard/TxtPercent")]
+	private Text m_TxtPercent;
+	[UIElement("PnlCard/TxtVersion")]
+	private Text m_TxtVersion;
 
 	/// <summary>
 	/// 加载提示
@@ -23,6 +25,14 @@ public class LoadingBarView : BaseUIView
 		set { m_TxtTip.text = value; }
 	}
 	/// <summary>
+	/// 版本信息
+	/// </summary>
+	public string Version
+	{
+		get { return m_TxtVersion.text; }
+		set { m_TxtVersion.text = value; }
+	}
+	/// <summary>
 	/// 加载进度
 	/// </summary>
 	public float Progress
@@ -31,7 +41,7 @@ public class LoadingBarView : BaseUIView
 		set
 		{
 			m_SldProgress.value = value;
-			m_TxtProgress.text = $"{(int)(value * 100)}%";
+			m_TxtPercent.text = $"{(int)(value * 100)}%";
 		}
 	}
 	public override void CreateView(GameObject gameObject)

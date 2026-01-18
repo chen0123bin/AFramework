@@ -1,0 +1,1856 @@
+{
+  "Root": {
+    "name": "FunctionShowcaseView_LightClimateTech",
+    "rectTransform": {
+      "anchorMin": [
+        0.0,
+        0.0
+      ],
+      "anchorMax": [
+        1.0,
+        1.0
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "anchoredPosition": [
+        0.0,
+        0.0
+      ],
+      "sizeDelta": [
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "components": [
+      {
+        "type": "CanvasGroup",
+        "data": {
+          "alpha": 1.0,
+          "interactable": true,
+          "blocksRaycasts": true,
+          "ignoreParentGroups": false
+        }
+      }
+    ],
+    "children": [
+      {
+        "name": "ImgBg",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [
+            0.0,
+            0.0
+          ],
+          "anchorMax": [
+            1.0,
+            1.0
+          ],
+          "pivot": [
+            0.5,
+            0.5
+          ],
+          "anchoredPosition": [
+            0.0,
+            0.0
+          ],
+          "sizeDelta": [
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "components": [
+          {
+            "type": "Image",
+            "data": {
+              "sprite": null,
+              "color": [
+                0.9411765,
+                1.0,
+                0.95686275,
+                1.0
+              ],
+              "material": "Default UI Material",
+              "raycastTarget": true,
+              "imageType": "Simple"
+            }
+          }
+        ]
+      },
+      {
+        "name": "PnlTop",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [
+            0.0,
+            1.0
+          ],
+          "anchorMax": [
+            1.0,
+            1.0
+          ],
+          "pivot": [
+            0.5,
+            1.0
+          ],
+          "anchoredPosition": [
+            0.0,
+            0.0
+          ],
+          "sizeDelta": [
+            0.0,
+            120.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "children": [
+          {
+            "name": "TxtTitle",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [
+                0.0,
+                0.0
+              ],
+              "anchorMax": [
+                1.0,
+                1.0
+              ],
+              "pivot": [
+                0.5,
+                0.5
+              ],
+              "anchoredPosition": [
+                0.0,
+                -10.0
+              ],
+              "sizeDelta": [
+                -160.0,
+                0.0
+              ],
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "components": [
+              {
+                "type": "Text",
+                "data": {
+                  "content": "框架功能展示",
+                  "font": "Library/unity default resources",
+                  "fontSize": 42,
+                  "fontStyle": "Bold",
+                  "color": [
+                    0.101960786,
+                    0.2,
+                    0.1254902,
+                    1.0
+                  ],
+                  "alignment": "MiddleCenter",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false,
+                  "supportRichText": true,
+                  "lineSpacing": 1.0
+                }
+              }
+            ]
+          },
+          {
+            "name": "BtnClose",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [
+                1.0,
+                0.5
+              ],
+              "anchorMax": [
+                1.0,
+                0.5
+              ],
+              "pivot": [
+                1.0,
+                0.5
+              ],
+              "anchoredPosition": [
+                -40.0,
+                -10.0
+              ],
+              "sizeDelta": [
+                88.0,
+                44.0
+              ],
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "components": [
+              {
+                "type": "RoundedImage",
+                "data": {
+                  "color": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "material": "Default UI Material",
+                  "raycastTarget": true,
+                  "independentCorners": false,
+                  "cornerRadius": 14.0
+                }
+              },
+              {
+                "type": "Button",
+                "data": {
+                  "interactable": true,
+                  "transition": "ColorTint",
+                  "colors": {
+                    "normalColor": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      0.0
+                    ],
+                    "highlightedColor": [
+                      0.18039216,
+                      0.54509807,
+                      0.34117648,
+                      0.08
+                    ],
+                    "pressedColor": [
+                      0.18039216,
+                      0.54509807,
+                      0.34117648,
+                      0.16
+                    ],
+                    "selectedColor": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      0.0
+                    ],
+                    "disabledColor": [
+                      0.8,
+                      0.8,
+                      0.8,
+                      0.4
+                    ],
+                    "colorMultiplier": 1.0,
+                    "fadeDuration": 0.12
+                  },
+                  "navigation": {
+                    "mode": "Automatic"
+                  }
+                }
+              }
+            ],
+            "children": [
+              {
+                "name": "Txt",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [
+                    0.0,
+                    0.0
+                  ],
+                  "anchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "pivot": [
+                    0.5,
+                    0.5
+                  ],
+                  "anchoredPosition": [
+                    0.0,
+                    0.0
+                  ],
+                  "sizeDelta": [
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "components": [
+                  {
+                    "type": "Text",
+                    "data": {
+                      "content": "关闭",
+                      "font": "Library/unity default resources",
+                      "fontSize": 22,
+                      "fontStyle": "Bold",
+                      "color": [
+                        0.18039216,
+                        0.54509807,
+                        0.34117648,
+                        1.0
+                      ],
+                      "alignment": "MiddleCenter",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false,
+                      "supportRichText": true,
+                      "lineSpacing": 1.0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "PnlCard",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [
+            0.5,
+            0.5
+          ],
+          "anchorMax": [
+            0.5,
+            0.5
+          ],
+          "pivot": [
+            0.5,
+            0.5
+          ],
+          "anchoredPosition": [
+            0.0,
+            -30.0
+          ],
+          "sizeDelta": [
+            980.0,
+            820.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "components": [
+          {
+            "type": "RoundedImage",
+            "data": {
+              "color": [
+                1.0,
+                1.0,
+                1.0,
+                0.92
+              ],
+              "material": "Default UI Material",
+              "raycastTarget": true,
+              "independentCorners": false,
+              "cornerRadius": 22.0
+            }
+          },
+          {
+            "type": "Shadow",
+            "data": {
+              "effectColor": [
+                0.101960786,
+                0.2,
+                0.1254902,
+                0.12
+              ],
+              "effectDistance": [
+                0.0,
+                -10.0
+              ],
+              "useGraphicAlpha": true
+            }
+          }
+        ],
+        "children": [
+          {
+            "name": "TxtHint",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [
+                0.5,
+                1.0
+              ],
+              "anchorMax": [
+                0.5,
+                1.0
+              ],
+              "pivot": [
+                0.5,
+                1.0
+              ],
+              "anchoredPosition": [
+                0.0,
+                -28.0
+              ],
+              "sizeDelta": [
+                900.0,
+                54.0
+              ],
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "components": [
+              {
+                "type": "Text",
+                "data": {
+                  "content": "点击按钮触发对应示例（查看控制台输出 / 场景效果）。",
+                  "font": "Library/unity default resources",
+                  "fontSize": 22,
+                  "fontStyle": "Normal",
+                  "color": [
+                    0.28627452,
+                    0.3764706,
+                    0.30980393,
+                    0.8
+                  ],
+                  "alignment": "MiddleCenter",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Truncate",
+                  "raycastTarget": false,
+                  "supportRichText": true,
+                  "lineSpacing": 1.0
+                }
+              }
+            ]
+          },
+          {
+            "name": "ScrActions",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [
+                0.5,
+                1.0
+              ],
+              "anchorMax": [
+                0.5,
+                1.0
+              ],
+              "pivot": [
+                0.5,
+                1.0
+              ],
+              "anchoredPosition": [
+                0.0,
+                -104.0
+              ],
+              "sizeDelta": [
+                900.0,
+                520.0
+              ],
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "components": [
+              {
+                "type": "Image",
+                "data": {
+                  "sprite": null,
+                  "color": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "material": "Default UI Material",
+                  "raycastTarget": true,
+                  "imageType": "Simple"
+                }
+              },
+              {
+                "type": "ScrollRect",
+                "data": {
+                  "content": "Viewport/Content",
+                  "horizontal": false,
+                  "vertical": true,
+                  "movementType": "Clamped",
+                  "elasticity": 0.1,
+                  "inertia": false,
+                  "decelerationRate": 0.135,
+                  "scrollSensitivity": 24.0,
+                  "viewport": "Viewport",
+                  "horizontalScrollbar": null,
+                  "verticalScrollbar": null,
+                  "horizontalScrollbarVisibility": "AutoHideAndExpandViewport",
+                  "verticalScrollbarVisibility": "AutoHideAndExpandViewport",
+                  "horizontalScrollbarSpacing": 0.0,
+                  "verticalScrollbarSpacing": 0.0
+                }
+              }
+            ],
+            "children": [
+              {
+                "name": "Viewport",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [
+                    0.0,
+                    0.0
+                  ],
+                  "anchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "pivot": [
+                    0.5,
+                    0.5
+                  ],
+                  "anchoredPosition": [
+                    0.0,
+                    0.0
+                  ],
+                  "sizeDelta": [
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": null,
+                      "color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        0.0
+                      ],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Simple"
+                    }
+                  },
+                  {
+                    "type": "Mask",
+                    "data": {
+                      "showMaskGraphic": false
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "Content",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [
+                        0.0,
+                        1.0
+                      ],
+                      "anchorMax": [
+                        1.0,
+                        1.0
+                      ],
+                      "pivot": [
+                        0.5,
+                        1.0
+                      ],
+                      "anchoredPosition": [
+                        0.0,
+                        0.0
+                      ],
+                      "sizeDelta": [
+                        0.0,
+                        0.0
+                      ],
+                      "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "components": [
+                      {
+                        "type": "VerticalLayoutGroup",
+                        "data": {
+                          "padding": {
+                            "left": 0,
+                            "right": 0,
+                            "top": 0,
+                            "bottom": 0
+                          },
+                          "childAlignment": "UpperCenter",
+                          "spacing": 14.0,
+                          "childControlWidth": false,
+                          "childControlHeight": false,
+                          "childForceExpandWidth": true,
+                          "childForceExpandHeight": false,
+                          "childScaleWidth": false,
+                          "childScaleHeight": false,
+                          "reverseArrangement": false
+                        }
+                      },
+                      {
+                        "type": "ContentSizeFitter",
+                        "data": {
+                          "horizontalFit": "Unconstrained",
+                          "verticalFit": "PreferredSize"
+                        }
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "BtnLoadScene",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [
+                            0.5,
+                            1.0
+                          ],
+                          "anchorMax": [
+                            0.5,
+                            1.0
+                          ],
+                          "pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "anchoredPosition": [
+                            0.0,
+                            0.0
+                          ],
+                          "sizeDelta": [
+                            860.0,
+                            70.0
+                          ],
+                          "rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "components": [
+                          {
+                            "type": "RoundedImage",
+                            "data": {
+                              "color": [
+                                0.18039216,
+                                0.54509807,
+                                0.34117648,
+                                1.0
+                              ],
+                              "material": "Default UI Material",
+                              "raycastTarget": true,
+                              "independentCorners": false,
+                              "cornerRadius": 18.0
+                            }
+                          },
+                          {
+                            "type": "Button",
+                            "data": {
+                              "interactable": true,
+                              "transition": "ColorTint",
+                              "colors": {
+                                "normalColor": [
+                                  0.18039216,
+                                  0.54509807,
+                                  0.34117648,
+                                  1.0
+                                ],
+                                "highlightedColor": [
+                                  0.23529412,
+                                  0.63529414,
+                                  0.4,
+                                  1.0
+                                ],
+                                "pressedColor": [
+                                  0.13725491,
+                                  0.4745098,
+                                  0.29803923,
+                                  1.0
+                                ],
+                                "selectedColor": [
+                                  0.18039216,
+                                  0.54509807,
+                                  0.34117648,
+                                  1.0
+                                ],
+                                "disabledColor": [
+                                  0.7,
+                                  0.7,
+                                  0.7,
+                                  0.6
+                                ],
+                                "colorMultiplier": 1.0,
+                                "fadeDuration": 0.12
+                              },
+                              "navigation": {
+                                "mode": "Automatic"
+                              }
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "Txt",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [
+                                0.0,
+                                0.0
+                              ],
+                              "anchorMax": [
+                                1.0,
+                                1.0
+                              ],
+                              "pivot": [
+                                0.5,
+                                0.5
+                              ],
+                              "anchoredPosition": [
+                                0.0,
+                                0.0
+                              ],
+                              "sizeDelta": [
+                                -40.0,
+                                0.0
+                              ],
+                              "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "components": [
+                              {
+                                "type": "Text",
+                                "data": {
+                                  "content": "加载场景（Test2）",
+                                  "font": "Library/unity default resources",
+                                  "fontSize": 26,
+                                  "fontStyle": "Bold",
+                                  "color": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                  ],
+                                  "alignment": "MiddleCenter",
+                                  "horizontalOverflow": "Wrap",
+                                  "verticalOverflow": "Truncate",
+                                  "raycastTarget": false,
+                                  "supportRichText": true,
+                                  "lineSpacing": 1.0
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "BtnInstantiateCube",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [
+                            0.5,
+                            1.0
+                          ],
+                          "anchorMax": [
+                            0.5,
+                            1.0
+                          ],
+                          "pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "anchoredPosition": [
+                            0.0,
+                            0.0
+                          ],
+                          "sizeDelta": [
+                            860.0,
+                            70.0
+                          ],
+                          "rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "components": [
+                          {
+                            "type": "RoundedImage",
+                            "data": {
+                              "color": [
+                                0.101960786,
+                                0.2,
+                                0.1254902,
+                                1.0
+                              ],
+                              "material": "Default UI Material",
+                              "raycastTarget": true,
+                              "independentCorners": false,
+                              "cornerRadius": 18.0
+                            }
+                          },
+                          {
+                            "type": "Button",
+                            "data": {
+                              "interactable": true,
+                              "transition": "ColorTint",
+                              "colors": {
+                                "normalColor": [
+                                  0.101960786,
+                                  0.2,
+                                  0.1254902,
+                                  1.0
+                                ],
+                                "highlightedColor": [
+                                  0.14117648,
+                                  0.25882354,
+                                  0.1764706,
+                                  1.0
+                                ],
+                                "pressedColor": [
+                                  0.07058824,
+                                  0.14901961,
+                                  0.09411765,
+                                  1.0
+                                ],
+                                "selectedColor": [
+                                  0.101960786,
+                                  0.2,
+                                  0.1254902,
+                                  1.0
+                                ],
+                                "disabledColor": [
+                                  0.7,
+                                  0.7,
+                                  0.7,
+                                  0.6
+                                ],
+                                "colorMultiplier": 1.0,
+                                "fadeDuration": 0.12
+                              },
+                              "navigation": {
+                                "mode": "Automatic"
+                              }
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "Txt",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [
+                                0.0,
+                                0.0
+                              ],
+                              "anchorMax": [
+                                1.0,
+                                1.0
+                              ],
+                              "pivot": [
+                                0.5,
+                                0.5
+                              ],
+                              "anchoredPosition": [
+                                0.0,
+                                0.0
+                              ],
+                              "sizeDelta": [
+                                -40.0,
+                                0.0
+                              ],
+                              "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "components": [
+                              {
+                                "type": "Text",
+                                "data": {
+                                  "content": "实例化资源（Cube.prefab）",
+                                  "font": "Library/unity default resources",
+                                  "fontSize": 26,
+                                  "fontStyle": "Bold",
+                                  "color": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                  ],
+                                  "alignment": "MiddleCenter",
+                                  "horizontalOverflow": "Wrap",
+                                  "verticalOverflow": "Truncate",
+                                  "raycastTarget": false,
+                                  "supportRichText": true,
+                                  "lineSpacing": 1.0
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "BtnLoadRawFile",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [
+                            0.5,
+                            1.0
+                          ],
+                          "anchorMax": [
+                            0.5,
+                            1.0
+                          ],
+                          "pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "anchoredPosition": [
+                            0.0,
+                            0.0
+                          ],
+                          "sizeDelta": [
+                            860.0,
+                            70.0
+                          ],
+                          "rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "components": [
+                          {
+                            "type": "RoundedImage",
+                            "data": {
+                              "color": [
+                                1.0,
+                                0.84313726,
+                                0.0,
+                                1.0
+                              ],
+                              "material": "Default UI Material",
+                              "raycastTarget": true,
+                              "independentCorners": false,
+                              "cornerRadius": 18.0
+                            }
+                          },
+                          {
+                            "type": "Button",
+                            "data": {
+                              "interactable": true,
+                              "transition": "ColorTint",
+                              "colors": {
+                                "normalColor": [
+                                  1.0,
+                                  0.84313726,
+                                  0.0,
+                                  1.0
+                                ],
+                                "highlightedColor": [
+                                  1.0,
+                                  0.9,
+                                  0.28,
+                                  1.0
+                                ],
+                                "pressedColor": [
+                                  0.92,
+                                  0.76,
+                                  0.0,
+                                  1.0
+                                ],
+                                "selectedColor": [
+                                  1.0,
+                                  0.84313726,
+                                  0.0,
+                                  1.0
+                                ],
+                                "disabledColor": [
+                                  0.7,
+                                  0.7,
+                                  0.7,
+                                  0.6
+                                ],
+                                "colorMultiplier": 1.0,
+                                "fadeDuration": 0.12
+                              },
+                              "navigation": {
+                                "mode": "Automatic"
+                              }
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "Txt",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [
+                                0.0,
+                                0.0
+                              ],
+                              "anchorMax": [
+                                1.0,
+                                1.0
+                              ],
+                              "pivot": [
+                                0.5,
+                                0.5
+                              ],
+                              "anchoredPosition": [
+                                0.0,
+                                0.0
+                              ],
+                              "sizeDelta": [
+                                -40.0,
+                                0.0
+                              ],
+                              "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "components": [
+                              {
+                                "type": "Text",
+                                "data": {
+                                  "content": "读取 RawFile（333.txt）",
+                                  "font": "Library/unity default resources",
+                                  "fontSize": 26,
+                                  "fontStyle": "Bold",
+                                  "color": [
+                                    0.101960786,
+                                    0.2,
+                                    0.1254902,
+                                    1.0
+                                  ],
+                                  "alignment": "MiddleCenter",
+                                  "horizontalOverflow": "Wrap",
+                                  "verticalOverflow": "Truncate",
+                                  "raycastTarget": false,
+                                  "supportRichText": true,
+                                  "lineSpacing": 1.0
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "BtnDispatchEvent",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [
+                            0.5,
+                            1.0
+                          ],
+                          "anchorMax": [
+                            0.5,
+                            1.0
+                          ],
+                          "pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "anchoredPosition": [
+                            0.0,
+                            0.0
+                          ],
+                          "sizeDelta": [
+                            860.0,
+                            70.0
+                          ],
+                          "rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "components": [
+                          {
+                            "type": "RoundedImage",
+                            "data": {
+                              "color": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                0.0
+                              ],
+                              "material": "Default UI Material",
+                              "raycastTarget": true,
+                              "independentCorners": false,
+                              "cornerRadius": 18.0
+                            }
+                          },
+                          {
+                            "type": "Button",
+                            "data": {
+                              "interactable": true,
+                              "transition": "ColorTint",
+                              "colors": {
+                                "normalColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "highlightedColor": [
+                                  0.18039216,
+                                  0.54509807,
+                                  0.34117648,
+                                  0.08
+                                ],
+                                "pressedColor": [
+                                  0.18039216,
+                                  0.54509807,
+                                  0.34117648,
+                                  0.16
+                                ],
+                                "selectedColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "disabledColor": [
+                                  0.8,
+                                  0.8,
+                                  0.8,
+                                  0.4
+                                ],
+                                "colorMultiplier": 1.0,
+                                "fadeDuration": 0.12
+                              },
+                              "navigation": {
+                                "mode": "Automatic"
+                              }
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "Txt",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [
+                                0.0,
+                                0.0
+                              ],
+                              "anchorMax": [
+                                1.0,
+                                1.0
+                              ],
+                              "pivot": [
+                                0.5,
+                                0.5
+                              ],
+                              "anchoredPosition": [
+                                0.0,
+                                0.0
+                              ],
+                              "sizeDelta": [
+                                -40.0,
+                                0.0
+                              ],
+                              "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "components": [
+                              {
+                                "type": "Text",
+                                "data": {
+                                  "content": "派发事件（TestEvent）",
+                                  "font": "Library/unity default resources",
+                                  "fontSize": 26,
+                                  "fontStyle": "Bold",
+                                  "color": [
+                                    0.18039216,
+                                    0.54509807,
+                                    0.34117648,
+                                    1.0
+                                  ],
+                                  "alignment": "MiddleCenter",
+                                  "horizontalOverflow": "Wrap",
+                                  "verticalOverflow": "Truncate",
+                                  "raycastTarget": false,
+                                  "supportRichText": true,
+                                  "lineSpacing": 1.0
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "BtnOpenLoading",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [
+                            0.5,
+                            1.0
+                          ],
+                          "anchorMax": [
+                            0.5,
+                            1.0
+                          ],
+                          "pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "anchoredPosition": [
+                            0.0,
+                            0.0
+                          ],
+                          "sizeDelta": [
+                            860.0,
+                            70.0
+                          ],
+                          "rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "components": [
+                          {
+                            "type": "RoundedImage",
+                            "data": {
+                              "color": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                0.0
+                              ],
+                              "material": "Default UI Material",
+                              "raycastTarget": true,
+                              "independentCorners": false,
+                              "cornerRadius": 18.0
+                            }
+                          },
+                          {
+                            "type": "Button",
+                            "data": {
+                              "interactable": true,
+                              "transition": "ColorTint",
+                              "colors": {
+                                "normalColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "highlightedColor": [
+                                  0.101960786,
+                                  0.2,
+                                  0.1254902,
+                                  0.08
+                                ],
+                                "pressedColor": [
+                                  0.101960786,
+                                  0.2,
+                                  0.1254902,
+                                  0.16
+                                ],
+                                "selectedColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "disabledColor": [
+                                  0.8,
+                                  0.8,
+                                  0.8,
+                                  0.4
+                                ],
+                                "colorMultiplier": 1.0,
+                                "fadeDuration": 0.12
+                              },
+                              "navigation": {
+                                "mode": "Automatic"
+                              }
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "Txt",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [
+                                0.0,
+                                0.0
+                              ],
+                              "anchorMax": [
+                                1.0,
+                                1.0
+                              ],
+                              "pivot": [
+                                0.5,
+                                0.5
+                              ],
+                              "anchoredPosition": [
+                                0.0,
+                                0.0
+                              ],
+                              "sizeDelta": [
+                                -40.0,
+                                0.0
+                              ],
+                              "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "components": [
+                              {
+                                "type": "Text",
+                                "data": {
+                                  "content": "打开 LoadingView（1 秒）",
+                                  "font": "Library/unity default resources",
+                                  "fontSize": 26,
+                                  "fontStyle": "Bold",
+                                  "color": [
+                                    0.101960786,
+                                    0.2,
+                                    0.1254902,
+                                    1.0
+                                  ],
+                                  "alignment": "MiddleCenter",
+                                  "horizontalOverflow": "Wrap",
+                                  "verticalOverflow": "Truncate",
+                                  "raycastTarget": false,
+                                  "supportRichText": true,
+                                  "lineSpacing": 1.0
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "BtnCloseOtherViews",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [
+                            0.5,
+                            1.0
+                          ],
+                          "anchorMax": [
+                            0.5,
+                            1.0
+                          ],
+                          "pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "anchoredPosition": [
+                            0.0,
+                            0.0
+                          ],
+                          "sizeDelta": [
+                            860.0,
+                            70.0
+                          ],
+                          "rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "components": [
+                          {
+                            "type": "RoundedImage",
+                            "data": {
+                              "color": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                0.0
+                              ],
+                              "material": "Default UI Material",
+                              "raycastTarget": true,
+                              "independentCorners": false,
+                              "cornerRadius": 18.0
+                            }
+                          },
+                          {
+                            "type": "Button",
+                            "data": {
+                              "interactable": true,
+                              "transition": "ColorTint",
+                              "colors": {
+                                "normalColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "highlightedColor": [
+                                  0.18039216,
+                                  0.54509807,
+                                  0.34117648,
+                                  0.08
+                                ],
+                                "pressedColor": [
+                                  0.18039216,
+                                  0.54509807,
+                                  0.34117648,
+                                  0.16
+                                ],
+                                "selectedColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "disabledColor": [
+                                  0.8,
+                                  0.8,
+                                  0.8,
+                                  0.4
+                                ],
+                                "colorMultiplier": 1.0,
+                                "fadeDuration": 0.12
+                              },
+                              "navigation": {
+                                "mode": "Automatic"
+                              }
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "Txt",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [
+                                0.0,
+                                0.0
+                              ],
+                              "anchorMax": [
+                                1.0,
+                                1.0
+                              ],
+                              "pivot": [
+                                0.5,
+                                0.5
+                              ],
+                              "anchoredPosition": [
+                                0.0,
+                                0.0
+                              ],
+                              "sizeDelta": [
+                                -40.0,
+                                0.0
+                              ],
+                              "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "components": [
+                              {
+                                "type": "Text",
+                                "data": {
+                                  "content": "关闭其他界面（保留当前）",
+                                  "font": "Library/unity default resources",
+                                  "fontSize": 26,
+                                  "fontStyle": "Bold",
+                                  "color": [
+                                    0.18039216,
+                                    0.54509807,
+                                    0.34117648,
+                                    1.0
+                                  ],
+                                  "alignment": "MiddleCenter",
+                                  "horizontalOverflow": "Wrap",
+                                  "verticalOverflow": "Truncate",
+                                  "raycastTarget": false,
+                                  "supportRichText": true,
+                                  "lineSpacing": 1.0
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "BtnBackView",
+                        "active": true,
+                        "rectTransform": {
+                          "anchorMin": [
+                            0.5,
+                            1.0
+                          ],
+                          "anchorMax": [
+                            0.5,
+                            1.0
+                          ],
+                          "pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "anchoredPosition": [
+                            0.0,
+                            0.0
+                          ],
+                          "sizeDelta": [
+                            860.0,
+                            70.0
+                          ],
+                          "rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "components": [
+                          {
+                            "type": "RoundedImage",
+                            "data": {
+                              "color": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                0.0
+                              ],
+                              "material": "Default UI Material",
+                              "raycastTarget": true,
+                              "independentCorners": false,
+                              "cornerRadius": 18.0
+                            }
+                          },
+                          {
+                            "type": "Button",
+                            "data": {
+                              "interactable": true,
+                              "transition": "ColorTint",
+                              "colors": {
+                                "normalColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "highlightedColor": [
+                                  0.101960786,
+                                  0.2,
+                                  0.1254902,
+                                  0.08
+                                ],
+                                "pressedColor": [
+                                  0.101960786,
+                                  0.2,
+                                  0.1254902,
+                                  0.16
+                                ],
+                                "selectedColor": [
+                                  1.0,
+                                  1.0,
+                                  1.0,
+                                  0.0
+                                ],
+                                "disabledColor": [
+                                  0.8,
+                                  0.8,
+                                  0.8,
+                                  0.4
+                                ],
+                                "colorMultiplier": 1.0,
+                                "fadeDuration": 0.12
+                              },
+                              "navigation": {
+                                "mode": "Automatic"
+                              }
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "Txt",
+                            "active": true,
+                            "rectTransform": {
+                              "anchorMin": [
+                                0.0,
+                                0.0
+                              ],
+                              "anchorMax": [
+                                1.0,
+                                1.0
+                              ],
+                              "pivot": [
+                                0.5,
+                                0.5
+                              ],
+                              "anchoredPosition": [
+                                0.0,
+                                0.0
+                              ],
+                              "sizeDelta": [
+                                -40.0,
+                                0.0
+                              ],
+                              "rotation": [
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "components": [
+                              {
+                                "type": "Text",
+                                "data": {
+                                  "content": "返回上一个界面（BackView）",
+                                  "font": "Library/unity default resources",
+                                  "fontSize": 26,
+                                  "fontStyle": "Bold",
+                                  "color": [
+                                    0.101960786,
+                                    0.2,
+                                    0.1254902,
+                                    1.0
+                                  ],
+                                  "alignment": "MiddleCenter",
+                                  "horizontalOverflow": "Wrap",
+                                  "verticalOverflow": "Truncate",
+                                  "raycastTarget": false,
+                                  "supportRichText": true,
+                                  "lineSpacing": 1.0
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "TxtLog",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [
+                0.5,
+                0.0
+              ],
+              "anchorMax": [
+                0.5,
+                0.0
+              ],
+              "pivot": [
+                0.5,
+                0.0
+              ],
+              "anchoredPosition": [
+                0.0,
+                26.0
+              ],
+              "sizeDelta": [
+                900.0,
+                150.0
+              ],
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "components": [
+              {
+                "type": "Text",
+                "data": {
+                  "content": "日志：",
+                  "font": "Library/unity default resources",
+                  "fontSize": 20,
+                  "fontStyle": "Normal",
+                  "color": [
+                    0.101960786,
+                    0.2,
+                    0.1254902,
+                    0.9
+                  ],
+                  "alignment": "UpperLeft",
+                  "horizontalOverflow": "Wrap",
+                  "verticalOverflow": "Overflow",
+                  "raycastTarget": false,
+                  "supportRichText": true,
+                  "lineSpacing": 1.1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

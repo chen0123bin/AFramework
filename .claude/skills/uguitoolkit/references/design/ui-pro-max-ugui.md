@@ -1,26 +1,39 @@
 
-# UI Pro Max → Unity UGUI 迁移规范（设计 / 风格 / 颜色）
+# Unity UGUI 主题与界面结构规范（uguitoolkit）
 
-本文件用于把 ui-ux-pro-max 的“设计系统输出”（Pattern / Style / Colors / Typography / Effects / Anti-patterns）迁移到 uguitoolkit 的 UGUI JSON 生产流程中。
+本文件用于规范 uguitoolkit 生成 UGUI JSON 时的：主题使用（theme.csv）、颜色令牌映射、界面结构分层、适配策略与交互状态。
 
-目标：让你在生成 UGUI JSON 时，不只是“结构正确”，还能具备统一的视觉语言、颜色语义与交互反馈。
+目标：让生成的 UGUI JSON 不只是“结构正确”，还具备统一的颜色语义、清晰的信息层级与一致的交互反馈。
 
 ---
 
-## 1. 主题令牌（Theme Tokens）
+## 1. 主题与令牌
 
-主题令牌统一存放在 [theme-tokens.json](theme-tokens.json)。
+主题令牌统一存放在 [theme.csv](theme.csv)。每一行代表一个主题：
+
+- ThemeName：主题唯一标识（建议在需求中直接指定）
+- ThemeDescription：主题说明（用于理解配色意图）
+- Bg/Surface/Primary/CTA/TextPrimary/Border/Overlay 等：颜色 Hex（#RRGGBB）
+- *_A：对应颜色的 alpha（0~1）
 
 ### 1.1 选择主题
 
-根据需要生成的内容自动推荐使用的主题（对应 ui-ux-pro-max 常见风格落地）
-或者使用指定的主题（如Light_Wellness_SoftUI）。
+优先使用指定 ThemeName（避免“看起来差不多”的主题被混用）。
+
+常见选择建议：
+
+- 业务/工具/看板（浅色）：Light_Default_SaaS / Light_B2B_Service
+- 健康/服务/养成（浅色）：Light_Beauty_Spa_Wellness_Service
+- 游戏/娱乐（深色）：Dark_Gaming
+- 科技/玻璃暗色：Dark_Tech_Glass / Dark_Fintech_Crypto
 
 
 
-### 1.2 Token → UGUI JSON 映射
+### 1.2 令牌 → UGUI JSON 映射
 
-UGUI JSON 中颜色字段都是 `[r,g,b,a]`（0~1）。使用 token 时按组件类型映射：
+UGUI JSON 中颜色字段统一为 `[r,g,b,a]`（0~1）。从 theme.csv 读取 `#RRGGBB` 与对应 `*_A` 后，分别换算为 r/g/b 与 a。
+
+按组件类型建议映射：
 
 - 背景大图（ImgBackground.Image.color）→ `Bg`
 - 卡片/面板（Pnl*/Img*.Image.color）→ `Surface` / `SurfaceAlt` / `SurfaceGlass*`
@@ -31,15 +44,28 @@ UGUI JSON 中颜色字段都是 `[r,g,b,a]`（0~1）。使用 token 时按组件
 - 边框（Image.borderColor）→ `Border` 或 `BorderGlass`
 - 弹窗遮罩（ImgMask.Image.color）→ `Overlay`
 
+### 1.3 维护 theme.csv
+
+- 新增主题时：复制一行现有主题，修改 ThemeName/ThemeDescription，再替换各 token 的 Hex 与 *_A
+- 允许留空：某些 token 为空时，代表该主题不提供该 token 的建议值
+- 避免复用：ThemeName 作为唯一键，建议保持稳定，不随意改名
+
 ---
 
-## 2. UGUI 设计规范（结构、适配、性能）
+## 2. 界面结构与适配规范
 
 ### 2.1 层级结构（建议三层）
 
 - 背景层：ImgBackground（全屏 Image）
 - 内容层：PnlLayout（承载主要布局与内容）
 - 浮层：PnlPopup / PnlToast / PnlGuide（弹窗、提示、引导）
+
+命名建议（与 uguitoolkit 模板保持一致）：
+
+- 文字：TxtTitle / TxtDesc / TxtTip
+- 图片：ImgBackground / ImgMask / ImgIcon
+- 按钮：BtnConfirm / BtnCancel
+- 面板：PnlLayout / PnlPopup
 
 ### 2.2 分辨率与适配
 
@@ -52,15 +78,15 @@ UGUI JSON 只描述 RectTransform，但你在设计时要遵守一致的“锚�
 
 ### 2.3 Layout 组件使用边界
 
-除 ScrollRect 的 Content 外，默认不使用 Layout 组件。具体规则以 [ugui-json-rules.md](../spec/ugui-json-rules.md) 为准。
+除 ScrollRect 的 Content 外，默认不使用 Layout 组件。
 
 ---
 
-## 3. 风格落地到 UGUI 组件（最常用的两套）
+## 3. 组件落地建议（按主题令牌）
 
-### 3.1 Soft UI Evolution（推荐用于：健康/美容/服务型界面）
+### 3.1 浅色服务型主题（示例：Light_Beauty_Spa_Wellness_Service）
 
-核心要点：柔和底色 + 可读性优先 + 有层次但不过度拟物。
+核心要点：柔和底色 + 文字可读优先 + 层次分明但不过度装饰。
 
 组件建议：
 
@@ -75,26 +101,19 @@ UGUI JSON 只描述 RectTransform，但你在设计时要遵守一致的“锚�
 - 主按钮（CTA）
   - Button.transition：ColorTint
   - Button.colors.normalColor：`CTA`
-  - highlightedColor：在 normalColor 基础上提高亮度或提高 alpha（参考 theme-tokens.json 的状态倍率）
+  - highlightedColor：在 normalColor 基础上提高亮度或提高 alpha（参考 status.csv 的状态倍率）
   - pressedColor：在 normalColor 基础上降低亮度
   - disabledColor：使用 `Border` 并降低 alpha
 
 - 文本
-  - 标题：TxtTitle（字体更粗/更大）
-  - 正文：TxtDesc（16px 起步的“可读字号思路”迁移到 UGUI：在 1080p 画布建议 20~26）
+  - 标题：TxtTitle（更粗/更大）
+  - 正文：TxtDesc（以可读为准；1080p 画布建议 20~26 起）
 
-示例主题（与 ui-ux-pro-max 的 Serenity Spa 设计系统一致）：
+### 3.2 深色玻璃/科技主题（示例：Dark_Tech_Glass）
 
-- Primary：#10B981
-- CTA：#8B5CF6
-- Background：#ECFDF5
-- Text：#064E3B
+核心要点：暗底 + 半透明 SurfaceGlass + 明确的文字对比度。
 
-### 3.2 Glassmorphism（推荐用于：金融/科技暗色界面）
-
-核心要点：暗底 + 半透明卡片 + 明确的文字对比度。
-
-UGUI 约束：纯 UGUI 无真实背景模糊时，用“半透明 Surface + 轻边框 + 亮点缀色”模拟玻璃感。
+UGUI 约束：纯 UGUI 无真实背景模糊时，用“半透明 SurfaceGlass + BorderGlass + 高对比文字”模拟玻璃感。
 
 组件建议：
 
@@ -109,18 +128,11 @@ UGUI 约束：纯 UGUI 无真实背景模糊时，用“半透明 Surface + 轻�
   - 主文本：`TextPrimary`（必须保证可读）
   - 次文本：`TextSecondary` 或降低 alpha
 
-示例主题（与 ui-ux-pro-max 的 VaultX 设计系统一致）：
-
-- Background：#0F172A
-- Primary：#F59E0B
-- CTA：#8B5CF6
-- Text：#F8FAFC
-
 ---
 
 ## 4. 交互状态规范（Button / Toggle / InputField）
 
-UGUI JSON 的 Button 使用 `ColorTint` 时，建议统一采用同一套状态策略（在 [theme-tokens.json](theme-tokens.json) 的 `status.Selectable_ColorTint`）：
+UGUI JSON 的 Button 使用 `ColorTint` 时，建议统一采用同一套状态策略（参考 [status.csv](status.csv) 的 `Selectable_ColorTint` 组）：
 
 - normal：基准色
 - highlighted：基准色 * 1.08（或轻微提高 alpha）
@@ -136,9 +148,3 @@ InputField 建议：
 
 ---
 
-## 5. 自检要点（迁移 ui-ux-pro-max 规则到 UGUI）
-
-- 浅色模式不要过透明：卡片/面板 alpha 太低会“看不见”
-- 文本对比度优先：主文本与背景必须有明显区分
-- hover/press 不要改变布局：只改色/透明度，不改 sizeDelta
-- 交互元素都有反馈：Button/Toggle/InputField 需要高亮/按压/禁用态

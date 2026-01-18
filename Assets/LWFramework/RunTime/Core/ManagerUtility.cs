@@ -68,6 +68,16 @@ namespace LWCore
                 return MainManager.Instance.GetManager<IFSMManager>();
             }
         }
+        /// <summary>
+        /// 获取音频管理类
+        /// </summary>
+        public static IAudioManager AudioMgr
+        {
+            get
+            {
+                return MainManager.Instance.GetManager<IAudioManager>();
+            }
+        }
     }
 }
 

@@ -67,7 +67,7 @@ public class LoginProcedure : BaseFSMState
             return;
         }
 
-        ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<TestProcedure>();
+        ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<ShowcaseProcedure>();
     }
 
     /// <summary>

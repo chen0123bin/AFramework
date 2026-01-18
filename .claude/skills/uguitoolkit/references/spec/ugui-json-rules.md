@@ -1,6 +1,6 @@
-# UGUI JSON 规则与自检（严格对齐 UGUITempView.json）
+# UGUI JSON 结构参考（对齐 UGUITempView.json）
 
-本规则用于确保你生成的 JSON 可以在 Unity 中被“按模板反序列化并创建 UGUI 层级”。所有字段名、枚举字符串、层级结构、引用路径，必须与 references/UGUITempView.json 完全一致。
+本参考用于帮助你在生成 UGUI JSON 时保持结构与字段名统一。
 
 ## JSON 结构摘要
 
@@ -43,36 +43,6 @@ components 结构：
 - Pnl：PnlLeft / PnlRight
 
 当组件需要引用子节点（例如 InputField.textComponent、Dropdown.template、ScrollRect.content），子节点 name 必须与引用路径一致。
-
-## 自检清单（生成 JSON 时逐项对照）
-
-本技能不执行命令行校验；只做“结构 + 字段 + 引用路径”层面的自检。
-
-1. Root 结构
-   - 顶层必须包含 Root
-   - Root.name 必须存在且与文件名一致
-   - Root.rectTransform 必须存在且包含所有 RectTransform 字段
-   - Root.children 建议始终存在（可为空数组）
-
-2. RectTransform 字段长度
-   - anchorMin/anchorMax/pivot/anchoredPosition/sizeDelta：必须是长度为 2 的数组
-   - rotation/scale：必须是长度为 3 的数组
-
-3. 节点字段白名单
-   - 每个节点只允许出现：name、active、rectTransform、components、children
-   - active 可省略（默认 true）
-
-4. 组件字段
-   - components 中每一项必须包含 type 与 data
-   - type 必须是模板中出现过的组件类型；或在 components/*.md（或 *.json）中有对应组件描述
-   - data 字段名与枚举字符串必须与 UGUITempView.json 对齐：不新增字段、不漏字段、不随意改枚举字符串
-
-5. 引用路径一致性（最容易出错）
-   - ScrollRect.data.content / viewport / horizontalScrollbar / verticalScrollbar：引用路径必须能在 children 中找到
-   - Toggle.data.targetGraphic / graphic / group：引用的节点/组件必须存在
-   - InputField.data.textComponent / placeholder：引用的子节点必须存在
-   - Dropdown.data.template / captionText / itemText：引用的子节点必须存在
-   - 引用值若使用 A/B/C 形式，必须能按层级逐级找到
 
 ## 组件支持范围（以模板为准）
 

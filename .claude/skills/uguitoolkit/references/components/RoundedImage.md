@@ -31,11 +31,7 @@ RoundedImage 是 LWFramework 提供的自定义 UGUI 组件，继承自 UnityEng
 }
 ```
 
-解析支持由编辑器构建器脚本提供：
-
-- Builder：Assets/LWFramework/Editor/UI/UguiJsonToUguiBuilder.cs
-- Exporter：Assets/LWFramework/Editor/UI/UguiUguiToJsonExporter.cs
-- Runtime：Assets/LWFramework/RunTime/UI/Components/RoundedImage.cs
+运行时代码：Assets/LWFramework/RunTime/UI/Components/RoundedImage.cs
 
 ## 重要属性（常用）
 

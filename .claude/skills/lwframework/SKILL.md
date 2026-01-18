@@ -1,6 +1,6 @@
 ---
 name: lwframework
-description: LWFramework 运行时核心接口速查与启动辅助。适用于：LWFramework 启动注册/初始化、ManagerUtility.*Mgr 返回 default 或告警排查、Procedure 流程状态机（IFSMManager）启动与切换、查询 IAssetsManager/IEventManager/IUIManager/IHotfixManager/IFSMManager/IManager 的职责与调用方式。业务代码优先通过 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr/FSMMgr 调用能力，并对照 Assets/LWFramework/RunTime/Core/InterfaceManager 下接口核对签名与生命周期。
+description: LWFramework 运行时核心接口速查与启动辅助。适用于：LWFramework 启动注册/初始化、ManagerUtility.*Mgr 返回 default 或告警排查、Procedure 流程状态机（IFSMManager）启动与切换、查询 IAssetsManager/IAudioManager /IEventManager/IUIManager/IHotfixManager/IFSMManager/IManager 的职责与调用方式。业务代码优先通过 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr/FSMMgr/AudioMgr 调用能力，并对照 Assets/LWFramework/RunTime/Core/InterfaceManager 下接口核对签名与生命周期。
 ---
 
 # LWFramework 运行时接口速查（InterfaceManager）
@@ -16,12 +16,15 @@ description: LWFramework 运行时核心接口速查与启动辅助。适用于�
 - 接口目录：Assets/LWFramework/RunTime/Core/InterfaceManager/
 - 访问入口：Assets/LWFramework/RunTime/Core/ManagerUtility.cs
 - 管理器容器：Assets/LWFramework/RunTime/Core/MainManager.cs
+- 音频模块：Assets/LWFramework/RunTime/Audio/（AudioManager/AudioChannel/Audio3DSettings）
+- 对象池模块：Assets/LWFramework/RunTime/Core/ObjectPool/（GameObjectPool/IPoolGameObject/PoolGameObject）
 
 ## 快速导航（按场景）
 
 - 启动注册与初始化：references/startup.md
-- 常用调用示例（资源/事件/UI/热更/FSM/自定义管理器）：references/examples.md
+- 常用调用示例（资源/事件/UI/音频/对象池/热更/FSM/自定义管理器）：references/examples.md
 - 接口清单与默认实现：references/interfaces.md
+- View→事件→Procedure→View（UI 解耦推荐流程）：references/ui-view-procedure-event-flow.md
 
 ## 核心结论（启动阶段必读）
 
@@ -46,9 +49,20 @@ description: LWFramework 运行时核心接口速查与启动辅助。适用于�
 - ManagerUtility.UIMgr
 - ManagerUtility.HotfixMgr
 - ManagerUtility.FSMMgr
+- ManagerUtility.AudioMgr
 - StartProcedure()
 - FSMTypeAttribute
 - SwitchState(
+- IAudioManager
+- AudioManager
+- AudioChannel
+- Audio3DSettings
+- Audio3DSettings.Default3D
+- GameObjectPool<
+- Spawn(
+- Unspawn(
+- IPoolGameObject
+- IsInPool(
 
 ## 生成代码时的落地规则
 

@@ -60,6 +60,18 @@
 - 状态类：继承 BaseFSMState，并通过 [FSMTypeAttribute("Procedure", isFirst)] 参与流程组装
 - 关键方法：GetFSMByName、GetFSMProcedure、InitFSMManager、RegisterFSM、UnRegisterFSM、IsExistFSM、GetFsmClassDataByName
 
+## IAudioManager（音频系统）
+
+- 位置：Assets/LWFramework/RunTime/Core/InterfaceManager/IAudioManager.cs
+- 作用：统一音频播放/暂停/恢复/停止的管理入口（通过 ManagerUtility.AudioMgr 访问）
+- 关键属性：AudioVolume（全局音量，作用于当前已激活的通道）
+- 播放：Play(AudioClip, ...) 2D；Play(AudioClip, Transform, ...) 3D 跟随挂点；Play(AudioClip, Vector3, ...) 3D 定点
+- 停止：Stop（可能走淡出逻辑，取决于通道淡出配置）、StopImmediate（立刻停止并回收）
+- 控制：Pause、Resume、StopAll、PauseAll、ResumeAll
+- AudioChannel
+  - 位置：Assets/LWFramework/RunTime/Audio/AudioChannel.cs
+  - 作用：单个音频播放通道封装（内部持有 AudioSource 与实体 GameObject）；支持 2D/3D、Loop、Volume、Pause/Play/Stop、淡入淡出与回收标记
+
 ## 默认实现与关联类（基于现有工程代码）
 
 - IAssetsManager：LWAssetsManager（Assets/LWFramework/RunTime/Assets/Core/LWAssetsManager.cs）
@@ -67,3 +79,4 @@
 - IUIManager：UIManager（Assets/LWFramework/RunTime/UI/UIManager.cs）
 - IHotfixManager：HotFixBaseManager（Assets/LWFramework/RunTime/HotFix/HotFixBaseManager.cs，抽象基类）
 - IFSMManager：FSMManager（Assets/LWFramework/RunTime/FMS/FSMManager.cs）
+- IAudioManager：AudioManager（Assets/LWFramework/RunTime/Audio/AudioManager.cs）

@@ -40,6 +40,12 @@ MonoBehaviour:
     FilePattern: '*.*'
     MaxBundleSize: 1000
     Tags: []
+  - Name: audios
+    Strategy: 1
+    FolderPath: Assets/0Res/Audios
+    FilePattern: '*.*'
+    MaxBundleSize: 1000
+    Tags: []
   CollectShaders: 1
   ShaderBundleName: shaders
   ShaderVariantCollections: []
@@ -50,8 +56,7 @@ MonoBehaviour:
   - FolderPath: Assets/0Res/Scenes
     Tags:
     - ccc
-  BuiltinTags:
-  - Core
+  BuiltinTags: []
   EnableEncryption: 1
   EncryptionKey: dsafdsafsf
   GenerateReport: 1
