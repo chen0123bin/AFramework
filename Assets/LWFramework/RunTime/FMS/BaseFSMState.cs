@@ -5,11 +5,16 @@ namespace LWFMS
 {
     public abstract class BaseFSMState
     {
+        private bool m_IsEnter = false;
         private bool m_IsInit = false;
         private Dictionary<string, object> m_Param = new Dictionary<string, object>();
         public bool IsInit
         {
             get => m_IsInit; set => m_IsInit = value;
+        }
+        public bool IsEnter
+        {
+            get => m_IsEnter; set => m_IsEnter = value;
         }
         public Dictionary<string, object> Param
         {
@@ -28,12 +33,18 @@ namespace LWFMS
         /// 进入状态
         /// </summary>
         /// <param name="lastState">上一个离开的状态</param>
-        public abstract void OnEnter(BaseFSMState lastState);
+        public virtual void OnEnter(BaseFSMState lastState)
+        {
+            m_IsEnter = true;
+        }
         /// <summary>
         /// 离开状态
         /// </summary>
         /// <param name="nextState">下一个进入的状态</param>
-        public abstract void OnLeave(BaseFSMState nextState);
+        public virtual void OnLeave(BaseFSMState nextState)
+        {
+            m_IsEnter = false;
+        }
         /// <summary>
         /// 状态帧刷新
         /// </summary>

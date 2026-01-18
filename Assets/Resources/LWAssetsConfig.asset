@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 750b74174f22ca54d8c0d12647dcf2b9, type: 3}
   m_Name: LWAssetsConfig
   m_EditorClassIdentifier: 
-  m_PlayMode: 0
+  m_PlayMode: 1
   m_BuildOutputPath: AssetBundles
   m_RemoteUrl: http://127.0.0.1:8088/AFramework/AssetBundles/
   m_ManifestFileName: manifest.json

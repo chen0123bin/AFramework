@@ -2,6 +2,7 @@
 using LWCore;
 using LWUI;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 [FSMTypeAttribute("Procedure", false)]
 public class LoginProcedure : BaseFSMState
@@ -24,7 +25,7 @@ public class LoginProcedure : BaseFSMState
     {
         ManagerUtility.EventMgr.AddListener<string, string, bool>(EVENT_LOGIN_SUBMIT, OnLoginSubmit);
         ManagerUtility.EventMgr.AddListener(EVENT_LOGIN_CANCEL, OnLoginCancel);
-        ManagerUtility.UIMgr.OpenView<LoginView>();
+        // ManagerUtility.UIMgr.OpenView<LoginView>();
     }
 
     /// <summary>
@@ -35,7 +36,7 @@ public class LoginProcedure : BaseFSMState
     {
         ManagerUtility.EventMgr.RemoveListener<string, string, bool>(EVENT_LOGIN_SUBMIT, OnLoginSubmit);
         ManagerUtility.EventMgr.RemoveListener(EVENT_LOGIN_CANCEL, OnLoginCancel);
-        ManagerUtility.UIMgr.CloseView<LoginView>();
+        // ManagerUtility.UIMgr.CloseView<LoginView>();
     }
 
     /// <summary>
@@ -51,6 +52,18 @@ public class LoginProcedure : BaseFSMState
     /// </summary>
     public override void OnUpdate()
     {
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            ManagerUtility.AssetsMgr.InstantiateAsync("Assets/0Res/Prefabs/Cube2.prefab", null);
+        }
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            ManagerUtility.AssetsMgr.InstantiateAsync("Assets/0Res/Prefabs/Cube.prefab", null);
+        }
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            ManagerUtility.AssetsMgr.LoadSceneAsync("Assets/0Res/Scenes/Test.unity", UnityEngine.SceneManagement.LoadSceneMode.Additive, true, null).Forget();
+        }
     }
 
     /// <summary>
@@ -67,7 +80,7 @@ public class LoginProcedure : BaseFSMState
             return;
         }
 
-        ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<ShowcaseProcedure>();
+        ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<MenuProcedure>();
     }
 
     /// <summary>
@@ -75,6 +88,6 @@ public class LoginProcedure : BaseFSMState
     /// </summary>
     private void OnLoginCancel()
     {
-        Application.Quit();
+        ManagerUtility.MainMgr.Quit();
     }
 }

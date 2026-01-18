@@ -31,7 +31,7 @@ namespace LWUI
             //view上的组件
             if (ManagerUtility.UIMgr != null)
             {
-                ManagerUtility.UIMgr.IUIUtility.SetViewElement(this, this.GetType(), this);
+                ManagerUtility.UIMgr.UIUtility.SetViewElement(this, this.GetType(), this);
             }
             m_CanvasGroup = m_Entity.GetComponent<CanvasGroup>();
             if (m_CanvasGroup == null)

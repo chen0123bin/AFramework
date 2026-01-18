@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System;
+using Cysharp.Threading.Tasks;
 using LWUI;
 using UnityEngine;
 
@@ -6,12 +7,8 @@ namespace LWCore
 {
     public interface IUIManager
     {
-        /// <summary>
-        /// View的数据
-        /// </summary>
-        //BindableController BindableController { get; }
 
-        IUIUtility IUIUtility { get; }
+        UIUtility UIUtility { get; }
 
         /// <summary>
         /// UI画布
@@ -163,5 +160,42 @@ namespace LWCore
         /// 预加载内置的UI
         /// </summary>
         UniTask PreLoadDefaultUI();
+        /// <summary>
+        /// 打开弹窗
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        /// <param name="isShowCancel"></param>
+        /// <param name="isShowClose"></param>
+        void OpenDialog(string title, string content, Action<bool> ResultCallback, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true);
+
+        /// <summary>
+        /// 打开弹窗并等待用户选择（true=确认，false=取消/关闭）
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        /// <param name="isShowCancel"></param>
+        /// <param name="isShowClose"></param>
+        /// <param name="isLastSibling"></param>
+        UniTask<bool> OpenDialogAsync(string title, string content, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true);
+        /// <summary>
+        /// 打开Loading弹窗
+        /// </summary>
+        /// <param name="tip"></param>
+        /// <param name="isLastSibling"></param>
+        void OpenLoadingBar(string tip = "当前正在加载...", bool isLastSibling = true);
+
+        /// <summary>
+        /// 更新Loading弹窗
+        /// </summary>
+        /// <param name="progress"></param>
+        /// <param name="tip"></param>
+        /// <param name="isLastSibling"></param>
+        void UpdateLoadingBar(float progress, string tip = null, bool isLastSibling = true);
+
+        /// <summary>
+        /// 关闭Loading弹窗
+        /// </summary>
+        void CloseLoadingBar();
     }
 }

@@ -1,6 +1,4 @@
-
 using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using LWAssets;
 using LWAudio;
@@ -9,6 +7,7 @@ using LWFMS;
 using LWHotfix;
 using LWUI;
 using UnityEngine;
+
 [DefaultExecutionOrder(1000)]
 public class Startup : MonoBehaviour
 {
@@ -16,7 +15,6 @@ public class Startup : MonoBehaviour
     public string configUrl;
     public string procedureName = "StartProcedure";
 
-    private LoadingBarView m_LoadingBarView;
     async void Start()
     {
         LWDebug.Log("Start");
@@ -37,14 +35,19 @@ public class Startup : MonoBehaviour
         ManagerUtility.MainMgr.AddManager(typeof(IAudioManager).ToString(), new AudioManager());
         await ManagerUtility.AssetsMgr.InitializeAsync();
         ManagerUtility.MainMgr.MonoBehaviour = this;
+
         if (ManagerUtility.AssetsMgr.CurrentPlayMode == LWAssets.PlayMode.Online)
         {
-
-            m_LoadingBarView = ManagerUtility.UIMgr.OpenView<LoadingBarView>();
-            await DownloadAsync();
-            await UniTask.Delay(500);
-
-            ManagerUtility.UIMgr.CloseView<LoadingBarView>();
+            ManagerUtility.UIMgr.OpenLoadingBar("检查更新...", true);
+            try
+            {
+                await DownloadAsync();
+                await UniTask.Delay(500);
+            }
+            finally
+            {
+                ManagerUtility.UIMgr.CloseLoadingBar();
+            }
         }
 
         //设置第一个启动的流程
@@ -66,43 +69,44 @@ public class Startup : MonoBehaviour
     {
         if (!ManagerUtility.AssetsMgr.IsInitialized)
         {
-            m_LoadingBarView.Tip = "资管管理器未初始化!";
+            ManagerUtility.UIMgr.UpdateLoadingBar(0f, "资管管理器未初始化!", true);
             return;
         }
+
         try
         {
             // 检查更新
-            m_LoadingBarView.Tip = "检查更新...";
+            ManagerUtility.UIMgr.UpdateLoadingBar(0f, "检查更新...", true);
             var checkResult = await ManagerUtility.AssetsMgr.Version.CheckUpdateAsync();
 
             if (checkResult.Status == UpdateStatus.NoUpdate)
             {
-                m_LoadingBarView.Tip = "没有可用更新。";
+                ManagerUtility.UIMgr.UpdateLoadingBar(0f, "没有可用更新。", true);
                 return;
             }
-            m_LoadingBarView.Tip = $"发现更新: {checkResult.RemoteVersion}, 大小: {FileUtility.FormatFileSize(checkResult.DownloadSize)}";
-            // 开始下载
-            var progress = new Progress<DownloadProgress>(p =>
+
+            ManagerUtility.UIMgr.UpdateLoadingBar(0f, $"发现更新: {checkResult.RemoteVersion}, 大小: {FileUtility.FormatFileSize(checkResult.DownloadSize)}", true);
+
+            System.Progress<DownloadProgress> progress = new Progress<DownloadProgress>(downloadProgress =>
             {
-                m_LoadingBarView.Progress = p.Progress;
-                m_LoadingBarView.Tip = $"下载中: {p.CompletedCount}/{p.TotalCount} - {FileUtility.FormatFileSize((long)p.Speed)}/s";
+                ManagerUtility.UIMgr.UpdateLoadingBar(downloadProgress.Progress, $"下载中: {downloadProgress.CompletedCount}/{downloadProgress.TotalCount} - {FileUtility.FormatFileSize((long)downloadProgress.Speed)}/s", true);
             });
 
             await ManagerUtility.AssetsMgr.DownloadAsync(null, progress);
-
-            m_LoadingBarView.Progress = 1f;
-            m_LoadingBarView.Tip = "下载完成!";
+            ManagerUtility.UIMgr.UpdateLoadingBar(1f, "下载完成!", true);
         }
         catch (Exception ex)
         {
-            m_LoadingBarView.Tip = $"下载出错: {ex.Message}";
+            ManagerUtility.UIMgr.UpdateLoadingBar(0f, $"下载出错: {ex.Message}", true);
             Debug.LogException(ex);
         }
     }
+
     void OnDestroy()
     {
         WaitDestroy();
     }
+
     async void WaitDestroy()
     {
         await UniTask.DelayFrame(1);

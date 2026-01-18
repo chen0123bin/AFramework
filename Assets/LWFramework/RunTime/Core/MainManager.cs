@@ -149,21 +149,24 @@ namespace LWCore
         {
 
             Debug.Log("LoadScene2Async");
-            var progress = new System.Progress<float>(p =>
+            ManagerUtility.UIMgr.OpenLoadingBar("场景加载中...", true);
+            System.Progress<float> progress = new System.Progress<float>(p =>
             {
-                // 更新UI：p 取值 0~1 
-                LoadingBarView loadingBarView = ManagerUtility.UIMgr.OpenView<LoadingBarView>();
-                loadingBarView.Tip = "场景加载中...";
-                loadingBarView.Progress = p;
+                ManagerUtility.UIMgr.UpdateLoadingBar(p, "场景加载中...", true);
             });
 
-            var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
-                scenePath,
-                loadSceneMode,
-                true,
-                progress);
-            ManagerUtility.UIMgr.CloseView<LoadingBarView>();
-
+            try
+            {
+                var handle = await ManagerUtility.AssetsMgr.LoadSceneAsync(
+                    scenePath,
+                    loadSceneMode,
+                    true,
+                    progress);
+            }
+            finally
+            {
+                ManagerUtility.UIMgr.CloseLoadingBar();
+            }
         }
 
         public void Quit()

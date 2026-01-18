@@ -1,14 +1,29 @@
 
 {
-    "Version" : 8,
-    "BuildTime" : "2026-01-17 21:33:20",
+    "Version" : 13,
+    "BuildTime" : "2026-01-18 18:46:27",
     "Platform"  : "Windows",
     "Bundles"   : [
         {
-            "BundleName" : "mytest_prefabs",
-            "Hash"       : "f455e43a6cf29ef4c09bb5de0a4627b5",
-            "CRC"        : 2266408950,
-            "Size"       : 464995,
+            "BundleName" : "audios_audios",
+            "Hash"       : "50b58a773744da5e8a6fcd64702dd1cc",
+            "CRC"        : 2706995341,
+            "Size"       : 848350,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+            ],
+            "Dependencies" : [
+            ],
+            "Assets"       : [
+                "Assets/0Res/Audios/bgm.wav"
+            ]
+        },
+        {
+            "BundleName" : "prefabs_prefabs",
+            "Hash"       : "1339fc09e85e1b5ff93a5d4499d9241f",
+            "CRC"        : 3504175228,
+            "Size"       : 484306,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -27,11 +42,16 @@
                 "Assets/0Res/Prefabs/MCP_TestGameObject_Visual.prefab",
                 "Assets/0Res/Prefabs/SnowVFX.prefab",
                 "Assets/0Res/Prefabs/Sphere.prefab",
+                "Assets/0Res/Prefabs/UI/AssetsDemoView.prefab",
+                "Assets/0Res/Prefabs/UI/AudioDemoView.prefab",
+                "Assets/0Res/Prefabs/UI/DialogView.prefab",
                 "Assets/0Res/Prefabs/UI/LoadingView.prefab",
-                "Assets/0Res/Prefabs/UI/LoadingView_.prefab",
                 "Assets/0Res/Prefabs/UI/LoginView.prefab",
+                "Assets/0Res/Prefabs/UI/MenuView.prefab",
+                "Assets/0Res/Prefabs/UI/ProcedureDemoView.prefab",
                 "Assets/0Res/Prefabs/UI/ShowcaseView.prefab",
-                "Assets/0Res/Prefabs/UI/TestView.prefab"
+                "Assets/0Res/Prefabs/UI/TestView.prefab",
+                "Assets/0Res/Prefabs/UI/UIDemoView.prefab"
             ]
         },
         {
@@ -45,7 +65,7 @@
                 "ccc"
             ],
             "Dependencies" : [
-                "mytest_prefabs",
+                "prefabs_prefabs",
                 "shaders"
             ],
             "Assets"       : [
@@ -63,7 +83,7 @@
                 "ccc"
             ],
             "Dependencies" : [
-                "mytest_prefabs",
+                "prefabs_prefabs",
                 "shaders"
             ],
             "Assets"       : [
@@ -101,6 +121,21 @@
                 "Assets/TextMesh Pro/Shaders/TMP_SDF-Surface.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_SDF.shader",
                 "Assets/TextMesh Pro/Shaders/TMP_Sprite.shader"
+            ]
+        },
+        {
+            "BundleName" : "sprites_sprites",
+            "Hash"       : "3c71cd683a09ae2ab38e51e896f556b7",
+            "CRC"        : 2554210564,
+            "Size"       : 3980437,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+            ],
+            "Dependencies" : [
+            ],
+            "Assets"       : [
+                "Assets/0Res/Sprites/00008.png"
             ]
         },
         {

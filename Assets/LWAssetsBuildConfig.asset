@@ -15,7 +15,7 @@ MonoBehaviour:
   OutputPath: AssetBundles
   BuildOptions: 0
   PackageRules:
-  - Name: mytest
+  - Name: prefabs
     Strategy: 0
     FolderPath: Assets/0Res/Prefabs
     FilePattern: '*.*'
@@ -43,6 +43,12 @@ MonoBehaviour:
   - Name: audios
     Strategy: 1
     FolderPath: Assets/0Res/Audios
+    FilePattern: '*.*'
+    MaxBundleSize: 1000
+    Tags: []
+  - Name: sprites
+    Strategy: 1
+    FolderPath: Assets/0Res/Sprites
     FilePattern: '*.*'
     MaxBundleSize: 1000
     Tags: []

@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -132,7 +132,7 @@ namespace LWUI
             BaseUIView uiViewBase = null;
             if (!m_UIViewDic.TryGetValue(typeof(T).ToString(), out uiViewBase))
             {
-                uiViewBase = await IUIUtility.CreateViewAsync<T>();
+                uiViewBase = await UIUtility.CreateViewAsync<T>();
                 if (!m_UIViewDic.ContainsKey(typeof(T).ToString()))
                 {
                     m_UIViewDic.Add(typeof(T).ToString(), uiViewBase);
@@ -164,6 +164,114 @@ namespace LWUI
             //await ManagerUtility.AssetsMgr.LoadAsync<GameObject>($"Assets/@Resources/{LWUtility.BuildIn}/UI/{style}/LoadingBarView.prefab");
             //await ManagerUtility.AssetsMgr.LoadAsync<GameObject>($"Assets/@Resources/{LWUtility.BuildIn}/UI/{style}/LoadingView.prefab");
             //await ManagerUtility.AssetsMgr.LoadAsync<GameObject>($"Assets/@Resources/{LWUtility.BuildIn}/UI/{style}/MessageBoxView.prefab");
+        }
+
+        /// <summary>
+        /// 打开弹窗（不等待结果）
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        /// <param name="isShowCancel"></param>
+        /// <param name="isShowClose"></param>
+        public override void OpenDialog(string title, string content, Action<bool> ResultCallback, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true)
+        {
+
+            DialogView dialogView = OpenView<DialogView>(isLastSibling, false);
+            dialogView.ShowAsync(title, content, isShowCancel, isShowClose).ContinueWith((bool result) =>
+            {
+                ResultCallback?.Invoke(result);
+            }).Forget();
+        }
+
+        /// <summary>
+        /// 打开弹窗并等待用户选择（true=确认，false=取消/关闭）
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        /// <param name="isShowCancel"></param>
+        /// <param name="isShowClose"></param>
+        /// <param name="isLastSibling"></param>
+        /// <returns></returns>
+        public override async UniTask<bool> OpenDialogAsync(string title, string content, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true)
+        {
+            DialogView dialogView = OpenView<DialogView>(isLastSibling, false);
+            if (dialogView == null)
+            {
+                return false;
+            }
+
+            bool result = await dialogView.ShowAsync(title, content, isShowCancel, isShowClose);
+            return result;
+        }
+
+        /// <summary>
+        /// 打开Loading弹窗
+        /// </summary>
+        /// <param name="tip"></param>
+        /// <param name="isLastSibling"></param>
+        public override void OpenLoadingBar(string tip = "当前正在加载...", bool isLastSibling = true)
+        {
+            LoadingBarView loadingBarView = GetView<LoadingBarView>();
+            if (loadingBarView == null)
+            {
+                loadingBarView = OpenView<LoadingBarView>(isLastSibling, false);
+            }
+            else
+            {
+                if (!loadingBarView.IsOpen)
+                {
+                    loadingBarView.OpenView();
+                }
+                loadingBarView.SetViewLastSibling(isLastSibling);
+            }
+
+            if (loadingBarView != null)
+            {
+                loadingBarView.Tip = tip != null ? tip : string.Empty;
+                loadingBarView.Progress = 0f;
+            }
+        }
+
+        /// <summary>
+        /// 更新Loading弹窗
+        /// </summary>
+        /// <param name="progress"></param>
+        /// <param name="tip"></param>
+        /// <param name="isLastSibling"></param>
+        public override void UpdateLoadingBar(float progress, string tip = null, bool isLastSibling = true)
+        {
+            LoadingBarView loadingBarView = GetView<LoadingBarView>();
+            if (loadingBarView == null)
+            {
+                string openTip = tip != null ? tip : "当前正在加载...";
+                OpenLoadingBar(openTip, isLastSibling);
+                loadingBarView = GetView<LoadingBarView>();
+            }
+            else
+            {
+                if (!loadingBarView.IsOpen)
+                {
+                    loadingBarView.OpenView();
+                }
+                loadingBarView.SetViewLastSibling(isLastSibling);
+            }
+
+            if (loadingBarView != null)
+            {
+                loadingBarView.Progress = progress;
+                if (tip != null)
+                {
+                    loadingBarView.Tip = tip;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 关闭Loading弹窗
+        /// </summary>
+        public override void CloseLoadingBar()
+        {
+            CloseView<LoadingBarView>(false);
         }
 
 

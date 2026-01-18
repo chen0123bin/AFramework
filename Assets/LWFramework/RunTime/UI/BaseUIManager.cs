@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using LWCore;
 using System;
 using System.Collections;
@@ -33,8 +33,8 @@ namespace LWUI
 
 
 
-        protected IUIUtility m_UIUtility;
-        public IUIUtility IUIUtility
+        protected UIUtility m_UIUtility;
+        public UIUtility UIUtility
         {
             get => m_UIUtility;
         }
@@ -100,6 +100,46 @@ namespace LWUI
         /// <param name="isLastSibling">是否放置在最前面</param>
         /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
         public abstract UniTask<T> OpenViewAsync<T>(bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
+
+        /// <summary>
+        /// 打开弹窗
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        /// <param name="isShowCancel"></param>
+        /// <param name="isShowClose"></param>
+        public abstract void OpenDialog(string title, string content, Action<bool> ResultCallback, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true);
+
+        /// <summary>
+        /// 打开弹窗并等待用户选择（true=确认，false=取消/关闭）
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        /// <param name="isShowCancel"></param>
+        /// <param name="isShowClose"></param>
+        /// <param name="isLastSibling"></param>
+        /// <returns></returns>
+        public abstract UniTask<bool> OpenDialogAsync(string title, string content, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true);
+
+        /// <summary>
+        /// 打开Loading弹窗
+        /// </summary>
+        /// <param name="tip"></param>
+        /// <param name="isLastSibling"></param>
+        public abstract void OpenLoadingBar(string tip = "当前正在加载...", bool isLastSibling = true);
+
+        /// <summary>
+        /// 更新Loading弹窗
+        /// </summary>
+        /// <param name="progress"></param>
+        /// <param name="tip"></param>
+        /// <param name="isLastSibling"></param>
+        public abstract void UpdateLoadingBar(float progress, string tip = null, bool isLastSibling = true);
+
+        /// <summary>
+        /// 关闭Loading弹窗
+        /// </summary>
+        public abstract void CloseLoadingBar();
 
         public BaseUIView BackView(bool isLastSibling = true)
         {
@@ -363,11 +403,11 @@ namespace LWUI
         }
         public async UniTask PreloadViewAsync(string loadPath)
         {
-            await ManagerUtility.UIMgr.IUIUtility.PreloadViewAsync(loadPath);
+            await ManagerUtility.UIMgr.UIUtility.PreloadViewAsync(loadPath);
         }
         public async UniTask PreloadViewAsync<T>()
         {
-            await ManagerUtility.UIMgr.IUIUtility.PreloadViewAsync<T>();
+            await ManagerUtility.UIMgr.UIUtility.PreloadViewAsync<T>();
         }
 
         public abstract UniTask PreLoadDefaultUI();

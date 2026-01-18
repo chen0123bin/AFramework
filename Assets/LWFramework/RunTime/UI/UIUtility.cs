@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace LWUI
 {
-    public class UIUtility : IUIUtility
+    public class UIUtility
     {
 
         /// <summary>
@@ -334,90 +334,90 @@ namespace LWUI
             }
         }
 
-		/// <summary>
-		/// 查找 UI 节点：支持完整路径（A/B/C）与短路径（仅节点名）。
-		/// </summary>
-		/// <param name="root">查找根节点</param>
-		/// <param name="rootPath">UIElement 路径</param>
-		/// <returns>目标 Transform（找不到返回 null）</returns>
-		private Transform FindUITransform(Transform root, string rootPath)
-		{
-			if (root == null)
-			{
-				return null;
-			}
-			if (string.IsNullOrEmpty(rootPath))
-			{
-				return null;
-			}
+        /// <summary>
+        /// 查找 UI 节点：支持完整路径（A/B/C）与短路径（仅节点名）。
+        /// </summary>
+        /// <param name="root">查找根节点</param>
+        /// <param name="rootPath">UIElement 路径</param>
+        /// <returns>目标 Transform（找不到返回 null）</returns>
+        private Transform FindUITransform(Transform root, string rootPath)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                return null;
+            }
 
-			int rootInstanceId = root.gameObject.GetInstanceID();
-			Dictionary<string, Transform> cache;
-			if (!m_UIElementTransformCache.TryGetValue(rootInstanceId, out cache))
-			{
-				cache = new Dictionary<string, Transform>();
-				m_UIElementTransformCache.Add(rootInstanceId, cache);
-			}
+            int rootInstanceId = root.gameObject.GetInstanceID();
+            Dictionary<string, Transform> cache;
+            if (!m_UIElementTransformCache.TryGetValue(rootInstanceId, out cache))
+            {
+                cache = new Dictionary<string, Transform>();
+                m_UIElementTransformCache.Add(rootInstanceId, cache);
+            }
 
-			Transform cachedTransform;
-			if (cache.TryGetValue(rootPath, out cachedTransform))
-			{
-				if (cachedTransform != null)
-				{
-					return cachedTransform;
-				}
-				cache.Remove(rootPath);
-			}
+            Transform cachedTransform;
+            if (cache.TryGetValue(rootPath, out cachedTransform))
+            {
+                if (cachedTransform != null)
+                {
+                    return cachedTransform;
+                }
+                cache.Remove(rootPath);
+            }
 
-			Transform targetTransform = null;
-			if (rootPath.IndexOf('/') >= 0)
-			{
-				targetTransform = root.Find(rootPath);
-			}
-			else
-			{
-				Transform directTransform = root.Find(rootPath);
-				if (directTransform != null)
-				{
-					targetTransform = directTransform;
-				}
-				else
-				{
-					targetTransform = FindChildByName(root, rootPath);
-				}
-			}
+            Transform targetTransform = null;
+            if (rootPath.IndexOf('/') >= 0)
+            {
+                targetTransform = root.Find(rootPath);
+            }
+            else
+            {
+                Transform directTransform = root.Find(rootPath);
+                if (directTransform != null)
+                {
+                    targetTransform = directTransform;
+                }
+                else
+                {
+                    targetTransform = FindChildByName(root, rootPath);
+                }
+            }
 
-			if (targetTransform != null)
-			{
-				cache[rootPath] = targetTransform;
-			}
-			return targetTransform;
-		}
+            if (targetTransform != null)
+            {
+                cache[rootPath] = targetTransform;
+            }
+            return targetTransform;
+        }
 
-		/// <summary>
-		/// 递归按名称查找子节点（深度优先）。
-		/// </summary>
-		/// <param name="root">查找根节点</param>
-		/// <param name="childName">子节点名</param>
-		/// <returns>找到的 Transform（找不到返回 null）</returns>
-		private Transform FindChildByName(Transform root, string childName)
-		{
-			int childCount = root.childCount;
-			for (int i = 0; i < childCount; i++)
-			{
-				Transform child = root.GetChild(i);
-				if (child.name == childName)
-				{
-					return child;
-				}
-				Transform found = FindChildByName(child, childName);
-				if (found != null)
-				{
-					return found;
-				}
-			}
-			return null;
-		}
+        /// <summary>
+        /// 递归按名称查找子节点（深度优先）。
+        /// </summary>
+        /// <param name="root">查找根节点</param>
+        /// <param name="childName">子节点名</param>
+        /// <returns>找到的 Transform（找不到返回 null）</returns>
+        private Transform FindChildByName(Transform root, string childName)
+        {
+            int childCount = root.childCount;
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = root.GetChild(i);
+                if (child.name == childName)
+                {
+                    return child;
+                }
+                Transform found = FindChildByName(child, childName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+            return null;
+        }
         UnityEngine.Object GetUIComponent(Transform go, Type type)
         {
             UnityEngine.Object ret = null;

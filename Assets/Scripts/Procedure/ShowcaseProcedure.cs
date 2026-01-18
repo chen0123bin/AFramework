@@ -235,17 +235,12 @@ public class ShowcaseProcedure : BaseFSMState
 
     private async UniTaskVoid OpenLoadingAsync()
     {
-        LoadingBarView loadingBarView = null;
         try
         {
             SetBusy(true);
 
-            loadingBarView = ManagerUtility.UIMgr.OpenView<LoadingBarView>(true, false);
-            if (loadingBarView != null)
-            {
-                loadingBarView.Tip = "示例 Loading...";
-                loadingBarView.Progress = 0f;
-            }
+            ManagerUtility.UIMgr.OpenLoadingBar("示例 Loading...", true);
+            ManagerUtility.UIMgr.UpdateLoadingBar(0f, "示例 Loading...", true);
 
             float duration = 1.0f;
             float elapsed = 0f;
@@ -254,11 +249,7 @@ public class ShowcaseProcedure : BaseFSMState
             {
                 elapsed += Time.unscaledDeltaTime;
                 float progress = Mathf.Clamp01(elapsed / duration);
-                if (loadingBarView != null)
-                {
-                    loadingBarView.Progress = progress;
-                    loadingBarView.Tip = "示例 Loading...";
-                }
+                ManagerUtility.UIMgr.UpdateLoadingBar(progress, "示例 Loading...", true);
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
             }
 
@@ -275,10 +266,7 @@ public class ShowcaseProcedure : BaseFSMState
         }
         finally
         {
-            if (loadingBarView != null)
-            {
-                ManagerUtility.UIMgr.CloseView<LoadingBarView>();
-            }
+            ManagerUtility.UIMgr.CloseLoadingBar();
             SetBusy(false);
         }
     }

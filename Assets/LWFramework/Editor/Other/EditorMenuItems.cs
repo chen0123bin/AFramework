@@ -163,7 +163,6 @@ public class EditorMenuItems
         strBuilder.AppendLine("using LWUI;");
         strBuilder.AppendLine("using UnityEngine.UI;");
         strBuilder.AppendLine("using UnityEngine;");
-        strBuilder.AppendLine("using LWFramework;");
         strBuilder.AppendLine();
         strBuilder.AppendFormat("[UIViewData(\"{0}\",(int)FindType.Name,\"LWFramework/Canvas/Normal\")]", loadPath);
         strBuilder.AppendLine();
