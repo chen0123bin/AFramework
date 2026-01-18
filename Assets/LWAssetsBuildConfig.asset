@@ -23,14 +23,14 @@ MonoBehaviour:
     Tags:
     - Core
   - Name: scenes
-    Strategy: 1
+    Strategy: 2
     FolderPath: Assets/0Res/Scenes
     FilePattern: '*.*'
     MaxBundleSize: 1000
     Tags: []
-  - Name: scene2
+  - Name: prefabs2
     Strategy: 1
-    FolderPath: Assets/0Res/Scenes2
+    FolderPath: Assets/0Res/Prefabs2
     FilePattern: '*.*'
     MaxBundleSize: 1000
     Tags: []

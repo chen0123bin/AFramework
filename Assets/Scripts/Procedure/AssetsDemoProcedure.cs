@@ -12,7 +12,7 @@ public class AssetsDemoProcedure : BaseFSMState
 {
     private const string TEST_SPRITE_PATH = "Assets/0Res/Sprites/00008.png";
     private const string TEST_PREFAB_PATH = "Assets/0Res/Prefabs/Cube.prefab";
-    private const string TEST_SCENE_PATH = "Assets/0Res/Scenes2/Test2.unity";
+    private const string TEST_SCENE_PATH = "Assets/0Res/Scenes/Test.unity";
 
     private bool m_IsBusy;
     private CancellationTokenSource m_CancellationTokenSource;

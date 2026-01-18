@@ -1,7 +1,7 @@
 
 {
-    "Version" : 13,
-    "BuildTime" : "2026-01-18 18:46:27",
+    "Version" : 14,
+    "BuildTime" : "2026-01-18 23:22:09",
     "Platform"  : "Windows",
     "Bundles"   : [
         {
@@ -20,10 +20,27 @@
             ]
         },
         {
+            "BundleName" : "prefabs2_prefabs2",
+            "Hash"       : "a81a051bee8cf80662224a6b92d29fe3",
+            "CRC"        : 2952142084,
+            "Size"       : 2975,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+                "Core"
+            ],
+            "Dependencies" : [
+                "shaders"
+            ],
+            "Assets"       : [
+                "Assets/0Res/Prefabs2/Cylinder1.prefab"
+            ]
+        },
+        {
             "BundleName" : "prefabs_prefabs",
-            "Hash"       : "1339fc09e85e1b5ff93a5d4499d9241f",
-            "CRC"        : 3504175228,
-            "Size"       : 484306,
+            "Hash"       : "b3f59a18db47d5f88806b360357d6b4a",
+            "CRC"        : 3860185424,
+            "Size"       : 484215,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
@@ -37,7 +54,6 @@
                 "Assets/0Res/Prefabs/Cube.prefab",
                 "Assets/0Res/Prefabs/Cube009.prefab",
                 "Assets/0Res/Prefabs/Cube2.prefab",
-                "Assets/0Res/Prefabs/Cylinder1.prefab",
                 "Assets/0Res/Prefabs/Cylinder2.prefab",
                 "Assets/0Res/Prefabs/MCP_TestGameObject_Visual.prefab",
                 "Assets/0Res/Prefabs/SnowVFX.prefab",
@@ -55,39 +71,40 @@
             ]
         },
         {
-            "BundleName" : "scene2_scenes2",
-            "Hash"       : "33f558518d79b26dfc5f7e8426a6198d",
-            "CRC"        : 2599688273,
-            "Size"       : 93304,
+            "BundleName" : "scenes_test",
+            "Hash"       : "b351dd19a764674ad63d9959c4cd324d",
+            "CRC"        : 2931866743,
+            "Size"       : 93680,
             "IsRawFile"  : false,
             "IsEncrypted" : false,
             "Tags"        : [
                 "ccc"
             ],
             "Dependencies" : [
-                "prefabs_prefabs",
-                "shaders"
-            ],
-            "Assets"       : [
-                "Assets/0Res/Scenes2/Test2.unity"
-            ]
-        },
-        {
-            "BundleName" : "scenes_scenes",
-            "Hash"       : "797dc40529973b9e63827da2c493ab64",
-            "CRC"        : 3089844192,
-            "Size"       : 93257,
-            "IsRawFile"  : false,
-            "IsEncrypted" : false,
-            "Tags"        : [
-                "ccc"
-            ],
-            "Dependencies" : [
+                "prefabs2_prefabs2",
                 "prefabs_prefabs",
                 "shaders"
             ],
             "Assets"       : [
                 "Assets/0Res/Scenes/Test.unity"
+            ]
+        },
+        {
+            "BundleName" : "scenes_test2",
+            "Hash"       : "4fa39fac72e496b4fa84a46c0b2c064e",
+            "CRC"        : 542307644,
+            "Size"       : 93256,
+            "IsRawFile"  : false,
+            "IsEncrypted" : false,
+            "Tags"        : [
+                "ccc"
+            ],
+            "Dependencies" : [
+                "prefabs_prefabs",
+                "shaders"
+            ],
+            "Assets"       : [
+                "Assets/0Res/Scenes/Test2.unity"
             ]
         },
         {
