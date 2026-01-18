@@ -356,8 +356,7 @@ public class AssetsDemoProcedure : BaseFSMState
             m_IsBusy = true;
             if (m_SceneHandle != null)
             {
-                await m_SceneHandle.UnloadAsync();
-                m_SceneHandle.Dispose();
+                await ManagerUtility.AssetsMgr.UnloadSceneAsync(TEST_SCENE_PATH, true, cancellationToken);
                 m_SceneHandle = null;
             }
 
@@ -405,8 +404,7 @@ public class AssetsDemoProcedure : BaseFSMState
         try
         {
             m_IsBusy = true;
-            await m_SceneHandle.UnloadAsync();
-            m_SceneHandle.Dispose();
+            await ManagerUtility.AssetsMgr.UnloadSceneAsync(TEST_SCENE_PATH, true);
             m_SceneHandle = null;
             LWDebug.Log("场景卸载成功");
         }
@@ -462,7 +460,7 @@ public class AssetsDemoProcedure : BaseFSMState
             {
                 try
                 {
-                    await m_SceneHandle.UnloadAsync();
+                    await ManagerUtility.AssetsMgr.UnloadSceneAsync(TEST_SCENE_PATH, true);
                 }
                 catch (Exception e)
                 {
@@ -470,7 +468,6 @@ public class AssetsDemoProcedure : BaseFSMState
                 }
                 finally
                 {
-                    m_SceneHandle.Dispose();
                     m_SceneHandle = null;
                 }
             }

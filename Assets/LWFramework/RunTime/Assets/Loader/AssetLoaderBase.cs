@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -42,21 +41,21 @@ namespace LWAssets
         /// <returns></returns>
         public virtual GameObject Instantiate(string assetPath, Transform parent = null)
         {
-            var asset = LoadAsset<GameObject>(assetPath);
+            GameObject asset = LoadAsset<GameObject>(assetPath);
             if (asset == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Failed to load asset: {assetPath}");
                 return null;
             }
 
-            var instance = UnityEngine.Object.Instantiate(asset, parent);
+            GameObject instance = UnityEngine.Object.Instantiate(asset, parent);
             if (instance == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Failed to instantiate asset: {assetPath}");
                 return null;
             }
 
-            var releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
+            AutoReleaseOnDestroy releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
             releaseComp.m_Path = assetPath;
             return instance;
         }
@@ -95,43 +94,37 @@ namespace LWAssets
         #region 异步加载
 
         /// <summary>
-        /// 异步加载资源    
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="assetPath"></param>
-        /// <returns></returns>
-        /// <summary>
         /// 通用：通过清单定位Bundle，再从Bundle异步加载资源
         /// </summary>
         public virtual async UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
             where T : UnityEngine.Object
         {
-            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
+            BundleInfo bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
+            Stopwatch sw = Stopwatch.StartNew();
 
-            var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
+            BundleHandle bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
             if (bundleHandle == null || !bundleHandle.IsValid)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
                 return null;
             }
 
-            var assetName = Path.GetFileNameWithoutExtension(assetPath);
-            var request = bundleHandle.Bundle.LoadAssetAsync<T>(assetName);
+            string assetName = Path.GetFileNameWithoutExtension(assetPath);
+            AssetBundleRequest request = bundleHandle.Bundle.LoadAssetAsync<T>(assetName);
             await request;
 
-            var asset = request.asset as T;
+            T asset = request.asset as T;
             sw.Stop();
 
             if (asset != null)
             {
-                TrackAssetHandle(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+                RetainAssetReference(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
             }
 
             return asset;
@@ -150,7 +143,7 @@ namespace LWAssets
         /// <returns></returns>
         public async UniTask<string> LoadRawFileTextAsync(string assetPath, CancellationToken cancellationToken = default)
         {
-            var data = await LoadRawFileAsync(assetPath, cancellationToken);
+            byte[] data = await LoadRawFileAsync(assetPath, cancellationToken);
             return data != null ? System.Text.Encoding.UTF8.GetString(data) : null;
         }
 
@@ -161,32 +154,47 @@ namespace LWAssets
             IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
-            var sceneHandle = new SceneHandle(scenePath);
-            var sw = Stopwatch.StartNew();
+            lock (m_LockObj)
+            {
+                if (m_HandleBaseCache.TryGetValue(scenePath, out HandleBase cached) && cached is SceneHandle cachedScene)
+                {
+                    if (!cachedScene.IsDisposed && cachedScene.IsValid)
+                    {
+                        cachedScene.Retain();
+                        RetainBundleReferenceRecursive(cachedScene.BundleName);
+                        return cachedScene;
+                    }
+
+                    m_HandleBaseCache.Remove(scenePath);
+                }
+            }
+
+            SceneHandle sceneHandle = new SceneHandle(scenePath);
+            Stopwatch sw = Stopwatch.StartNew();
             try
             {
                 progress?.Report(0f);
-                var bundleInfo = m_Manifest.GetBundleByAsset(scenePath);
+                BundleInfo bundleInfo = m_Manifest.GetBundleByAsset(scenePath);
                 if (bundleInfo == null)
                 {
                     sceneHandle.SetError(new FileNotFoundException($"Scene not found: {scenePath}"));
                     return sceneHandle;
                 }
 
-                var bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
+                BundleHandle bundleHandle = await LoadBundleAsync(bundleInfo.BundleName, cancellationToken);
                 if (bundleHandle == null || !bundleHandle.IsValid)
                 {
                     sceneHandle.SetError(new Exception($"Failed to load scene bundle: {bundleInfo.BundleName}"));
                     return sceneHandle;
                 }
 
-                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-                var op = SceneManager.LoadSceneAsync(sceneName, mode);
+                string sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                AsyncOperation op = SceneManager.LoadSceneAsync(sceneName, mode);
                 op.allowSceneActivation = activateOnLoad;
 
                 while (!op.isDone)
                 {
-                    var normalizedProgress = op.progress < 0.9f ? Mathf.Clamp01(op.progress / 0.9f) : 1f;
+                    float normalizedProgress = op.progress < 0.9f ? Mathf.Clamp01(op.progress / 0.9f) : 1f;
                     sceneHandle.SetProgress(normalizedProgress);
                     progress?.Report(normalizedProgress);
                     if (op.progress >= 0.9f && !activateOnLoad)
@@ -204,6 +212,8 @@ namespace LWAssets
                 {
                     m_HandleBaseCache[scenePath] = sceneHandle;
                 }
+
+                RetainBundleReferenceRecursive(bundleInfo.BundleName);
             }
             catch (Exception ex)
             {
@@ -214,6 +224,57 @@ namespace LWAssets
         }
 
         /// <summary>
+        /// 卸载场景，并按引用计数规则释放对应资源
+        /// </summary>
+        public virtual async UniTask UnloadSceneAsync(string scenePath, bool forceRelease = true, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(scenePath)) return;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SceneHandle sceneHandle = null;
+            lock (m_LockObj)
+            {
+                if (m_HandleBaseCache.TryGetValue(scenePath, out HandleBase cached) && cached is SceneHandle cachedScene)
+                {
+                    sceneHandle = cachedScene;
+                }
+            }
+
+            if (sceneHandle != null)
+            {
+                await sceneHandle.UnloadAsync();
+            }
+            else
+            {
+                string sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                Scene scene = SceneManager.GetSceneByName(sceneName);
+                if (scene.IsValid())
+                {
+                    AsyncOperation op = SceneManager.UnloadSceneAsync(scene);
+                    if (op != null)
+                    {
+                        await op;
+                    }
+                }
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ReleaseAsset(scenePath, forceRelease);
+        }
+
+        /// <summary>
+        /// 卸载场景句柄对应的场景，并按引用计数规则释放对应资源
+        /// </summary>
+        public virtual async UniTask UnloadSceneAsync(SceneHandle sceneHandle, bool forceRelease = true, CancellationToken cancellationToken = default)
+        {
+            if (sceneHandle == null) return;
+
+            await UnloadSceneAsync(sceneHandle.Path, forceRelease, cancellationToken);
+        }
+
+        /// <summary>
         /// 异步实例化资源
         /// </summary>
         /// <returns></returns>
@@ -221,22 +282,16 @@ namespace LWAssets
         {
 
             // 加载资源
-            var asset = await LoadAssetAsync<GameObject>(assetPath, cancellationToken);
+            GameObject asset = await LoadAssetAsync<GameObject>(assetPath, cancellationToken);
             if (asset == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Failed to load asset: {assetPath}");
                 return null;
             }
-
             // 实例化资源
-            var instance = UnityEngine.Object.Instantiate(asset, parent);
-            if (instance == null)
-            {
-                UnityEngine.Debug.LogError($"[LWAssets] Failed to instantiate asset: {assetPath}");
-                return null;
-            }
+            GameObject instance = UnityEngine.Object.Instantiate(asset, parent);
             // 挂上自动释放组件
-            var releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
+            AutoReleaseOnDestroy releaseComp = instance.AddComponent<AutoReleaseOnDestroy>();
             releaseComp.m_Path = assetPath;
             return instance;
         }
@@ -251,11 +306,23 @@ namespace LWAssets
         /// </summary>
         public virtual void ForceReleaseAll()
         {
-            var toRemove = m_HandleBaseCache.Values.ToList();
-            for (int i = 0; i < toRemove.Count; i++)
+            List<string> assetPaths = new List<string>();
+            lock (m_LockObj)
             {
-                var handle = toRemove[i];
-                ReleaseAsset(handle.Path, true);
+                foreach (KeyValuePair<string, HandleBase> kvp in m_HandleBaseCache)
+                {
+                    if (kvp.Value == null)
+                    {
+                        continue;
+                    }
+
+                    assetPaths.Add(kvp.Key);
+                }
+            }
+
+            for (int i = 0; i < assetPaths.Count; i++)
+            {
+                ReleaseAsset(assetPaths[i], true);
             }
         }
         /// <summary>
@@ -277,8 +344,20 @@ namespace LWAssets
         {
             if (asset == null) return;
 
-            var info = m_HandleBaseCache.FirstOrDefault(x => x.Value is AssetHandle ah && ah.AssetObject == asset);
-            ReleaseAsset(info.Key);
+            string assetPath = null;
+            lock (m_LockObj)
+            {
+                foreach (KeyValuePair<string, HandleBase> kvp in m_HandleBaseCache)
+                {
+                    if (kvp.Value is AssetHandle assetHandle && assetHandle.AssetObject == asset)
+                    {
+                        assetPath = kvp.Key;
+                        break;
+                    }
+                }
+            }
+
+            ReleaseAsset(assetPath);
         }
         /// <summary>
         /// 释放指定资源路径的资源
@@ -297,22 +376,30 @@ namespace LWAssets
         public virtual void ForceUnloadBundle(string bundleName)
         {
             if (string.IsNullOrEmpty(bundleName)) return;
-            if (m_BundleHandleCache.TryGetValue(bundleName, out var bundleHandle))
-            {
-                var toRemove = m_HandleBaseCache
-                    .Where(kvp => kvp.Value != null && kvp.Value.BundleName == bundleName)
-                    .Select(kvp => kvp.Key)
-                    .ToList();
 
-                foreach (var key in toRemove)
+            List<string> assetPathsToRelease = new List<string>();
+            lock (m_LockObj)
+            {
+                if (!m_BundleHandleCache.TryGetValue(bundleName, out BundleHandle bundleHandle))
                 {
-                    ReleaseAsset(key, true);
+                    return;
                 }
-                if (bundleHandle != null)
+
+                foreach (KeyValuePair<string, HandleBase> kvp in m_HandleBaseCache)
                 {
-                    ReleaseBundle(bundleHandle.BundleName, true);
+                    if (kvp.Value != null && kvp.Value.BundleName == bundleName)
+                    {
+                        assetPathsToRelease.Add(kvp.Key);
+                    }
                 }
             }
+
+            for (int i = 0; i < assetPathsToRelease.Count; i++)
+            {
+                ReleaseAsset(assetPathsToRelease[i], true);
+            }
+
+            ReleaseBundleReferenceRecursive(bundleName, true);
         }
         /// <summary>
         /// 异步卸载未使用资源
@@ -320,52 +407,46 @@ namespace LWAssets
         /// <returns></returns>
         public virtual async UniTask UnloadUnusedAssetsAsync()
         {
+            List<string> handlePathsToRemove = new List<string>();
+            List<string> bundleNamesToRemove = new List<string>();
             lock (m_LockObj)
             {
-                var toRemove = new List<HandleBase>();
-                foreach (var kvp in m_HandleBaseCache)
+                foreach (KeyValuePair<string, HandleBase> kvp in m_HandleBaseCache)
                 {
-                    if (kvp.Value == null)
+                    HandleBase handleBase = kvp.Value;
+                    if (handleBase == null || handleBase.IsDisposed || !handleBase.IsValid || handleBase.RefCount <= 0)
                     {
-                        toRemove.Add(kvp.Value);
-                        continue;
-                    }
-
-                    if (kvp.Value.IsDisposed || !kvp.Value.IsValid || kvp.Value.RefCount <= 0)
-                    {
-                        toRemove.Add(kvp.Value);
+                        handlePathsToRemove.Add(kvp.Key);
                     }
                 }
 
-                foreach (var handleBase in toRemove)
+                foreach (KeyValuePair<string, BundleHandle> kvp in m_BundleHandleCache)
                 {
-                    m_HandleBaseCache.Remove(handleBase.Path);
-                    handleBase.Dispose();
-                }
-            }
-
-            lock (m_LockObj)
-            {
-
-                var toRemove = new List<BundleHandle>();
-                foreach (var kvp in m_BundleHandleCache)
-                {
-                    if (kvp.Value == null)
+                    BundleHandle bundleHandle = kvp.Value;
+                    if (bundleHandle == null || bundleHandle.IsDisposed || !bundleHandle.IsValid || bundleHandle.RefCount <= 0)
                     {
-                        toRemove.Add(kvp.Value);
-                        continue;
-                    }
-
-                    if (kvp.Value.IsDisposed || !kvp.Value.IsValid || kvp.Value.RefCount <= 0)
-                    {
-                        toRemove.Add(kvp.Value);
+                        bundleNamesToRemove.Add(kvp.Key);
                     }
                 }
 
-                foreach (var bundleHandle in toRemove)
+                for (int i = 0; i < handlePathsToRemove.Count; i++)
                 {
-                    m_BundleHandleCache.Remove(bundleHandle.BundleName);
-                    bundleHandle.Dispose();
+                    string assetPath = handlePathsToRemove[i];
+                    if (m_HandleBaseCache.TryGetValue(assetPath, out HandleBase handleBase) && handleBase != null)
+                    {
+                        handleBase.Dispose();
+                    }
+                    m_HandleBaseCache.Remove(assetPath);
+                }
+
+                for (int i = 0; i < bundleNamesToRemove.Count; i++)
+                {
+                    string bundleName = bundleNamesToRemove[i];
+                    if (m_BundleHandleCache.TryGetValue(bundleName, out BundleHandle bundleHandle) && bundleHandle != null)
+                    {
+                        bundleHandle.Dispose();
+                    }
+                    m_BundleHandleCache.Remove(bundleName);
                 }
             }
             await Resources.UnloadUnusedAssets();
@@ -393,7 +474,7 @@ namespace LWAssets
 
             lock (m_LockObj)
             {
-                if (m_BundleHandleCache.TryGetValue(bundleName, out var cached))
+                if (m_BundleHandleCache.TryGetValue(bundleName, out BundleHandle cached))
                 {
                     if (cached == null || cached.IsDisposed || !cached.IsValid)
                     {
@@ -404,7 +485,6 @@ namespace LWAssets
                         if (cached.IsDependLoad && !isDepend)
                         {
                             cached.IsDependLoad = false;
-                            cached.Retain();
                         }
 
                         return cached;
@@ -441,33 +521,28 @@ namespace LWAssets
         protected virtual async UniTask<BundleHandle> LoadBundleInternalAsync(string bundleName,
             CancellationToken cancellationToken = default, bool isDepend = false)
         {
-            var bundleInfo = m_Manifest.GetBundleInfo(bundleName);
+            BundleInfo bundleInfo = m_Manifest.GetBundleInfo(bundleName);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Bundle not found: {bundleName}");
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
-            var bundleHandle = new BundleHandle(bundleName);
+            Stopwatch sw = Stopwatch.StartNew();
+            BundleHandle bundleHandle = new BundleHandle(bundleName);
 
             // 先加载依赖
-            foreach (var depName in bundleInfo.Dependencies)
+            foreach (string depName in bundleInfo.Dependencies)
             {
-                var depBundleHandle = await LoadBundleAsync(depName, cancellationToken, true);
+                BundleHandle depBundleHandle = await LoadBundleAsync(depName, cancellationToken, true);
                 bundleHandle.AddDependency(depBundleHandle);
-                depBundleHandle.Retain();
             }
             // 加载Bundle
-            var bundle = await LoadBundleFromSourceAsync(bundleInfo, cancellationToken);
+            AssetBundle bundle = await LoadBundleFromSourceAsync(bundleInfo, cancellationToken);
             sw.Stop();
             bundleHandle.IsDependLoad = isDepend;
             bundleHandle.SetBundle(bundle);
             bundleHandle.SetLoadInfo(bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
-            if (!isDepend)
-            {
-                bundleHandle.Retain();
-            }
 
             lock (m_LockObj)
             {
@@ -483,62 +558,84 @@ namespace LWAssets
         protected abstract UniTask<AssetBundle> LoadBundleFromSourceAsync(BundleInfo bundleInfo,
             CancellationToken cancellationToken = default);
 
-
+        /// <summary>
+        /// 释放指定资源路径的引用，并递归扣减其所属Bundle及依赖Bundle的引用计数
+        /// </summary>
         private void ReleaseAsset(string assetPath, bool force = false)
         {
             if (string.IsNullOrEmpty(assetPath)) return;
 
-            if (m_HandleBaseCache.TryGetValue(assetPath, out var handleBase))
+            lock (m_LockObj)
             {
+                if (!m_HandleBaseCache.TryGetValue(assetPath, out HandleBase handleBase) || handleBase == null)
+                {
+                    return;
+                }
 
+                string bundleName = handleBase.BundleName;
                 if (force)
                 {
                     while (handleBase.RefCount > 0)
                     {
                         handleBase.Release();
+                        ReleaseBundleReferenceRecursive(bundleName, false);
                     }
                 }
                 else
                 {
                     handleBase.Release();
+                    ReleaseBundleReferenceRecursive(bundleName, false);
                 }
-                // 递归释放依赖的资源
-                if (handleBase.RefCount <= 0 || handleBase.IsDisposed || !handleBase.IsValid)
-                {
-                    //_handleBaseCache.Remove(assetPath);
-                    ReleaseBundle(handleBase.BundleName);
-                }
-
-
             }
         }
 
-
-
-        private void ReleaseBundle(string bundleName, bool force = false)
+        /// <summary>
+        /// 递归扣减指定Bundle及其依赖Bundle的引用计数
+        /// </summary>
+        private void ReleaseBundleReferenceRecursive(string bundleName, bool force = false)
         {
             if (string.IsNullOrEmpty(bundleName)) return;
 
-            if (m_BundleHandleCache.TryGetValue(bundleName, out var bundleHandle) && bundleHandle != null)
+            lock (m_LockObj)
             {
+                if (!m_BundleHandleCache.TryGetValue(bundleName, out BundleHandle bundleHandle) || bundleHandle == null)
+                {
+                    return;
+                }
 
                 if (force)
                 {
                     while (bundleHandle.RefCount > 0)
                     {
+                        int prevRefCount = bundleHandle.RefCount;
                         bundleHandle.Release();
+
+                        if (prevRefCount > 0)
+                        {
+                            foreach (BundleHandle dep in bundleHandle.Dependencies)
+                            {
+                                if (dep != null)
+                                {
+                                    ReleaseBundleReferenceRecursive(dep.BundleName, false);
+                                }
+                            }
+                        }
                     }
                 }
                 else
                 {
+                    int prevRefCount = bundleHandle.RefCount;
                     bundleHandle.Release();
-                }
-                // 递归释放依赖的Bundle
-                if (!bundleHandle.IsValid || bundleHandle.RefCount <= 0)
-                {
-                    foreach (var dep in bundleHandle.Dependencies)
+
+                    if (prevRefCount > 0)
                     {
-                        ReleaseBundle(dep.BundleName, false);
+                        foreach (BundleHandle dep in bundleHandle.Dependencies)
+                        {
+                            if (dep != null)
+                            {
+                                ReleaseBundleReferenceRecursive(dep.BundleName, false);
+                            }
+                        }
                     }
                 }
             }
@@ -547,13 +644,13 @@ namespace LWAssets
         /// <summary>
         /// 记录资源引用（带加载耗时）
         /// </summary>
-        protected void TrackAssetHandle(string assetPath, UnityEngine.Object asset, string bundleName, double loadTimeMs)
+        protected void RetainAssetReference(string assetPath, UnityEngine.Object asset, string bundleName, double loadTimeMs)
         {
             if (asset == null) return;
 
             lock (m_LockObj)
             {
-                if (m_HandleBaseCache.TryGetValue(assetPath, out var handle) && handle != null)
+                if (m_HandleBaseCache.TryGetValue(assetPath, out HandleBase handle) && handle != null)
                 {
                     handle.Retain();
                 }
@@ -567,24 +664,58 @@ namespace LWAssets
                     handle.Retain();
                     m_HandleBaseCache[assetPath] = handle;
                 }
+
+                RetainBundleReferenceRecursive(bundleName);
+            }
+        }
+
+        /// <summary>
+        /// 递归增加指定Bundle及其依赖Bundle的引用计数
+        /// </summary>
+        protected void RetainBundleReferenceRecursive(string bundleName)
+        {
+            if (string.IsNullOrEmpty(bundleName)) return;
+
+            lock (m_LockObj)
+            {
+                HashSet<string> visited = new HashSet<string>();
+                RetainBundleReferenceRecursiveInternal(bundleName, visited);
+            }
+        }
+
+        private void RetainBundleReferenceRecursiveInternal(string bundleName, HashSet<string> visited)
+        {
+            if (string.IsNullOrEmpty(bundleName)) return;
+            if (!visited.Add(bundleName)) return;
+
+            if (m_BundleHandleCache.TryGetValue(bundleName, out BundleHandle bundleHandle) && bundleHandle != null && !bundleHandle.IsDisposed && bundleHandle.IsValid)
+            {
+                bundleHandle.Retain();
+                foreach (BundleHandle dep in bundleHandle.Dependencies)
+                {
+                    if (dep != null)
+                    {
+                        RetainBundleReferenceRecursiveInternal(dep.BundleName, visited);
+                    }
+                }
             }
         }
 
         /// <summary>
         ///     记录原始文件引用（带加载耗时）
         /// </summary>
-        protected void TrackRawFileHandle(string assetPath, byte[] data, string bundleName, long fileSizeBytes, double loadTimeMs)
+        protected void RetainRawFileReference(string assetPath, byte[] data, string bundleName, long fileSizeBytes, double loadTimeMs)
         {
             if (data == null) return;
             lock (m_LockObj)
             {
-                if (m_HandleBaseCache.TryGetValue(assetPath, out var handle) && handle is RawFileHandle raw)
+                if (m_HandleBaseCache.TryGetValue(assetPath, out HandleBase handle) && handle is RawFileHandle raw)
                 {
                     raw.Retain();
                 }
                 else
                 {
-                    var rawHandle = new RawFileHandle(assetPath);
+                    RawFileHandle rawHandle = new RawFileHandle(assetPath);
                     rawHandle.SetData(data, bundleName, fileSizeBytes, loadTimeMs);
                     rawHandle.Retain();
                     m_HandleBaseCache[assetPath] = rawHandle;
@@ -602,7 +733,7 @@ namespace LWAssets
         {
             data = null;
             if (string.IsNullOrEmpty(assetPath)) return false;
-            if (m_HandleBaseCache.TryGetValue(assetPath, out var handle) && handle is RawFileHandle raw && raw.IsValid)
+            if (m_HandleBaseCache.TryGetValue(assetPath, out HandleBase handle) && handle is RawFileHandle raw && raw.IsValid)
             {
                 raw.Retain();
                 data = raw.Data;
@@ -611,10 +742,6 @@ namespace LWAssets
             return false;
         }
 
-
     }
 }
 #endregion
-
-
-

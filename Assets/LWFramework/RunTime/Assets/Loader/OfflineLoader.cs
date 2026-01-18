@@ -41,30 +41,31 @@ namespace LWAssets
 
             lock (m_LockObj)
             {
-                if (m_HandleBaseCache.TryGetValue(assetPath, out var cached) && cached is AssetHandle ah && ah.IsValid)
+                if (m_HandleBaseCache.TryGetValue(assetPath, out HandleBase cached) && cached is AssetHandle assetHandle && assetHandle.IsValid)
                 {
                     cached.Retain();
-                    return ah.AssetObject as T;
+                    RetainBundleReferenceRecursive(cached.BundleName);
+                    return assetHandle.AssetObject as T;
                 }
             }
 
-            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
+            BundleInfo bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Asset not found in manifest: {assetPath}");
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
-            var bundleHandle = LoadBundleSync(bundleInfo.BundleName, false);
+            Stopwatch sw = Stopwatch.StartNew();
+            BundleHandle bundleHandle = LoadBundleSync(bundleInfo.BundleName, false);
             if (bundleHandle == null || !bundleHandle.IsValid)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
                 return null;
             }
 
-            var assetName = Path.GetFileNameWithoutExtension(assetPath);
-            var asset = bundleHandle.Bundle.LoadAsset<T>(assetName);
+            string assetName = Path.GetFileNameWithoutExtension(assetPath);
+            T asset = bundleHandle.Bundle.LoadAsset<T>(assetName);
             sw.Stop();
 
             if (asset == null)
@@ -73,18 +74,18 @@ namespace LWAssets
                 return null;
             }
 
-            TrackAssetHandle(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
+            RetainAssetReference(assetPath, asset, bundleInfo.BundleName, sw.Elapsed.TotalMilliseconds);
             return asset;
         }
 
         public override byte[] LoadRawFile(string assetPath)
         {
-            if (TryGetRawFileFromCache(assetPath, out var cached))
+            if (TryGetRawFileFromCache(assetPath, out byte[] cached))
             {
                 return cached;
             }
 
-            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
+            BundleInfo bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
@@ -97,23 +98,23 @@ namespace LWAssets
                 return null;
             }
 
-            var filePath = GetBundlePath(bundleInfo);
+            string filePath = GetBundlePath(bundleInfo);
             if (!File.Exists(filePath))
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {filePath}");
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
-            var data = File.ReadAllBytes(filePath);
+            Stopwatch sw = Stopwatch.StartNew();
+            byte[] data = File.ReadAllBytes(filePath);
             sw.Stop();
-            TrackRawFileHandle(assetPath, data, bundleInfo.BundleName, bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
+            RetainRawFileReference(assetPath, data, bundleInfo.BundleName, bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
             return data;
         }
 
         public override string LoadRawFileText(string assetPath)
         {
-            var bytes = LoadRawFile(assetPath);
+            byte[] bytes = LoadRawFile(assetPath);
             return bytes != null ? System.Text.Encoding.UTF8.GetString(bytes) : null;
         }
 
@@ -127,7 +128,7 @@ namespace LWAssets
 
             lock (m_LockObj)
             {
-                if (m_BundleHandleCache.TryGetValue(bundleName, out var cached))
+                if (m_BundleHandleCache.TryGetValue(bundleName, out BundleHandle cached))
                 {
                     if (cached == null || cached.IsDisposed || !cached.IsValid)
                     {
@@ -138,46 +139,40 @@ namespace LWAssets
                         if (cached.IsDependLoad && !isDepend)
                         {
                             cached.IsDependLoad = false;
-                            cached.Retain();
                         }
                         return cached;
                     }
                 }
             }
 
-            var bundleInfo = m_Manifest.GetBundleInfo(bundleName);
+            BundleInfo bundleInfo = m_Manifest.GetBundleInfo(bundleName);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Bundle not found: {bundleName}");
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
-            var bundleHandle = new BundleHandle(bundleName);
+            Stopwatch sw = Stopwatch.StartNew();
+            BundleHandle bundleHandle = new BundleHandle(bundleName);
 
-            foreach (var depName in bundleInfo.Dependencies)
+            foreach (string depName in bundleInfo.Dependencies)
             {
-                var depBundleHandle = LoadBundleSync(depName, true);
+                BundleHandle depBundleHandle = LoadBundleSync(depName, true);
                 bundleHandle.AddDependency(depBundleHandle);
-                depBundleHandle?.Retain();
             }
 
-            var bundlePath = GetBundlePath(bundleInfo);
+            string bundlePath = GetBundlePath(bundleInfo);
             if (!File.Exists(bundlePath))
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Bundle file not found: {bundlePath}. 同步加载不支持自动下载，请改用异步接口或提前预下载。");
                 return null;
             }
 
-            var bundle = AssetBundle.LoadFromFile(bundlePath);
+            AssetBundle bundle = AssetBundle.LoadFromFile(bundlePath);
             sw.Stop();
             bundleHandle.IsDependLoad = isDepend;
             bundleHandle.SetBundle(bundle);
             bundleHandle.SetLoadInfo(bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
-            if (!isDepend)
-            {
-                bundleHandle.Retain();
-            }
 
             lock (m_LockObj)
             {
@@ -193,12 +188,12 @@ namespace LWAssets
 
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
-            if (TryGetRawFileFromCache(assetPath, out var cached))
+            if (TryGetRawFileFromCache(assetPath, out byte[] cached))
             {
                 return cached;
             }
 
-            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
+            BundleInfo bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
@@ -211,17 +206,17 @@ namespace LWAssets
                 return null;
             }
 
-            var filePath = GetBundlePath(bundleInfo);
+            string filePath = GetBundlePath(bundleInfo);
             if (!File.Exists(filePath))
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {filePath}");
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
-            var data = await File.ReadAllBytesAsync(filePath, cancellationToken);
+            Stopwatch sw = Stopwatch.StartNew();
+            byte[] data = await File.ReadAllBytesAsync(filePath, cancellationToken);
             sw.Stop();
-            TrackRawFileHandle(assetPath, data, bundleInfo.BundleName, bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
+            RetainRawFileReference(assetPath, data, bundleInfo.BundleName, bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
             return data;
         }
 
@@ -232,7 +227,7 @@ namespace LWAssets
         protected override async UniTask<AssetBundle> LoadBundleFromSourceAsync(BundleInfo bundleInfo,
             CancellationToken cancellationToken = default)
         {
-            var filePath = GetBundlePath(bundleInfo);
+            string filePath = GetBundlePath(bundleInfo);
 
             if (!File.Exists(filePath))
             {
@@ -240,7 +235,7 @@ namespace LWAssets
                 return null;
             }
 
-            var request = AssetBundle.LoadFromFileAsync(filePath);
+            AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(filePath);
             await request;
 
             return request.assetBundle;
@@ -252,14 +247,14 @@ namespace LWAssets
         protected virtual string GetBundlePath(BundleInfo bundleInfo)
         {
             // 优先从缓存目录加载
-            var cachePath = Path.Combine(m_Config.GetPersistentDataPath(), bundleInfo.GetFileName());
+            string cachePath = Path.Combine(m_Config.GetPersistentDataPath(), bundleInfo.GetFileName());
             if (File.Exists(cachePath))
             {
                 return cachePath;
             }
 
             // 其次从StreamingAssets加载
-            var streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
+            string streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
             return streamingPath;
         }
 

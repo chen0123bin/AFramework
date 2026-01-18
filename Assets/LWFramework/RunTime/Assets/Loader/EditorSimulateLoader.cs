@@ -35,8 +35,8 @@ namespace LWAssets
         /// </summary>
         public override T LoadAsset<T>(string assetPath)
         {
-            var sw = Stopwatch.StartNew();
-            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            Stopwatch sw = Stopwatch.StartNew();
+            T asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
             sw.Stop();
             if (asset == null)
             {
@@ -44,14 +44,14 @@ namespace LWAssets
             }
             else
             {
-                TrackAssetHandle(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+                RetainAssetReference(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
             }
             return asset;
         }
 
         public override byte[] LoadRawFile(string assetPath)
         {
-            var fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
+            string fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
             if (File.Exists(fullPath))
             {
                 return File.ReadAllBytes(fullPath);
@@ -63,7 +63,7 @@ namespace LWAssets
 
         public override string LoadRawFileText(string assetPath)
         {
-            var fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
+            string fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
             if (File.Exists(fullPath))
             {
                 return File.ReadAllText(fullPath);
@@ -85,8 +85,8 @@ namespace LWAssets
             // 模拟异步延迟
             await UniTask.Yield(cancellationToken);
 
-            var sw = Stopwatch.StartNew();
-            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            Stopwatch sw = Stopwatch.StartNew();
+            T asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
             sw.Stop();
             if (asset == null)
             {
@@ -94,7 +94,7 @@ namespace LWAssets
             }
             else
             {
-                TrackAssetHandle(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
+                RetainAssetReference(assetPath, asset, "editor_simulate", sw.Elapsed.TotalMilliseconds);
             }
             return asset;
         }
@@ -102,24 +102,24 @@ namespace LWAssets
 
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
-            if (TryGetRawFileFromCache(assetPath, out var cached))
+            if (TryGetRawFileFromCache(assetPath, out byte[] cached))
             {
                 return cached;
             }
 
             await UniTask.Yield(cancellationToken);
 
-            var fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
+            string fullPath = Path.Combine(Application.dataPath.Replace("Assets", ""), assetPath);
             if (!File.Exists(fullPath))
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found: {assetPath}");
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
-            var data = await File.ReadAllBytesAsync(fullPath, cancellationToken);
+            Stopwatch sw = Stopwatch.StartNew();
+            byte[] data = await File.ReadAllBytesAsync(fullPath, cancellationToken);
             sw.Stop();
-            TrackRawFileHandle(assetPath, data, "editor_simulate", data.LongLength, sw.Elapsed.TotalMilliseconds);
+            RetainRawFileReference(assetPath, data, "editor_simulate", data.LongLength, sw.Elapsed.TotalMilliseconds);
             return data;
         }
 
@@ -128,18 +128,18 @@ namespace LWAssets
             IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
-            var sceneHandle = new SceneHandle(scenePath);
+            SceneHandle sceneHandle = new SceneHandle(scenePath);
 
             try
             {
                 progress?.Report(0f);
-                var loadParams = new LoadSceneParameters(mode);
-                var op = EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, loadParams);
+                LoadSceneParameters loadParams = new LoadSceneParameters(mode);
+                AsyncOperation op = EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, loadParams);
                 op.allowSceneActivation = activateOnLoad;
 
                 while (!op.isDone)
                 {
-                    var normalizedProgress = op.progress < 0.9f ? Mathf.Clamp01(op.progress / 0.9f) : 1f;
+                    float normalizedProgress = op.progress < 0.9f ? Mathf.Clamp01(op.progress / 0.9f) : 1f;
                     sceneHandle.SetProgress(normalizedProgress);
                     progress?.Report(normalizedProgress);
                     if (op.progress >= 0.9f && !activateOnLoad)
@@ -149,7 +149,7 @@ namespace LWAssets
                     await UniTask.Yield(cancellationToken);
                 }
 
-                var scene = SceneManager.GetSceneByPath(scenePath);
+                Scene scene = SceneManager.GetSceneByPath(scenePath);
                 sceneHandle.SetScene(scene);
                 sceneHandle.Retain();
             }
@@ -178,7 +178,6 @@ namespace LWAssets
         public override async UniTask UnloadUnusedAssetsAsync()
         {
             await base.UnloadUnusedAssetsAsync();
-            await Resources.UnloadUnusedAssets();
         }
 
         public override void ForceReleaseAll()
@@ -195,7 +194,7 @@ namespace LWAssets
     {
         public static async UniTask<BundleManifest> BuildAsync()
         {
-            var manifest = new BundleManifest
+            BundleManifest manifest = new BundleManifest
             {
                 Version = 0,
                 BuildTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -203,8 +202,8 @@ namespace LWAssets
             };
 
             // 收集所有资源
-            var assetPaths = AssetDatabase.GetAllAssetPaths();
-            foreach (var path in assetPaths)
+            string[] assetPaths = AssetDatabase.GetAllAssetPaths();
+            foreach (string path in assetPaths)
             {
                 if (!path.StartsWith("Assets/")) continue;
                 if (path.EndsWith(".cs") || path.EndsWith(".meta")) continue;

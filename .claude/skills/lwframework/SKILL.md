@@ -69,3 +69,5 @@ description: LWFramework 运行时核心接口速查与启动辅助。适用于�
 - 访问资源/事件/UI/热更：优先写成 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr.xxx
 - 只有启动/框架组装代码才出现 MainManager.AddManager；业务功能代码不注册管理器
 - 当需要补齐能力：先回到 InterfaceManager 的接口定义核对签名，再调用 *Mgr
+- 严格禁止主动运行项目的编译/静态检查命令并据此修复错误；仅在用户明确要求时才允许执行
+- 严格禁止主动检索/读取/修改 *.sln 与 *.csproj；仅在用户明确要求时才允许处理

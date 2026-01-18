@@ -47,7 +47,7 @@ namespace LWAssets
 
             if (m_Bundle != null)
             {
-                m_Bundle.Unload(false);
+                m_Bundle.Unload(UnloadAllLoadedObjectsOnDispose);
                 m_Bundle = null;
             }
         }

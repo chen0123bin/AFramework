@@ -148,10 +148,10 @@ namespace LWAssets
                     return new OfflineLoader(m_Config, m_CacheManager, m_DownloadManager);
 
                 case PlayMode.Online:
-                    return new OnlineLoader(m_Config, m_CacheManager, m_DownloadManager, m_VersionManager);
+                    return new OnlineLoader(m_Config, m_CacheManager, m_DownloadManager);
 
                 case PlayMode.WebGL:
-                    return new WebGLLoader(m_Config, m_CacheManager, m_DownloadManager);
+                    return new WebGLLoader(m_Config);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode));
@@ -262,6 +262,30 @@ namespace LWAssets
             CheckInitialized();
             return await m_Loader.LoadSceneAsync(scenePath, mode, activateOnLoad, progress, cancellationToken);
         }
+        /// <summary>
+        /// 异步卸载场景
+        /// </summary>
+        /// <param name="scenePath"></param>
+        /// <param name="forceRelease"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async UniTask UnloadSceneAsync(string scenePath, bool forceRelease = true, CancellationToken cancellationToken = default)
+        {
+            CheckInitialized();
+            await m_Loader.UnloadSceneAsync(scenePath, forceRelease, cancellationToken);
+        }
+        /// <summary>
+        /// 异步卸载场景
+        /// </summary>
+        /// <param name="sceneHandle"></param>
+        /// <param name="forceRelease"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async UniTask UnloadSceneAsync(SceneHandle sceneHandle, bool forceRelease = true, CancellationToken cancellationToken = default)
+        {
+            CheckInitialized();
+            await m_Loader.UnloadSceneAsync(sceneHandle, forceRelease, cancellationToken);
+        }
 
         /// <summary>
         /// 批量异步加载资源
@@ -318,8 +342,6 @@ namespace LWAssets
         {
             CheckInitialized();
             await m_Loader.UnloadUnusedAssetsAsync();
-            await Resources.UnloadUnusedAssets();
-            GC.Collect();
         }
 
         /// <summary>

@@ -12,13 +12,10 @@ namespace LWAssets
     /// </summary>
     public class OnlineLoader : OfflineLoader
     {
-        private VersionManager m_VersionManager;
-
         public OnlineLoader(LWAssetsConfig config, CacheManager cacheManager,
-            DownloadManager downloadManager, VersionManager versionManager)
+            DownloadManager downloadManager)
             : base(config, cacheManager, downloadManager)
         {
-            m_VersionManager = versionManager;
         }
 
         public override async UniTask InitializeAsync(BundleManifest manifest)
@@ -30,12 +27,12 @@ namespace LWAssets
 
         public override async UniTask<byte[]> LoadRawFileAsync(string assetPath, CancellationToken cancellationToken = default)
         {
-            if (TryGetRawFileFromCache(assetPath, out var cached))
+            if (TryGetRawFileFromCache(assetPath, out byte[] cached))
             {
                 return cached;
             }
 
-            var bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
+            BundleInfo bundleInfo = m_Manifest.GetBundleByAsset(assetPath);
             if (bundleInfo == null)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Raw file not found in manifest: {assetPath}");
@@ -48,9 +45,9 @@ namespace LWAssets
                 return null;
             }
 
-            var filePath = GetBundlePath(bundleInfo);
+            string filePath = GetBundlePath(bundleInfo);
 
-            var sw = Stopwatch.StartNew();
+            Stopwatch sw = Stopwatch.StartNew();
 
             if (!File.Exists(filePath))
             {
@@ -67,16 +64,16 @@ namespace LWAssets
                 return null;
             }
 
-            var data = await File.ReadAllBytesAsync(filePath, cancellationToken);
+            byte[] data = await File.ReadAllBytesAsync(filePath, cancellationToken);
             sw.Stop();
-            TrackRawFileHandle(assetPath, data, bundleInfo.BundleName, bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
+            RetainRawFileReference(assetPath, data, bundleInfo.BundleName, bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
             return data;
         }
 
         protected override async UniTask<AssetBundle> LoadBundleFromSourceAsync(BundleInfo bundleInfo,
             CancellationToken cancellationToken = default)
         {
-            var filePath = GetBundlePath(bundleInfo);
+            string filePath = GetBundlePath(bundleInfo);
 
             // 检查是否需要下载
             if (!File.Exists(filePath))
@@ -91,7 +88,7 @@ namespace LWAssets
                 m_CacheManager.AddEntry(bundleInfo);
             }
             // 加载Bundle
-            var request = AssetBundle.LoadFromFileAsync(filePath);
+            AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(filePath);
             await request;
 
             return request.assetBundle;
@@ -102,31 +99,20 @@ namespace LWAssets
         /// </summary>
         private async UniTask DownloadBundleAsync(BundleInfo bundleInfo, CancellationToken cancellationToken = default)
         {
-            var url = m_Config.GetRemoteURL() + bundleInfo.GetFileName();
-            var savePath = Path.Combine(m_Config.GetPersistentDataPath(), bundleInfo.GetFileName());
-
-            var task = new DownloadTask
-            {
-                Url = url,
-                SavePath = savePath,
-                ExpectedSize = bundleInfo.Size,
-                ExpectedCRC = bundleInfo.CRC
-            };
-
             await m_DownloadManager.DownloadAsync(new[] { bundleInfo }, null, cancellationToken);
         }
 
         protected override string GetBundlePath(BundleInfo bundleInfo)
         {
             // 优先从缓存目录加载
-            var cachePath = Path.Combine(m_Config.GetPersistentDataPath(), bundleInfo.GetFileName());
+            string cachePath = Path.Combine(m_Config.GetPersistentDataPath(), bundleInfo.GetFileName());
             if (File.Exists(cachePath))
             {
                 return cachePath;
             }
 
             // 其次从StreamingAssets加载
-            var streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
+            string streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
             if (File.Exists(streamingPath))
             {
                 return streamingPath;

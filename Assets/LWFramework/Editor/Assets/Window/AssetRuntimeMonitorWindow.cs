@@ -202,7 +202,7 @@ namespace LWAssets.Editor
                         UnloadUnusedAsync().Forget();
                     }
 
-                    if (GUILayout.Button("强制卸载全部", EditorStyles.toolbarButton, GUILayout.Width(90)))
+                    if (GUILayout.Button("强制释放全部引用", EditorStyles.toolbarButton, GUILayout.Width(90)))
                     {
                         _loader.ForceReleaseAll();
                         RefreshData();

@@ -25,7 +25,7 @@ public class LoginProcedure : BaseFSMState
     {
         ManagerUtility.EventMgr.AddListener<string, string, bool>(EVENT_LOGIN_SUBMIT, OnLoginSubmit);
         ManagerUtility.EventMgr.AddListener(EVENT_LOGIN_CANCEL, OnLoginCancel);
-        // ManagerUtility.UIMgr.OpenView<LoginView>();
+        ManagerUtility.UIMgr.OpenView<LoginView>();
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ public class LoginProcedure : BaseFSMState
     {
         ManagerUtility.EventMgr.RemoveListener<string, string, bool>(EVENT_LOGIN_SUBMIT, OnLoginSubmit);
         ManagerUtility.EventMgr.RemoveListener(EVENT_LOGIN_CANCEL, OnLoginCancel);
-        // ManagerUtility.UIMgr.CloseView<LoginView>();
+        ManagerUtility.UIMgr.CloseView<LoginView>();
     }
 
     /// <summary>

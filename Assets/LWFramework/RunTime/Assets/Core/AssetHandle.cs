@@ -77,6 +77,12 @@ namespace LWAssets
         {
             if (m_IsDisposed) return;
 
+            if (RefCount <= 0)
+            {
+                RefCount = 0;
+                return;
+            }
+
             RefCount--;
             if (RefCount <= 0)
             {
@@ -231,6 +237,8 @@ namespace LWAssets
             {
                 await op;
             }
+
+            m_Scene = default;
         }
 
         protected override void OnDispose()

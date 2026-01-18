@@ -133,6 +133,10 @@ namespace LWAssets
             IProgress<float> progress = null,
             CancellationToken cancellationToken = default);
 
+        UniTask UnloadSceneAsync(string scenePath, bool forceRelease = true, CancellationToken cancellationToken = default);
+
+        UniTask UnloadSceneAsync(SceneHandle sceneHandle, bool forceRelease = true, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// 批量异步加载资源
         /// </summary>

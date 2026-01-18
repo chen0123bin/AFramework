@@ -58,7 +58,7 @@ namespace LWAssets
         /// <param name="assetPath"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default) 
+        UniTask<T> LoadAssetAsync<T>(string assetPath, CancellationToken cancellationToken = default)
             where T : UnityEngine.Object;
         /// <summary>
         /// 异步加载原始文件
@@ -86,13 +86,17 @@ namespace LWAssets
         UniTask<SceneHandle> LoadSceneAsync(string scenePath, LoadSceneMode mode, bool activateOnLoad,
             IProgress<float> progress = null,
             CancellationToken cancellationToken = default);
-        
+
+        UniTask UnloadSceneAsync(string scenePath, bool forceRelease = true, CancellationToken cancellationToken = default);
+
+        UniTask UnloadSceneAsync(SceneHandle sceneHandle, bool forceRelease = true, CancellationToken cancellationToken = default);
+
         #endregion
-        
-       /// <summary>
-       /// 释放指定资源
-       /// </summary>
-       /// <param name="asset"></param>
+
+        /// <summary>
+        /// 释放指定资源
+        /// </summary>
+        /// <param name="asset"></param>
         void Release(UnityEngine.Object asset);
         /// <summary>
         /// 释放指定资源路径的资源
@@ -104,7 +108,10 @@ namespace LWAssets
         /// </summary>
         /// <param name="assetPath"></param>
         void ForceReleaseAsset(string assetPath);
-
+        /// <summary>
+        /// 强制释放所有资源引用
+        /// </summary>
+        void ForceReleaseAll();
         /// <summary>
         /// 强制卸载指定Bundle
         /// </summary>
@@ -114,10 +121,7 @@ namespace LWAssets
         /// </summary>
         /// <returns></returns>
         UniTask UnloadUnusedAssetsAsync();
-        /// <summary>
-        /// 强制卸载所有资源
-        /// </summary>
-        void ForceReleaseAll();
-     
+
+
     }
 }
