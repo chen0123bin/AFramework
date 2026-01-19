@@ -1,17 +1,46 @@
 ---
 name: lwframework
-description: LWFramework 运行时核心接口速查与启动辅助。适用于：LWFramework 启动注册/初始化、ManagerUtility.*Mgr 返回 default 或告警排查、Procedure 流程状态机（IFSMManager）启动与切换、查询 IAssetsManager/IAudioManager /IEventManager/IUIManager/IHotfixManager/IFSMManager/IManager 的职责与调用方式。业务代码优先通过 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr/FSMMgr/AudioMgr 调用能力，并对照 Assets/LWFramework/RunTime/Core/InterfaceManager 下接口核对签名与生命周期。
+description: LWFramework 管理器用法速查（ManagerUtility.*Mgr）。适用于：资源加载/实例化/场景/下载更新（IAssetsManager）、事件监听与派发（IEventManager）、UI 打开关闭与预加载（IUIManager）、热更加载与反射调用（IHotfixManager）、Procedure/FSM 切换（IFSMManager）、音频播放控制（IAudioManager）、对象池（GameObjectPool）等。重点用法集中在 references/examples.md。
 ---
 
-# LWFramework 运行时接口速查（InterfaceManager）
+# LWFramework 管理器用法速查（ManagerUtility.*Mgr）
+
+## 触发场景
+
+- 询问 “IAssetsManager/IEventManager/IUIManager/IHotfixManager/IFSMManager/IAudioManager 怎么用”
+- 询问 “怎么加载资源/实例化预制体/加载场景/批量加载/下载更新/释放资源”
+- 询问 “怎么监听事件/移除事件/派发事件（0~多参）”
+- 询问 “怎么打开/关闭/回退 UI，怎么预加载 UI，怎么切换 UI 风格”
+- 询问 “怎么加载热更 DLL、按类型名取 Type、Instantiate/Invoke、按特性取类型”
+- 询问 “Procedure 怎么切换状态，怎么获取流程状态机并 SwitchState”
+- 询问 “怎么播放 2D/3D 音效、控制通道、设置全局音量”
+- 询问 “GameObjectPool 怎么创建/借出/归还/清理”
+- 排查 “ManagerUtility.*Mgr 为 null 或返回 default / 出现 GetManager<T>() 告警”
+
+## 快速导航
+
+- 常用调用示例（主入口）：[examples.md](references/examples.md)
+- 接口清单与默认实现（核对签名/默认实现位置）：[interfaces.md](references/interfaces.md)
+- 启动注册与初始化（框架组装，低频）：[startup.md](references/startup.md)
+- View→事件→Procedure→View（UI 解耦流程）：[ui-view-procedure-event-flow.md](references/ui-view-procedure-event-flow.md)
+
+## 用法索引（examples 内标题）
+
+- IFSMManager：Procedure 流程状态机
+- IAssetsManager：初始化/预热/加载/实例化/释放、原始文件读取、场景加载、批量加载、下载更新
+- IEventManager：多参数监听/移除/派发/清理
+- IUIManager：打开/关闭/回退/预加载/风格
+- IHotfixManager：加载热更/类型与特性/实例化与调用
+- IAudioManager：播放/停止/暂停/全局音量
+- GameObjectPool：创建/借出/归还/清理
 
 ## 使用约定（生成代码优先级）
 
 - 业务代码优先使用 ManagerUtility.*Mgr 访问接口，不直接 new 管理器
 - 启动代码只负责注册管理器与初始化依赖，业务模块不做注册
-- 当你需要一个能力时：先找 ManagerUtility 对应 *Mgr，再回到接口定义确认方法签名
+- 需要某个能力时：优先在 examples 里定位对应场景示例，再回到接口定义核对方法签名
 
-## 快速入口
+## 工程入口
 
 - 接口目录：Assets/LWFramework/RunTime/Core/InterfaceManager/
 - 访问入口：Assets/LWFramework/RunTime/Core/ManagerUtility.cs
@@ -19,20 +48,13 @@ description: LWFramework 运行时核心接口速查与启动辅助。适用于�
 - 音频模块：Assets/LWFramework/RunTime/Audio/（AudioManager/AudioChannel/Audio3DSettings）
 - 对象池模块：Assets/LWFramework/RunTime/Core/ObjectPool/（GameObjectPool/IPoolGameObject/PoolGameObject）
 
-## 快速导航（按场景）
+## 常见问题（取不到管理器/出现告警）
 
-- 启动注册与初始化：references/startup.md
-- 常用调用示例（资源/事件/UI/音频/对象池/热更/FSM/自定义管理器）：references/examples.md
-- 接口清单与默认实现：references/interfaces.md
-- View→事件→Procedure→View（UI 解耦推荐流程）：references/ui-view-procedure-event-flow.md
-
-## 核心结论（启动阶段必读）
-
-- ManagerUtility.*Mgr 实际调用的是 MainManager.Instance.GetManager<T>()；如果你没有先把对应管理器 AddManager 进去，GetManager 会返回 default 并输出告警。
+- ManagerUtility.*Mgr 实际调用的是 MainManager.Instance.GetManager<T>()；若未先将对应管理器 AddManager 注册，GetManager 会返回 default 并输出告警。
 - MainManager 以 typeof(T).ToString() 作为 Key 保存管理器实例：添加与获取必须严格使用同一个泛型接口类型。
 - IManager 只有 Init/Update；具体系统（资源/事件/UI/热更）的初始化能力全部体现在各自接口里。
 
-## 启动排查清单（最常见问题）
+## 排查清单（最常见问题）
 
 - 访问 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr 之前，先确认已经对 MainManager 调用 AddManager 注册了对应接口类型的实例。
 - 访问 ManagerUtility.FSMMgr 或调用 StartProcedure/ClearManager 之前，先确认已注册 IFSMManager。
@@ -66,8 +88,6 @@ description: LWFramework 运行时核心接口速查与启动辅助。适用于�
 
 ## 生成代码时的落地规则
 
-- 访问资源/事件/UI/热更：优先写成 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr.xxx
+- 访问资源/事件/UI/热更/FSM/音频：优先写成 ManagerUtility.*Mgr.xxx
 - 只有启动/框架组装代码才出现 MainManager.AddManager；业务功能代码不注册管理器
 - 当需要补齐能力：先回到 InterfaceManager 的接口定义核对签名，再调用 *Mgr
-- 严格禁止主动运行项目的编译/静态检查命令并据此修复错误；仅在用户明确要求时才允许执行
-- 严格禁止主动检索/读取/修改 *.sln 与 *.csproj；仅在用户明确要求时才允许处理

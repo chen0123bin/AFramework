@@ -552,7 +552,7 @@ namespace LWAssets.Editor
                 shaderPaths.Add(path);
             }
 
-            // 收集ShaderVariantCollection
+            //收集ShaderVariantCollection
             foreach (var svcPath in config.ShaderVariantCollections)
             {
                 if (File.Exists(svcPath))
@@ -591,6 +591,18 @@ namespace LWAssets.Editor
                 var bundlePath = Path.Combine(outputPath, bundleName);
                 var fileInfo = new FileInfo(bundlePath);
 
+                string[] unityDependencies = unityManifest.GetAllDependencies(bundleName);
+                List<string> dependencies = new List<string>(unityDependencies.Length);
+                foreach (string dependencyBundleName in unityDependencies)
+                {
+                    // 排除ShaderBundle
+                    if (string.Equals(dependencyBundleName, config.ShaderBundleName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    dependencies.Add(dependencyBundleName);
+                }
+
                 var bundleInfo = new BundleInfo
                 {
                     BundleName = bundleName,
@@ -598,7 +610,7 @@ namespace LWAssets.Editor
                     Hash = HashUtility.ComputeFileMD5(bundlePath),
                     CRC = HashUtility.ComputeFileCRC32(bundlePath),
                     Size = fileInfo.Length,
-                    Dependencies = unityManifest.GetAllDependencies(bundleName).ToList()
+                    Dependencies = dependencies
                 };
 
                 // 使用保存的原始路径，而不是从Bundle获取
@@ -652,6 +664,8 @@ namespace LWAssets.Editor
 
             return manifest;
         }
+
+
 
         /// <summary>
         /// 处理原始文件（优化版）

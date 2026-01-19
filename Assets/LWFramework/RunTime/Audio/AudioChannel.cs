@@ -223,6 +223,7 @@ namespace LWAudio
         {
             if (m_Entity)
             {
+                ManagerUtility.AssetsMgr.Release(AudioClip);
                 m_Entity.transform.position = m_DefaultParent.position;
                 m_Entity.transform.parent = m_DefaultParent;
                 StopPlayback();
@@ -235,7 +236,6 @@ namespace LWAudio
                 m_DefaultFadeInSeconds = 0f;
                 m_DefaultFadeOutSeconds = 0f;
                 m_UseFadeOnStop = false;
-
             }
         }
 

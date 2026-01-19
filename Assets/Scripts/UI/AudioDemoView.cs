@@ -10,13 +10,13 @@ public class AudioDemoView : BaseUIView
     public const string EVENT_AUDIO_LOAD_CLIP = "AudioDemoView.AudioLoadClip";
     public const string EVENT_AUDIO_PLAY_LOOP = "AudioDemoView.AudioPlayLoop";
     public const string EVENT_AUDIO_PLAY_ONCE = "AudioDemoView.AudioPlayOnce";
+    public const string EVENT_AUDIO_PLAY_3D = "AudioDemoView.AudioPlay3D";
     public const string EVENT_AUDIO_PAUSE = "AudioDemoView.AudioPause";
     public const string EVENT_AUDIO_RESUME = "AudioDemoView.AudioResume";
     public const string EVENT_AUDIO_STOP = "AudioDemoView.AudioStop";
     public const string EVENT_AUDIO_STOP_IMMEDIATE = "AudioDemoView.AudioStopImmediate";
-    public const string EVENT_AUDIO_VOLUME_100 = "AudioDemoView.AudioVolume100";
-    public const string EVENT_AUDIO_VOLUME_50 = "AudioDemoView.AudioVolume50";
-    public const string EVENT_AUDIO_VOLUME_0 = "AudioDemoView.AudioVolume0";
+    public const string EVENT_AUDIO_VOLUME_CHANGE = "AudioDemoView.AudioVolumeChange";
+
     public const string EVENT_AUDIO_PAUSE_ALL = "AudioDemoView.AudioPauseAll";
     public const string EVENT_AUDIO_RESUME_ALL = "AudioDemoView.AudioResumeAll";
     public const string EVENT_AUDIO_STOP_ALL = "AudioDemoView.AudioStopAll";
@@ -39,12 +39,11 @@ public class AudioDemoView : BaseUIView
     [UIElement("PnlCard/ScrActions/Viewport/Content/BtnAudioStopImmediate")]
     private Button m_BtnAudioStopImmediate;
 
-    [UIElement("PnlCard/ScrActions/Viewport/Content/BtnAudioVolume100")]
-    private Button m_BtnAudioVolume100;
-    [UIElement("PnlCard/ScrActions/Viewport/Content/BtnAudioVolume50")]
-    private Button m_BtnAudioVolume50;
-    [UIElement("PnlCard/ScrActions/Viewport/Content/BtnAudioVolume0")]
-    private Button m_BtnAudioVolume0;
+    [UIElement("PnlCard/ScrActions/Viewport/Content/BtnAudioPlay3D")]
+    private Button m_BtnAudioPlay3D;
+
+    [UIElement("PnlCard/ScrActions/Viewport/Content/PnlAudioVolume/SldAudioVolume")]
+    private Slider m_SldAudioVolume;
 
     [UIElement("PnlCard/ScrActions/Viewport/Content/BtnAudioPauseAll")]
     private Button m_BtnAudioPauseAll;
@@ -78,7 +77,10 @@ public class AudioDemoView : BaseUIView
         {
             ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_PLAY_ONCE);
         });
-
+        m_BtnAudioPlay3D.onClick.AddListener(() =>
+        {
+            ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_PLAY_3D);
+        });
         m_BtnAudioPause.onClick.AddListener(() =>
         {
             ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_PAUSE);
@@ -95,20 +97,10 @@ public class AudioDemoView : BaseUIView
         {
             ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_STOP_IMMEDIATE);
         });
-
-        m_BtnAudioVolume100.onClick.AddListener(() =>
+        m_SldAudioVolume.onValueChanged.AddListener((value) =>
         {
-            ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_VOLUME_100);
+            ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_VOLUME_CHANGE, value);
         });
-        m_BtnAudioVolume50.onClick.AddListener(() =>
-        {
-            ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_VOLUME_50);
-        });
-        m_BtnAudioVolume0.onClick.AddListener(() =>
-        {
-            ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_VOLUME_0);
-        });
-
         m_BtnAudioPauseAll.onClick.AddListener(() =>
         {
             ManagerUtility.EventMgr.DispatchEvent(EVENT_AUDIO_PAUSE_ALL);

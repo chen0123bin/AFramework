@@ -504,7 +504,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u5378\u8F7D\u8D44\u6E90\uFF08Unload/Release\uFF09"
+  m_Text: "\u5378\u8F7D\u672A\u4F7F\u7528\u7684\u8D44\u6E90\uFF08UnloadUnused\uFF09"
 --- !u!1 &577637488942883038
 GameObject:
   m_ObjectHideFlags: 0
@@ -2398,7 +2398,7 @@ GameObject:
   - component: {fileID: 895581155445722961}
   - component: {fileID: 846419698029839365}
   m_Layer: 0
-  m_Name: BtnUnloadAsset
+  m_Name: BtnReleaseAsset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3030,7 +3030,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u5378\u8F7D\u8D44\u6E90\uFF08Unload/Release\uFF09"
+  m_Text: "\u91CA\u653E\u5F15\u7528\uFF08Unload/Release\uFF09"
 --- !u!1 &8685076558617677946
 GameObject:
   m_ObjectHideFlags: 0

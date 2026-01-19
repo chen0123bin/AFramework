@@ -11,7 +11,7 @@ using UnityEngine;
 public class AssetsDemoProcedure : BaseFSMState
 {
     private const string TEST_SPRITE_PATH = "Assets/0Res/Sprites/00008.png";
-    private const string TEST_PREFAB_PATH = "Assets/0Res/Prefabs/Cube.prefab";
+    private const string TEST_PREFAB_PATH = "Assets/0Res/Prefabs/Cube2.prefab";
     private const string TEST_SCENE_PATH = "Assets/0Res/Scenes/Test.unity";
 
     private bool m_IsBusy;
@@ -50,7 +50,7 @@ public class AssetsDemoProcedure : BaseFSMState
         ManagerUtility.EventMgr.AddListener(AssetsDemoView.EVENT_LOAD_SPRITE, OnLoadSprite);
         ManagerUtility.EventMgr.AddListener(AssetsDemoView.EVENT_LOAD_PREFAB, OnLoadPrefab);
         ManagerUtility.EventMgr.AddListener(AssetsDemoView.EVENT_LOAD_SCENE, OnLoadScene);
-        ManagerUtility.EventMgr.AddListener(AssetsDemoView.EVENT_UNLOAD_ASSET, OnUnloadAsset);
+        ManagerUtility.EventMgr.AddListener(AssetsDemoView.EVENT_RELEASE_ASSET, OnReleaseAsset);
         ManagerUtility.EventMgr.AddListener(AssetsDemoView.EVENT_UNLOAD_SCENE, OnUnloadScene);
         ManagerUtility.EventMgr.AddListener(AssetsDemoView.EVENT_CHECK_VERSION, OnCheckVersion);
 
@@ -73,7 +73,7 @@ public class AssetsDemoProcedure : BaseFSMState
         ManagerUtility.EventMgr.RemoveListener(AssetsDemoView.EVENT_LOAD_SPRITE, OnLoadSprite);
         ManagerUtility.EventMgr.RemoveListener(AssetsDemoView.EVENT_LOAD_PREFAB, OnLoadPrefab);
         ManagerUtility.EventMgr.RemoveListener(AssetsDemoView.EVENT_LOAD_SCENE, OnLoadScene);
-        ManagerUtility.EventMgr.RemoveListener(AssetsDemoView.EVENT_UNLOAD_ASSET, OnUnloadAsset);
+        ManagerUtility.EventMgr.RemoveListener(AssetsDemoView.EVENT_RELEASE_ASSET, OnReleaseAsset);
         ManagerUtility.EventMgr.RemoveListener(AssetsDemoView.EVENT_UNLOAD_SCENE, OnUnloadScene);
         ManagerUtility.EventMgr.RemoveListener(AssetsDemoView.EVENT_CHECK_VERSION, OnCheckVersion);
 
@@ -111,18 +111,6 @@ public class AssetsDemoProcedure : BaseFSMState
         ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<MenuProcedure>();
     }
 
-    /// <summary>
-    /// 初始化资源系统。
-    /// </summary>
-    private void OnUnloadUnused()
-    {
-        if (m_IsBusy)
-        {
-            LWDebug.LogWarning("资源操作进行中，请稍后再试");
-            return;
-        }
-        ManagerUtility.AssetsMgr.UnloadUnusedAssetsAsync().Forget();
-    }
 
     /// <summary>
     /// 查询并输出资源系统是否已初始化。
@@ -175,107 +163,13 @@ public class AssetsDemoProcedure : BaseFSMState
         LoadSceneAsync().Forget();
     }
 
-    /// <summary>
-    /// 释放已加载资源并回收实例。
-    /// </summary>
-    private void OnUnloadAsset()
-    {
-        try
-        {
-            if (m_SpawnedPrefab != null)
-            {
-                AutoReleaseOnDestroy autoReleaseOnDestroy = m_SpawnedPrefab.GetComponent<AutoReleaseOnDestroy>();
-                bool hasAutoRelease = autoReleaseOnDestroy != null && !string.IsNullOrEmpty(autoReleaseOnDestroy.m_Path);
-                GameObject.Destroy(m_SpawnedPrefab);
-                m_SpawnedPrefab = null;
 
-                if (!hasAutoRelease && ManagerUtility.AssetsMgr != null && ManagerUtility.AssetsMgr.IsInitialized)
-                {
-                    ManagerUtility.AssetsMgr.Release(TEST_PREFAB_PATH);
-                }
-            }
-
-            if (m_LoadedSprite != null)
-            {
-                if (ManagerUtility.AssetsMgr != null && ManagerUtility.AssetsMgr.IsInitialized)
-                {
-                    ManagerUtility.AssetsMgr.Release(m_LoadedSprite);
-                }
-                m_LoadedSprite = null;
-            }
-
-            LWDebug.Log("已执行资源卸载/释放");
-        }
-        catch (Exception e)
-        {
-            LWDebug.LogError("卸载资源失败: " + e.Message);
-            Debug.LogException(e);
-        }
-    }
-
-    /// <summary>
-    /// 卸载已加载的场景。
-    /// </summary>
-    private void OnUnloadScene()
-    {
-        if (m_IsBusy)
-        {
-            LWDebug.LogWarning("资源操作进行中，请稍后再试");
-            return;
-        }
-
-        UnloadSceneAsync().Forget();
-    }
-
-    /// <summary>
-    /// 检查资源版本更新信息。
-    /// </summary>
-    private void OnCheckVersion()
-    {
-        if (m_IsBusy)
-        {
-            LWDebug.LogWarning("资源操作进行中，请稍后再试");
-            return;
-        }
-
-        CheckVersionAsync().Forget();
-    }
-
-    /// <summary>
-    /// 执行资源系统初始化（带异常保护与忙碌状态）。
-    /// </summary>
-    private async UniTaskVoid AssetsInitAsync()
-    {
-        if (ManagerUtility.AssetsMgr == null)
-        {
-            LWDebug.LogWarning("AssetsMgr 为空，无法初始化");
-            return;
-        }
-
-        try
-        {
-            m_IsBusy = true;
-            await ManagerUtility.AssetsMgr.InitializeAsync();
-            LWDebug.Log("资源系统初始化完成");
-        }
-        catch (Exception e)
-        {
-            LWDebug.LogError("资源系统初始化失败: " + e.Message);
-            Debug.LogException(e);
-        }
-        finally
-        {
-            m_IsBusy = false;
-        }
-    }
 
     /// <summary>
     /// 异步加载测试 Sprite。
     /// </summary>
     private async UniTaskVoid LoadSpriteAsync()
     {
-
-
         CancellationToken cancellationToken = m_CancellationTokenSource != null ? m_CancellationTokenSource.Token : CancellationToken.None;
         try
         {
@@ -389,7 +283,76 @@ public class AssetsDemoProcedure : BaseFSMState
             m_IsBusy = false;
         }
     }
+    /// <summary>
+    /// 释放已加载资源并回收实例。
+    /// </summary>
+    private void OnReleaseAsset()
+    {
+        try
+        {
+            if (m_SpawnedPrefab != null)
+            {
+                GameObject.Destroy(m_SpawnedPrefab);
+                m_SpawnedPrefab = null;
+                ManagerUtility.AssetsMgr.Release(TEST_PREFAB_PATH);
+            }
 
+            if (m_LoadedSprite != null)
+            {
+                ManagerUtility.AssetsMgr.Release(m_LoadedSprite);
+                m_LoadedSprite = null;
+
+            }
+
+            LWDebug.Log("已执行资源释放");
+        }
+        catch (Exception e)
+        {
+            LWDebug.LogError("释放资源失败: " + e.Message);
+            Debug.LogException(e);
+        }
+    }
+
+    /// <summary>
+    /// 卸载已加载的场景。
+    /// </summary>
+    private void OnUnloadScene()
+    {
+        if (m_IsBusy)
+        {
+            LWDebug.LogWarning("资源操作进行中，请稍后再试");
+            return;
+        }
+
+        UnloadSceneAsync().Forget();
+    }
+    /// <summary>
+    /// 异步卸载未使用资源。
+    /// </summary>
+    private void OnUnloadUnused()
+    {
+        if (m_IsBusy)
+        {
+            LWDebug.LogWarning("资源操作进行中，请稍后再试");
+            return;
+        }
+        ManagerUtility.AssetsMgr.UnloadUnusedAssetsAsync().Forget();
+        LWDebug.Log("已执行卸载未使用资源");
+    }
+
+    /// <summary>
+    /// 检查资源版本更新信息。
+    /// </summary>
+    private void OnCheckVersion()
+    {
+        if (m_IsBusy)
+        {
+            LWDebug.LogWarning("资源操作进行中，请稍后再试");
+            return;
+        }
+
+        CheckVersionAsync().Forget();
+    }
     /// <summary>
     /// 异步卸载已加载的测试场景。
     /// </summary>
@@ -456,6 +419,19 @@ public class AssetsDemoProcedure : BaseFSMState
         {
             m_IsBusy = true;
 
+            if (m_SpawnedPrefab != null)
+            {
+                GameObject.Destroy(m_SpawnedPrefab);
+                m_SpawnedPrefab = null;
+                ManagerUtility.AssetsMgr.Release(TEST_PREFAB_PATH);
+            }
+
+            if (m_LoadedSprite != null)
+            {
+                ManagerUtility.AssetsMgr.Release(m_LoadedSprite);
+                m_LoadedSprite = null;
+            }
+
             if (m_SceneHandle != null)
             {
                 try
@@ -470,28 +446,6 @@ public class AssetsDemoProcedure : BaseFSMState
                 {
                     m_SceneHandle = null;
                 }
-            }
-
-            if (m_SpawnedPrefab != null)
-            {
-                AutoReleaseOnDestroy autoReleaseOnDestroy = m_SpawnedPrefab.GetComponent<AutoReleaseOnDestroy>();
-                bool hasAutoRelease = autoReleaseOnDestroy != null && !string.IsNullOrEmpty(autoReleaseOnDestroy.m_Path);
-                GameObject.Destroy(m_SpawnedPrefab);
-                m_SpawnedPrefab = null;
-
-                if (!hasAutoRelease && ManagerUtility.AssetsMgr != null && ManagerUtility.AssetsMgr.IsInitialized)
-                {
-                    ManagerUtility.AssetsMgr.Release(TEST_PREFAB_PATH);
-                }
-            }
-
-            if (m_LoadedSprite != null)
-            {
-                if (ManagerUtility.AssetsMgr != null && ManagerUtility.AssetsMgr.IsInitialized)
-                {
-                    ManagerUtility.AssetsMgr.Release(m_LoadedSprite);
-                }
-                m_LoadedSprite = null;
             }
         }
         catch (Exception e)

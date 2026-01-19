@@ -117,17 +117,20 @@ namespace LWAssets
 
             // 初始化加载器
             await m_Loader.InitializeAsync(m_Manifest);
-
             m_IsInitialized = true;
+            // 预热着色器变体
+            await WarmupShadersAsync();
             Debug.Log($"[LWAssets] Initialized with {m_Config.PlayMode} mode");
         }
 
         public async UniTask WarmupShadersAsync(CancellationToken token = default)
         {
-            CheckInitialized();
-            var svc = await m_Loader.LoadAssetAsync<ShaderVariantCollection>("shaders/variant_collection", token);
+            ShaderVariantCollection svc = await m_Loader.LoadAssetAsync<ShaderVariantCollection>("Assets/Arts/Shaders/ShaderVariants.shadervariants", token);
             if (svc != null)
+            {
+                LWDebug.Log($"[LWAssets] Warmup Shader Variants: {svc.shaderCount}");
                 svc.WarmUp();
+            }
         }
         /// <summary>
         /// 创建对应模式的加载器

@@ -54,7 +54,8 @@ MonoBehaviour:
     Tags: []
   CollectShaders: 1
   ShaderBundleName: shaders
-  ShaderVariantCollections: []
+  ShaderVariantCollections:
+  - Assets/Arts/Shaders/ShaderVariants.shadervariants
   TagRules:
   - FolderPath: Assets/0Res/Prefabs/UI
     Tags:

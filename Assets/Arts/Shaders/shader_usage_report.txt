@@ -1,0 +1,45 @@
+=== Shader Usage Report ===
+
+Standard
+  Usage Count: 14
+  Type: Built-in
+
+TextMeshPro/Mobile/Distance Field
+  Usage Count: 4
+  Type: Custom
+  Path: Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader
+
+Custom/PipeFlow
+  Usage Count: 1
+  Type: Custom
+  Path: Assets/Arts/Shaders/PipeFlow.shader
+
+Custom/HoloScan
+  Usage Count: 1
+  Type: Custom
+  Path: Assets/Arts/Shaders/HoloScan.shader
+
+Custom/ElectricCurrentFlow
+  Usage Count: 1
+  Type: Custom
+  Path: Assets/Arts/Shaders/ElectricCurrentFlow.shader
+
+Custom/MCP_CoolNeon
+  Usage Count: 1
+  Type: Custom
+  Path: Assets/Arts/Shaders/MCP_CoolNeon.shader
+
+Particles/Standard Unlit
+  Usage Count: 1
+  Type: Built-in
+
+Custom/Dissolve
+  Usage Count: 1
+  Type: Custom
+  Path: Assets/Arts/Shaders/Dissolve.shader
+
+GUI/Text Shader
+  Usage Count: 1
+  Type: Custom
+  Path: Library/unity default resources
+

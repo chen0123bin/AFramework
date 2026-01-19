@@ -12,7 +12,7 @@ public class AssetsDemoView : BaseUIView
     public const string EVENT_LOAD_SPRITE = "AssetsDemoView.LoadSprite";
     public const string EVENT_LOAD_PREFAB = "AssetsDemoView.LoadPrefab";
     public const string EVENT_LOAD_SCENE = "AssetsDemoView.LoadScene";
-    public const string EVENT_UNLOAD_ASSET = "AssetsDemoView.UnloadAsset";
+    public const string EVENT_RELEASE_ASSET = "AssetsDemoView.ReleaseAsset";
     public const string EVENT_UNLOAD_SCENE = "AssetsDemoView.UnloadScene";
     public const string EVENT_CHECK_VERSION = "AssetsDemoView.CheckVersion";
 
@@ -32,8 +32,9 @@ public class AssetsDemoView : BaseUIView
     [UIElement("PnlCard/ScrActions/Viewport/Content/BtnLoadScene")]
     private Button m_BtnLoadScene;
 
-    [UIElement("PnlCard/ScrActions/Viewport/Content/BtnUnloadAsset")]
-    private Button m_BtnUnloadAsset;
+    [UIElement("PnlCard/ScrActions/Viewport/Content/BtnReleaseAsset")]
+    private Button m_BtnReleaseAsset;
+
     [UIElement("PnlCard/ScrActions/Viewport/Content/BtnUnloadScene")]
     private Button m_BtnUnloadScene;
 
@@ -88,9 +89,9 @@ public class AssetsDemoView : BaseUIView
             ManagerUtility.EventMgr.DispatchEvent(EVENT_LOAD_SCENE);
         });
 
-        m_BtnUnloadAsset.onClick.AddListener(() =>
+        m_BtnReleaseAsset.onClick.AddListener(() =>
         {
-            ManagerUtility.EventMgr.DispatchEvent(EVENT_UNLOAD_ASSET);
+            ManagerUtility.EventMgr.DispatchEvent(EVENT_RELEASE_ASSET);
         });
         m_BtnUnloadScene.onClick.AddListener(() =>
         {

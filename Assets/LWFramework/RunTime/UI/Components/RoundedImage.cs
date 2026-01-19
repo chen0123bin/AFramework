@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using LWAssets;
+using LWCore;
 using UnityEngine;
 using UnityEngine.Sprites;
 using UnityEngine.UI;
@@ -10,7 +12,11 @@ namespace LWUI
     public class RoundedImage : Image
     {
         private const string ROUNDED_SHADER_NAME = "UI/LWFramework/RoundedImage";
+        private const string ROUNDED_SHADER_ASSET_PATH = "Assets/LWFramework/RunTime/UI/Shaders/UIRoundedImage.shader";
         private const int MESH_CORNER_SEGMENTS = 8;
+
+        private static Shader s_RoundedShader;
+        private static bool s_HasAttemptedLoadRoundedShader;
 
         [Header("Rounded")]
         [SerializeField]
@@ -506,6 +512,10 @@ namespace LWUI
                 Shader shader = Shader.Find(ROUNDED_SHADER_NAME);
                 if (shader == null)
                 {
+                    shader = GetOrLoadRoundedShader();
+                }
+                if (shader == null)
+                {
                     return null;
                 }
 
@@ -528,6 +538,39 @@ namespace LWUI
             }
 
             return m_RuntimeRoundedMaterial;
+        }
+
+        private static Shader GetOrLoadRoundedShader()
+        {
+            if (s_RoundedShader != null)
+            {
+                return s_RoundedShader;
+            }
+
+            if (s_HasAttemptedLoadRoundedShader)
+            {
+                return null;
+            }
+
+            IAssetsManager assetsManager = ManagerUtility.AssetsMgr;
+            if (assetsManager == null || !assetsManager.IsInitialized)
+            {
+                return null;
+            }
+
+            Shader loadedShader = null;
+            try
+            {
+                loadedShader = assetsManager.LoadAsset<Shader>(ROUNDED_SHADER_ASSET_PATH);
+            }
+            catch
+            {
+                loadedShader = null;
+            }
+
+            s_HasAttemptedLoadRoundedShader = true;
+            s_RoundedShader = loadedShader;
+            return s_RoundedShader;
         }
 
         /// <summary>

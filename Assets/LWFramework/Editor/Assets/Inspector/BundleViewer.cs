@@ -12,6 +12,7 @@ namespace LWAssets.Editor
     /// </summary>
     public class BundleViewer : EditorWindow
     {
+        private const string LAST_MANIFEST_PATH = "LastManifestPath";
         private Vector2 _bundleListScrollPos;
         private Vector2 _assetListScrollPos;
         private Vector2 _dependencyScrollPos;
@@ -27,8 +28,16 @@ namespace LWAssets.Editor
         public static void ShowWindow()
         {
             GetWindow<BundleViewer>("Bundle Viewer");
-        }
 
+        }
+        private void OnEnable()
+        {
+            _manifestPath = PlayerPrefs.GetString(LAST_MANIFEST_PATH, string.Empty);
+            if (!string.IsNullOrEmpty(_manifestPath))
+            {
+                LoadManifest(_manifestPath);
+            }
+        }
         private void OnGUI()
         {
             DrawToolbar();
@@ -111,6 +120,8 @@ namespace LWAssets.Editor
                 _manifest = BundleManifest.FromJson(json);
                 _manifestPath = path;
                 _selectedBundle = null;
+                //记录path
+                PlayerPrefs.SetString(LAST_MANIFEST_PATH, path);
             }
             catch (System.Exception ex)
             {

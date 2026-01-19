@@ -202,7 +202,7 @@ namespace LWAssets.Editor
                         UnloadUnusedAsync().Forget();
                     }
 
-                    if (GUILayout.Button("强制释放全部引用", EditorStyles.toolbarButton, GUILayout.Width(90)))
+                    if (GUILayout.Button("强制释放引用", EditorStyles.toolbarButton, GUILayout.Width(90)))
                     {
                         _loader.ForceReleaseAll();
                         RefreshData();
@@ -533,7 +533,7 @@ namespace LWAssets.Editor
         {
             if (!ManagerUtility.AssetsMgr.IsInitialized || _loader == null) return;
 
-            await _loader.UnloadUnusedAssetsAsync();
+            await ManagerUtility.AssetsMgr.UnloadUnusedAssetsAsync();
 
             RefreshData();
             Repaint();

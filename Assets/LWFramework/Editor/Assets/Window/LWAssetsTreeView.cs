@@ -383,6 +383,7 @@ namespace LWAssets.Editor
             finally
             {
                 m_IsBuilding = false;
+                m_IsBuildingPlayer = false;
                 m_CopyToStreamingAssetsAfterBuild = false;
             }
         }

@@ -26,13 +26,12 @@ public class AudioDemoProcedure : BaseFSMState
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_LOAD_CLIP, OnAudioLoadClip);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_PLAY_LOOP, OnAudioPlayLoop);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_PLAY_ONCE, OnAudioPlayOnce);
+        ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_PLAY_3D, OnAudioPlay3D);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_PAUSE, OnAudioPause);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_RESUME, OnAudioResume);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_STOP, OnAudioStop);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_STOP_IMMEDIATE, OnAudioStopImmediate);
-        ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_VOLUME_100, OnAudioVolume100);
-        ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_VOLUME_50, OnAudioVolume50);
-        ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_VOLUME_0, OnAudioVolume0);
+        ManagerUtility.EventMgr.AddListener<float>(AudioDemoView.EVENT_AUDIO_VOLUME_CHANGE, OnAudioVolumeChange);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_PAUSE_ALL, OnAudioPauseAll);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_RESUME_ALL, OnAudioResumeAll);
         ManagerUtility.EventMgr.AddListener(AudioDemoView.EVENT_AUDIO_STOP_ALL, OnAudioStopAll);
@@ -50,13 +49,12 @@ public class AudioDemoProcedure : BaseFSMState
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_LOAD_CLIP, OnAudioLoadClip);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_PLAY_LOOP, OnAudioPlayLoop);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_PLAY_ONCE, OnAudioPlayOnce);
+        ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_PLAY_3D, OnAudioPlay3D);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_PAUSE, OnAudioPause);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_RESUME, OnAudioResume);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_STOP, OnAudioStop);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_STOP_IMMEDIATE, OnAudioStopImmediate);
-        ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_VOLUME_100, OnAudioVolume100);
-        ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_VOLUME_50, OnAudioVolume50);
-        ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_VOLUME_0, OnAudioVolume0);
+        ManagerUtility.EventMgr.RemoveListener<float>(AudioDemoView.EVENT_AUDIO_VOLUME_CHANGE, OnAudioVolumeChange);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_PAUSE_ALL, OnAudioPauseAll);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_RESUME_ALL, OnAudioResumeAll);
         ManagerUtility.EventMgr.RemoveListener(AudioDemoView.EVENT_AUDIO_STOP_ALL, OnAudioStopAll);
@@ -92,12 +90,6 @@ public class AudioDemoProcedure : BaseFSMState
     /// </summary>
     private void OnAudioLoadClip()
     {
-        if (ManagerUtility.AssetsMgr == null || !ManagerUtility.AssetsMgr.IsInitialized)
-        {
-            LWDebug.LogWarning("AssetsMgr 未初始化，请先在 AssetsDemo 中点击 AssetsInit");
-            return;
-        }
-
         m_BgmClip = ManagerUtility.AssetsMgr.LoadAsset<AudioClip>(BGM_PATH);
         LWDebug.Log(m_BgmClip != null ? ("音频加载成功: " + BGM_PATH) : ("音频加载失败: " + BGM_PATH));
     }
@@ -112,7 +104,7 @@ public class AudioDemoProcedure : BaseFSMState
         {
             return;
         }
-        m_BgmChannel = ManagerUtility.AudioMgr.Play(clip, true, 0f, -1f);
+        m_BgmChannel = ManagerUtility.AudioMgr.Play(clip, true, 2f, -1f);
     }
 
     /// <summary>
@@ -127,7 +119,18 @@ public class AudioDemoProcedure : BaseFSMState
         }
         m_BgmChannel = ManagerUtility.AudioMgr.Play(clip, false, 0f, -1f);
     }
-
+    /// <summary>
+    /// 播放一次3d音频。
+    /// </summary>
+    private void OnAudioPlay3D()
+    {
+        AudioClip clip = EnsureClip();
+        if (clip == null)
+        {
+            return;
+        }
+        m_BgmChannel = ManagerUtility.AudioMgr.Play(clip, new Vector3(5, 0, 0), false, 0f, -1f, Audio3DSettings.Default3D);
+    }
     /// <summary>
     /// 暂停当前通道。
     /// </summary>
@@ -163,29 +166,13 @@ public class AudioDemoProcedure : BaseFSMState
     }
 
     /// <summary>
-    /// 设置全局音量为 100%。
+    /// 根据滑动条值设置全局音量。
     /// </summary>
-    private void OnAudioVolume100()
+    /// <param name="value">滑动条归一化值（0-1）</param>
+    private void OnAudioVolumeChange(float value)
     {
-        ManagerUtility.AudioMgr.AudioVolume = 1f;
+        ManagerUtility.AudioMgr.AudioVolume = value;
     }
-
-    /// <summary>
-    /// 设置全局音量为 50%。
-    /// </summary>
-    private void OnAudioVolume50()
-    {
-        ManagerUtility.AudioMgr.AudioVolume = 0.5f;
-    }
-
-    /// <summary>
-    /// 设置全局音量为 0%。
-    /// </summary>
-    private void OnAudioVolume0()
-    {
-        ManagerUtility.AudioMgr.AudioVolume = 0f;
-    }
-
     /// <summary>
     /// 暂停所有通道。
     /// </summary>
@@ -217,10 +204,6 @@ public class AudioDemoProcedure : BaseFSMState
     /// <returns>可播放的 AudioClip</returns>
     private AudioClip EnsureClip()
     {
-        if (m_BgmClip != null)
-        {
-            return m_BgmClip;
-        }
 
         if (ManagerUtility.AssetsMgr == null || !ManagerUtility.AssetsMgr.IsInitialized)
         {
