@@ -44,7 +44,7 @@ namespace LWAssets
                 if (m_HandleBaseCache.TryGetValue(assetPath, out HandleBase cached) && cached is AssetHandle assetHandle && assetHandle.IsValid)
                 {
                     cached.Retain();
-                    RetainBundleReferenceRecursive(cached.BundleName);
+                    RetainBundleReference(cached.BundleName);
                     return assetHandle.AssetObject as T;
                 }
             }
@@ -57,7 +57,7 @@ namespace LWAssets
             }
 
             Stopwatch sw = Stopwatch.StartNew();
-            BundleHandle bundleHandle = LoadBundleSync(bundleInfo.BundleName, false);
+            BundleHandle bundleHandle = LoadBundleSync(bundleInfo.BundleName);
             if (bundleHandle == null || !bundleHandle.IsValid)
             {
                 UnityEngine.Debug.LogError($"[LWAssets] Failed to load bundle: {bundleInfo.BundleName}");
@@ -118,7 +118,7 @@ namespace LWAssets
             return bytes != null ? System.Text.Encoding.UTF8.GetString(bytes) : null;
         }
 
-        private BundleHandle LoadBundleSync(string bundleName, bool isDepend)
+        private BundleHandle LoadBundleSync(string bundleName)
         {
             if (string.IsNullOrEmpty(bundleName))
             {
@@ -136,10 +136,6 @@ namespace LWAssets
                     }
                     else
                     {
-                        if (cached.IsDependLoad && !isDepend)
-                        {
-                            cached.IsDependLoad = false;
-                        }
                         return cached;
                     }
                 }
@@ -157,7 +153,7 @@ namespace LWAssets
 
             foreach (string depName in bundleInfo.Dependencies)
             {
-                BundleHandle depBundleHandle = LoadBundleSync(depName, true);
+                BundleHandle depBundleHandle = LoadBundleSync(depName);
                 bundleHandle.AddDependency(depBundleHandle);
             }
 
@@ -170,7 +166,6 @@ namespace LWAssets
 
             AssetBundle bundle = AssetBundle.LoadFromFile(bundlePath);
             sw.Stop();
-            bundleHandle.IsDependLoad = isDepend;
             bundleHandle.SetBundle(bundle);
             bundleHandle.SetLoadInfo(bundleInfo.Size, sw.Elapsed.TotalMilliseconds);
 

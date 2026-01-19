@@ -294,7 +294,7 @@ public class AssetsDemoProcedure : BaseFSMState
             {
                 GameObject.Destroy(m_SpawnedPrefab);
                 m_SpawnedPrefab = null;
-                ManagerUtility.AssetsMgr.Release(TEST_PREFAB_PATH);
+                //ManagerUtility.AssetsMgr.Release(TEST_PREFAB_PATH);   不需要手动释放
             }
 
             if (m_LoadedSprite != null)
@@ -423,7 +423,6 @@ public class AssetsDemoProcedure : BaseFSMState
             {
                 GameObject.Destroy(m_SpawnedPrefab);
                 m_SpawnedPrefab = null;
-                ManagerUtility.AssetsMgr.Release(TEST_PREFAB_PATH);
             }
 
             if (m_LoadedSprite != null)

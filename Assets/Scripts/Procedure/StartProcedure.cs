@@ -4,11 +4,11 @@ using UnityEngine;
 using LWFMS;
 using LWCore;
 using Cysharp.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 [FSMTypeAttribute("Procedure", false)]
 public class StartProcedure : BaseFSMState
 {
-    private bool m_IsEnter = false;
     public override void OnInit()
     {
 
@@ -16,13 +16,11 @@ public class StartProcedure : BaseFSMState
 
     public override void OnEnter(BaseFSMState lastState)
     {
-        m_IsEnter = true;
-
-
+        base.OnEnter(lastState);
     }
     public override void OnLeave(BaseFSMState nextState)
     {
-        m_IsEnter = false;
+        base.OnLeave(nextState);
     }
 
     public override void OnTermination()
@@ -32,9 +30,17 @@ public class StartProcedure : BaseFSMState
 
     public override void OnUpdate()
     {
-        if (m_IsEnter)
+        if (IsEnter)
         {
             ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<LoginProcedure>();
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            ManagerUtility.AssetsMgr.LoadSceneAsync("Assets/0Res/Scenes/Test.unity", LoadSceneMode.Additive).Forget();
+        }
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            ManagerUtility.AssetsMgr.InstantiateAsync("Assets/0Res/Prefabs/Cube.prefab").Forget();
         }
     }
 

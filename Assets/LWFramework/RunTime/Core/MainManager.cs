@@ -143,9 +143,9 @@ namespace LWCore
         }
 
         /// <summary>
-        /// 加载场景示例
+        /// 加载场景示例（带UI）
         /// </summary>
-        public async UniTask LoadScene(string scenePath, LoadSceneMode loadSceneMode = LoadSceneMode.Single)
+        public async UniTask LoadSceneWithUI(string scenePath, LoadSceneMode loadSceneMode = LoadSceneMode.Single)
         {
 
             Debug.Log("LoadScene2Async");

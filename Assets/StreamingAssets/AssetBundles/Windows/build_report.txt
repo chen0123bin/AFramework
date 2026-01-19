@@ -1,0 +1,55 @@
+=== LWAssets Build Report ===
+Build Time: 2026/1/19 21:22:16
+Platform: StandaloneWindows64
+Version: 43
+
+=== Bundle Summary ===
+Total Bundles: 8
+Total Size: 5.36 MB
+Total Assets: 43
+
+=== Bundle Details ===
+  sprites_sprites
+    Size: 3.8 MB
+    Assets: 1
+    Dependencies: 0
+    Tags: 
+  audios_audios
+    Size: 828.47 KB
+    Assets: 1
+    Dependencies: 0
+    Tags: 
+  prefabs_prefabs
+    Size: 472.23 KB
+    Assets: 17
+    Dependencies: 0
+    Tags: Core, ccc
+  scenes_test
+    Size: 93.09 KB
+    Assets: 1
+    Dependencies: 2
+    Tags: ccc
+  scenes_test2
+    Size: 91.07 KB
+    Assets: 1
+    Dependencies: 1
+    Tags: ccc
+  raw_333
+    Size: 67.12 KB
+    Assets: 1
+    Dependencies: 0
+    Tags: 
+  shaders
+    Size: 42.38 KB
+    Assets: 20
+    Dependencies: 0
+    Tags: 
+  prefabs2_prefabs2
+    Size: 2.91 KB
+    Assets: 1
+    Dependencies: 0
+    Tags: Core
+
+=== Tag Summary ===
+  Core: 2 bundles, 475.14 KB
+  ccc: 3 bundles, 656.39 KB

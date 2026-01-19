@@ -144,7 +144,7 @@ public class ShowcaseProcedure : BaseFSMState
         {
             SetBusy(true);
             AppendViewLog("开始加载场景: " + TEST_SCENE_PATH);
-            await ManagerUtility.MainMgr.LoadScene(TEST_SCENE_PATH, LoadSceneMode.Additive);
+            await ManagerUtility.MainMgr.LoadSceneWithUI(TEST_SCENE_PATH, LoadSceneMode.Additive);
             AppendViewLog("场景加载完成");
         }
         catch (Exception e)
