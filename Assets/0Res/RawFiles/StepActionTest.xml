@@ -14,7 +14,8 @@
       </actions>
     </node>
     <node id="step_hide" name="物体隐藏" x="220.00" y="0.00">
-      <actions>
+      <actions>  
+        <action type="LWStep.StepWaitMouseLeftClickAction" />
         <action type="LWStep.StepToggleObjectAction">
           <param key="target" value="Cube" />
           <param key="isActive" value="false" />
@@ -26,6 +27,13 @@
         <action type="LWStep.StepToggleObjectAction">
           <param key="target" value="Cube" />
           <param key="isActive" value="true" />
+        </action>
+         <action type="LWStep.StepMoveObjectAction">
+          <param key="target" value="Cube" />
+          <param key="x" value="1" />
+          <param key="y" value="5" />
+          <param key="z" value="2" />
+          <param key="isLocal" value="false" />
         </action>
       </actions>
     </node>

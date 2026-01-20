@@ -87,27 +87,15 @@ namespace LWStep
         /// </summary>
         public void Apply(StepContext context)
         {
-            ApplyWithStrategy(context, StepApplyStrategy.SkipWithDefault, out _);
-        }
-
-        public bool ApplyWithStrategy(StepContext context, StepApplyStrategy strategy, out string failReason)
-        {
-            failReason = string.Empty;
             BindContext(context);
             for (int i = 0; i < m_Actions.Count; i++)
             {
                 BaseStepAction action = m_Actions[i];
                 action.Reset();
-                string actionFailReason;
-                if (!action.ApplyWithStrategy(strategy, out actionFailReason))
-                {
-                    failReason = actionFailReason;
-                    return false;
-                }
+                action.Apply();
             }
             m_CurrentActionIndex = m_Actions.Count;
             m_IsEntered = true;
-            return true;
         }
 
         /// <summary>
@@ -115,26 +103,14 @@ namespace LWStep
         /// </summary>
         public void ApplyRemaining(StepContext context)
         {
-            ApplyRemainingWithStrategy(context, StepApplyStrategy.SkipWithDefault, out _);
-        }
-
-        public bool ApplyRemainingWithStrategy(StepContext context, StepApplyStrategy strategy, out string failReason)
-        {
-            failReason = string.Empty;
             BindContext(context);
             for (int i = m_CurrentActionIndex; i < m_Actions.Count; i++)
             {
                 BaseStepAction action = m_Actions[i];
                 action.Reset();
-                string actionFailReason;
-                if (!action.ApplyWithStrategy(strategy, out actionFailReason))
-                {
-                    failReason = actionFailReason;
-                    return false;
-                }
+                action.Apply();
             }
             m_CurrentActionIndex = m_Actions.Count;
-            return true;
         }
 
         /// <summary>
@@ -159,6 +135,14 @@ namespace LWStep
                 return m_Actions[m_CurrentActionIndex].GetType().Name;
             }
             return string.Empty;
+        }
+
+        /// <summary>
+        /// 获取节点动作列表快照（用于基线捕获与恢复）
+        /// </summary>
+        public List<BaseStepAction> GetActionsSnapshot()
+        {
+            return new List<BaseStepAction>(m_Actions);
         }
 
         private void BindContext(StepContext context)

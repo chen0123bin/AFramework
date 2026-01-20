@@ -5,7 +5,7 @@ using System.Reflection;
 namespace LWStep
 {
     /// <summary>
-    /// 步骤动作工厂（支持注册与反射创建）
+    /// 步骤动作工厂（支持反射创建）
     /// </summary>
     public class StepActionFactory
     {
@@ -17,18 +17,6 @@ namespace LWStep
         public StepActionFactory()
         {
             m_ActionCreators = new Dictionary<string, Func<BaseStepAction>>();
-        }
-
-        /// <summary>
-        /// 注册动作
-        /// </summary>
-        public void RegisterAction<T>(string typeName) where T : BaseStepAction, new()
-        {
-            if (m_ActionCreators.ContainsKey(typeName))
-            {
-                return;
-            }
-            m_ActionCreators.Add(typeName, () => new T());
         }
 
         /// <summary>

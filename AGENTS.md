@@ -22,14 +22,14 @@ Usage notes:
 <available_skills>
 
 <skill>
-<name>canvas-design</name>
-<description>Create beautiful visual art in .png and .pdf documents using design philosophy. You should use this skill when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs, never copying existing artists' work to avoid copyright violations.</description>
+<name>lwframework</name>
+<description>LWFramework 管理器用法速查（ManagerUtility.*Mgr）。适用于：资源加载/实例化/场景/下载更新（IAssetsManager）、事件监听与派发（IEventManager）、UI 打开关闭与预加载（IUIManager）、热更加载与反射调用（IHotfixManager）、Procedure/FSM 切换（IFSMManager）、音频播放控制（IAudioManager）、对象池（GameObjectPool）等。重点用法集中在 references/examples.md。</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>lwframework</name>
-<description>LWFramework 运行时核心接口速查与启动辅助。适用于：LWFramework 启动注册/初始化、ManagerUtility.*Mgr 返回 default 或告警排查、Procedure 流程状态机（IFSMManager）启动与切换、查询 IAssetsManager/IEventManager/IUIManager/IHotfixManager/IFSMManager/IManager 的职责与调用方式。业务代码优先通过 ManagerUtility.AssetsMgr/EventMgr/UIMgr/HotfixMgr/FSMMgr 调用能力，并对照 Assets/LWFramework/RunTime/Core/InterfaceManager 下接口核对签名与生命周期。</description>
+<name>planning-with-files</name>
+<description>当用户提出“复杂任务规划”“需要文件化计划”“创建 task_plan.md / findings.md / progress.md”“多步骤研究或开发”“/clear 后继续并恢复上下文”等请求时使用。本技能实现 Manus 风格的文件化规划。</description>
 <location>project</location>
 </skill>
 
@@ -40,14 +40,14 @@ Usage notes:
 </skill>
 
 <skill>
-<name>uguitoolkit</name>
-<description>Unity UGUI 结构 JSON 生成工具箱。适用于把界面设计、布局适配、交互反馈落到一个可存储的 UGUI 结构 JSON（严格遵循 references/UGUITempView.json 规则），并在 Unity 中根据该 JSON 自动创建 UGUI 层级与组件（Canvas、RectTransform、Image/Text/Button/InputField/ScrollRect 等）。当用户提出“生成/保存 UGUI 结构 JSON”“按模板自动搭 UI  JSON”“按 UGUITempView 规则自动创建 UGUI JSON”的需求时使用。。</description>
+<name>skill-development</name>
+<description>This skill should be used when the user wants to "create a skill", "add a skill to plugin", "write a new skill", "improve skill description", "organize skill content", or needs guidance on skill structure, progressive disclosure, or skill development best practices for Claude Code plugins.</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>ui-ux-pro-max</name>
-<description>"UI/UX design intelligence. 50 styles, 21 palettes, 50 font pairings, 20 charts, 9 stacks (React, Next.js, Vue, Svelte, SwiftUI, React Native, Flutter, Tailwind, shadcn/ui). Actions: plan, build, create, design, implement, review, fix, improve, optimize, enhance, refactor, check UI/UX code. Projects: website, landing page, dashboard, admin panel, e-commerce, SaaS, portfolio, blog, mobile app, .html, .tsx, .vue, .svelte. Elements: button, modal, navbar, sidebar, card, table, form, chart. Styles: glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid, dark mode, responsive, skeuomorphism, flat design. Topics: color palette, accessibility, animation, layout, typography, font pairing, spacing, hover, shadow, gradient. Integrations: shadcn/ui MCP for component search and examples."</description>
+<name>uguitoolkit</name>
+<description>Unity UGUI 结构 JSON 生成工具箱。适用于把界面设计、布局适配、交互反馈落到一个可存储的 UGUI 结构 JSON（严格遵循 assets/templates/UGUITempView.json 规则），并在 Unity 中根据该 JSON 自动创建 UGUI 层级与组件（Canvas、RectTransform、Image/Text/Button/InputField/ScrollRect 等）。当用户提出“生成/保存 UGUI 结构 JSON”“按模板自动搭 UI JSON”“按 UGUITempView 规则自动创建 UGUI JSON”的需求时使用。</description>
 <location>project</location>
 </skill>
 

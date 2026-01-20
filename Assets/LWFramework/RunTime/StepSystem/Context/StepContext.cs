@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using LitJson;
+using LWCore;
+using UnityEngine;
 
 namespace LWStep
 {
@@ -116,6 +119,11 @@ namespace LWStep
             return RemoveKey(key.Name);
         }
 
+        public bool TryGetRawValue(string key, out object value)
+        {
+            return m_Data.TryGetValue(key, out value);
+        }
+
         /// <summary>
         /// 清空上下文数据
         /// </summary>
@@ -136,6 +144,143 @@ namespace LWStep
         public StepContextSnapshot CreateSnapshot()
         {
             return new StepContextSnapshot(CloneData());
+        }
+
+        public string ToJson()
+        {
+            StepContextPersistData data = new StepContextPersistData();
+            data.Entries = new List<StepContextPersistEntry>();
+            foreach (KeyValuePair<string, object> kvp in m_Data)
+            {
+                string key = kvp.Key;
+                object value = kvp.Value;
+                Type valueType;
+                if (!m_Types.TryGetValue(key, out valueType) || valueType == null)
+                {
+                    if (value != null)
+                    {
+                        valueType = value.GetType();
+                    }
+                }
+
+                if (valueType == null)
+                {
+                    LWDebug.LogWarning("步骤上下文序列化失败：类型为空，Key=" + key);
+                    continue;
+                }
+
+                if (!IsSerializableType(valueType))
+                {
+                    LWDebug.LogWarning("步骤上下文序列化失败：类型不支持，Key=" + key + "，类型=" + valueType.FullName);
+                    continue;
+                }
+
+                string valueJson;
+                try
+                {
+                    valueJson = JsonMapper.ToJson(value);
+                }
+                catch (Exception e)
+                {
+                    LWDebug.LogWarning("步骤上下文序列化失败：" + key + "，原因=" + e.Message);
+                    continue;
+                }
+
+                StepContextPersistEntry entry = new StepContextPersistEntry();
+                entry.Key = key;
+                entry.TypeName = valueType.AssemblyQualifiedName;
+                entry.ValueJson = valueJson;
+                data.Entries.Add(entry);
+            }
+            return JsonMapper.ToJson(data);
+        }
+
+        public void LoadFromJson(string json)
+        {
+            Clear();
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            StepContextPersistData data;
+            try
+            {
+                data = JsonMapper.ToObject<StepContextPersistData>(json);
+            }
+            catch (Exception e)
+            {
+                LWDebug.LogWarning("步骤上下文反序列化失败：" + e.Message);
+                return;
+            }
+
+            if (data == null || data.Entries == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < data.Entries.Count; i++)
+            {
+                StepContextPersistEntry entry = data.Entries[i];
+                if (entry == null || string.IsNullOrEmpty(entry.Key) || string.IsNullOrEmpty(entry.TypeName))
+                {
+                    continue;
+                }
+
+                Type valueType = Type.GetType(entry.TypeName);
+                if (valueType == null)
+                {
+                    LWDebug.LogWarning("步骤上下文反序列化失败：类型不存在，Key=" + entry.Key + "，类型=" + entry.TypeName);
+                    continue;
+                }
+
+                if (!IsSerializableType(valueType))
+                {
+                    LWDebug.LogWarning("步骤上下文反序列化失败：类型不支持，Key=" + entry.Key + "，类型=" + valueType.FullName);
+                    continue;
+                }
+
+                object value;
+                try
+                {
+                    value = JsonMapper.ToObject(entry.ValueJson, valueType);
+                }
+                catch (Exception e)
+                {
+                    LWDebug.LogWarning("步骤上下文反序列化失败：" + entry.Key + "，原因=" + e.Message);
+                    continue;
+                }
+
+                m_Data[entry.Key] = value;
+                m_Types[entry.Key] = valueType;
+            }
+        }
+
+        private bool IsSerializableType(Type valueType)
+        {
+            if (valueType == null)
+            {
+                return false;
+            }
+
+            Type unityObjectType = typeof(UnityEngine.Object);
+            if (unityObjectType.IsAssignableFrom(valueType))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private class StepContextPersistData
+        {
+            public List<StepContextPersistEntry> Entries { get; set; }
+        }
+
+        private class StepContextPersistEntry
+        {
+            public string Key { get; set; }
+            public string TypeName { get; set; }
+            public string ValueJson { get; set; }
         }
     }
 }

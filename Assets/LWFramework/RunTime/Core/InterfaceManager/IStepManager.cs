@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using LWStep;
 
 namespace LWCore
 {
@@ -27,8 +26,6 @@ namespace LWCore
         /// 当前节点ID
         /// </summary>
         string CurrentNodeId { get; }
-
-        StepApplyStrategy ApplyStrategy { get; set; }
 
         /// <summary>
         /// 加载并解析XML，构建步骤图
@@ -63,10 +60,12 @@ namespace LWCore
         /// </summary>
         void Forward();
 
+        void Forward(string requiredTag);
+
         /// <summary>
         /// 后退到上一个节点（不回滚结果，MVP策略）
         /// </summary>
-        void Back();
+        void Backward();
 
         /// <summary>
         /// 跳转到目标节点（中间节点执行快速应用Apply）
@@ -74,10 +73,18 @@ namespace LWCore
         /// <param name="targetNodeId">目标节点ID</param>
         void JumpTo(string targetNodeId);
 
+        void JumpTo(string targetNodeId, string requiredTag);
+
         /// <summary>
         /// 获取当前节点的可前进目标集合
         /// </summary>
         /// <returns>可前进的节点ID集合</returns>
         List<string> GetAvailableNextNodes();
+
+        List<string> GetAvailableNextNodes(string requiredTag);
+
+        string SaveContextToJson();
+
+        void LoadContextFromJson(string json);
     }
 }

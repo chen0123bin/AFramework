@@ -28,3 +28,9 @@
 
 ## 与模板差异
 - Editor/Resources/Template 中出现的 [ManagerClass]/[ManagerHotfixClass] 在当前工程未找到定义与实际用法；推断当前版本不依赖“特性扫描自动注册 Manager”，仍以 Startup 手动注册为准。
+
+## 2026-01-20 补充：移除 ApplyWithStrategy 策略跳转
+- 背景：策略跳转会让 JumpTo/Backward/Forward 的补齐链路引入“失败原因+分支策略”的复杂度，维护成本高。
+- 决策：彻底移除 StepApplyStrategy/IStepInteractiveAction/ApplyWithStrategy，补齐阶段统一只调用 Apply。
+- 行为变化：交互类动作在补齐阶段直接 Finish，不再阻塞跳转。
+- 影响面：StepNode/StepManager/IStepManager/StepWaitMouseLeftClickAction 的带策略 API 全部删除或改为直接 Apply。

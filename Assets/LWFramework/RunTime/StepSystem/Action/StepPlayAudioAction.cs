@@ -1,12 +1,67 @@
 using System.Collections.Generic;
 using System.Globalization;
+using LWAudio;
 using LWCore;
 using UnityEngine;
 
 namespace LWStep
 {
-    public class StepPlayAudioAction : BaseStepAction
+    public class StepPlayAudioAction : BaseStepAction, IStepBaselineStateAction
     {
+        private bool m_HasBaseline;
+        private AudioChannel m_LastChannel;
+        private AudioClip m_LastClip;
+
+        /// <summary>
+        /// 捕获动作基线状态（用于回退恢复）
+        /// </summary>
+        public void CaptureBaselineState()
+        {
+            m_HasBaseline = true;
+            m_LastChannel = null;
+            m_LastClip = null;
+        }
+
+        /// <summary>
+        /// 恢复动作基线状态（用于回退恢复）
+        /// </summary>
+        public void RestoreBaselineState()
+        {
+            if (!m_HasBaseline)
+            {
+                return;
+            }
+
+            if (m_LastChannel == null)
+            {
+                return;
+            }
+
+            if (ManagerUtility.AudioMgr == null)
+            {
+                m_LastChannel = null;
+                m_LastClip = null;
+                return;
+            }
+
+            bool shouldStop = true;
+            if (m_LastClip != null && m_LastChannel.IsValid())
+            {
+                if (m_LastChannel.AudioClip != m_LastClip)
+                {
+                    shouldStop = false;
+                }
+            }
+
+            if (shouldStop)
+            {
+                ManagerUtility.AudioMgr.StopImmediate(m_LastChannel);
+            }
+
+            m_LastChannel = null;
+            m_LastClip = null;
+        }
+
         protected override void OnEnter()
         {
             ExecutePlay();
@@ -50,12 +105,13 @@ namespace LWStep
             GameObject target = GetTarget();
             if (target != null)
             {
-                ManagerUtility.AudioMgr.Play(clip, target.transform, isLoop, fadeInSeconds, volume);
+                m_LastChannel = ManagerUtility.AudioMgr.Play(clip, target.transform, isLoop, fadeInSeconds, volume);
             }
             else
             {
-                ManagerUtility.AudioMgr.Play(clip, isLoop, fadeInSeconds, volume);
+                m_LastChannel = ManagerUtility.AudioMgr.Play(clip, isLoop, fadeInSeconds, volume);
             }
+            m_LastClip = clip;
             LWDebug.Log("步骤动作-音频播放：" + clip.name);
         }
 

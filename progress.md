@@ -11,3 +11,9 @@
 - 已核对阶段2验收：新建/导入/导出/节点连线编辑已具备，校验仍缺不可达节点与孤立节点提示
 - 已补齐不可达/孤立节点校验并复核阶段2验收通过
 - 已完成阶段3：StepContext 结构化与类型安全读写、Apply 策略与跳转失败原因事件、事件顺序稳定化
+- 已按需求清理策略跳转逻辑：移除 ApplyWithStrategy/StepApplyStrategy/IStepInteractiveAction，并同步改造 StepNode/StepManager/IStepManager/StepWaitMouseLeftClickAction，只保留 Apply 补齐
+- 已全局确认无残留引用（StepApplyStrategy/ApplyWithStrategy/IStepInteractiveAction/ApplyRemainingWithStrategy），IDE 诊断为 0 错误
+- 记录：dotnet build 受 UniTask 的 UnityEngine.Experimental.PlayerLoop/PlayerLoopSystem 引用限制失败，与本次 StepSystem 改动无关
+- 已补齐阶段4测试数据：新增 StepStage4Test.xml 覆盖条件边、标签选路与优先级选路
+- 已更新阶段4测试 demo：StepDemoRunner 默认参数支持带标签前进与跳转，并支持上下文保存/恢复
+- 已进行诊断确认：当前新增改动无 IDE 报错

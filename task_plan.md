@@ -165,7 +165,7 @@
 - 事件回调顺序稳定（Leave→Enter、Action 切换顺序固定）：已实现。
 
 ### 阶段 4：V2 扩展能力（异步/条件/多路径/持久化）
-- 支持动作异步执行（UniTask），并且可取消（Stop/JumpTo 中断正在执行的动作）。
+- 支持动作异步执行（UniTask），并且可取消（Stop/JumpTo 中断正在执行的动作）：作废。
 - 支持条件边与选路决策（基于 StepContext 条件 + priority + tag）。
 - 支持多路径 JumpTo 的路径选择策略（最短/优先级/tag），并在歧义时返回明确错误。
 - 支持 StepContext 持久化与恢复（用于断点续学）。
@@ -175,6 +175,10 @@
 - 条件边选路结果稳定且可解释（能输出选择原因/命中条件）。
 - JumpTo 在存在多条可达路径时行为符合预期策略。
 - 支持中途 Stop/Reset，不遗留未完成任务，恢复后可继续执行。
+
+阶段四验收核对（2026-01-20）：
+- 条件边/标签/优先级选路已通过 StepStage4Test.xml 与 StepDemoRunner 验证。
+- StepContext 持久化与恢复已通过保存/恢复上下文操作验证。
 
 ### 阶段 5：Editor 增强（对齐 V2）
 - 支持条件边编辑（表达式/优先级/tag 的可视化配置与校验）。
@@ -191,3 +195,8 @@
 - 交互动作在 Apply 模式下不可执行：通过策略化处理（默认值/自动通过/阻止跳转）。
 - Update 切换重入：StepManager 内部用状态机保护（切换请求排队到帧末执行）。
 - Editor Graph 编辑复杂度高：先做 MVP（节点/边/属性/导入导出/校验），再逐步增强。
+
+## 2026-01-20 计划调整：简化跳转补齐策略
+- 原阶段 3 中的“Apply 策略（交互动作默认值/自动通过/阻止跳转）”已按需求下线。
+- 当前约束：跳转补齐只负责快速收敛到目标状态；补齐阶段统一执行 Apply，不再允许交互动作阻塞跳转。
+- 已同步落地到代码：移除 StepApplyStrategy/IStepInteractiveAction/ApplyWithStrategy，并调整 StepNode/StepManager/IStepManager/StepWaitMouseLeftClickAction 调用链。

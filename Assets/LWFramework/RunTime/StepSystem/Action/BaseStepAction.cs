@@ -2,16 +2,10 @@ using System.Collections.Generic;
 
 namespace LWStep
 {
-    public enum StepApplyStrategy
+    public interface IStepBaselineStateAction
     {
-        SkipWithDefault,
-        AutoPass,
-        BlockJump
-    }
-
-    public interface IStepInteractiveAction
-    {
-        bool ApplyWithStrategy(StepApplyStrategy strategy, out string failReason);
+        void CaptureBaselineState();
+        void RestoreBaselineState();
     }
 
     /// <summary>
@@ -128,18 +122,6 @@ namespace LWStep
                 Finish();
             }
             Exit();
-        }
-
-        public bool ApplyWithStrategy(StepApplyStrategy strategy, out string failReason)
-        {
-            failReason = string.Empty;
-            IStepInteractiveAction interactive = this as IStepInteractiveAction;
-            if (interactive != null)
-            {
-                return interactive.ApplyWithStrategy(strategy, out failReason);
-            }
-            Apply();
-            return true;
         }
 
         /// <summary>

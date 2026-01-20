@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace LWStep
 {
-    public class StepWaitMouseLeftClickAction : BaseStepAction, IStepInteractiveAction
+    public class StepWaitMouseLeftClickAction : BaseStepAction
     {
         protected override void OnEnter()
         {
@@ -25,18 +25,6 @@ namespace LWStep
         protected override void OnApply()
         {
             Finish();
-        }
-
-        public bool ApplyWithStrategy(StepApplyStrategy strategy, out string failReason)
-        {
-            failReason = string.Empty;
-            if (strategy == StepApplyStrategy.BlockJump)
-            {
-                failReason = "等待鼠标左键点击";
-                return false;
-            }
-            Finish();
-            return true;
         }
     }
 }

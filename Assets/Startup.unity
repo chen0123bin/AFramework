@@ -315,7 +315,7 @@ Transform:
   m_GameObject: {fileID: 887894661}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.4848995, y: 2.5873482, z: 10.952468}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -438,7 +438,7 @@ Transform:
   m_GameObject: {fileID: 2099898463}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.4848995, y: 2.5873482, z: 1.61}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -945,7 +945,14 @@ MonoBehaviour:
   m_XmlPath: Assets/0Res/RawFiles/StepActionTest.xml
   m_GraphId: step_action_test
   m_AutoForwardCount: 4
-  m_AutoForwardDelayMs: 300
+  m_AutoForwardDelayMs: 3000
+  m_JumpTargetNodeId: step_move
+  m_JumpRequiredTag: normal
+  m_ForwardRequiredTag: vip
+  m_ApplyPresetContextOnStart: 1
+  m_PresetMode: A
+  m_PresetScore: 5
+  m_PresetIsVip: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

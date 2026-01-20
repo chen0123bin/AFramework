@@ -5,8 +5,60 @@ using UnityEngine;
 
 namespace LWStep
 {
-    public class StepMoveObjectAction : BaseStepAction
+    public class StepMoveObjectAction : BaseStepAction, IStepBaselineStateAction
     {
+        private bool m_HasBaseline;
+        private string m_BaselineTargetName;
+        private GameObject m_BaselineTarget;
+        private Vector3 m_BaselineLocalPosition;
+        private Quaternion m_BaselineLocalRotation;
+        private Vector3 m_BaselineLocalScale;
+
+        /// <summary>
+        /// 捕获动作基线状态（用于回退恢复）
+        /// </summary>
+        public void CaptureBaselineState()
+        {
+            m_BaselineTargetName = GetStringParam("target", string.Empty);
+            GameObject target = FindTarget();
+            if (target == null)
+            {
+                m_HasBaseline = false;
+                m_BaselineTarget = null;
+                return;
+            }
+
+            m_BaselineTarget = target;
+            Transform transform = target.transform;
+            m_BaselineLocalPosition = transform.localPosition;
+            m_BaselineLocalRotation = transform.localRotation;
+            m_BaselineLocalScale = transform.localScale;
+            m_HasBaseline = true;
+        }
+
+        /// <summary>
+        /// 恢复动作基线状态（用于回退恢复）
+        /// </summary>
+        public void RestoreBaselineState()
+        {
+            if (!m_HasBaseline)
+            {
+                return;
+            }
+
+            GameObject target = m_BaselineTarget != null ? m_BaselineTarget : GameObject.Find(m_BaselineTargetName);
+            if (target == null)
+            {
+                LWDebug.LogWarning("步骤动作-物体移动：回退恢复失败，未找到对象 " + m_BaselineTargetName);
+                return;
+            }
+
+            Transform transform = target.transform;
+            transform.localPosition = m_BaselineLocalPosition;
+            transform.localRotation = m_BaselineLocalRotation;
+            transform.localScale = m_BaselineLocalScale;
+        }
+
         protected override void OnEnter()
         {
             ExecuteMove();
