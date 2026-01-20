@@ -128,7 +128,6 @@ namespace LWAssets
             ShaderVariantCollection svc = await m_Loader.LoadAssetAsync<ShaderVariantCollection>("Assets/Arts/Shaders/ShaderVariants.shadervariants", token);
             if (svc != null)
             {
-                LWDebug.Log($"[LWAssets] Warmup Shader Variants: {svc.shaderCount}");
                 svc.WarmUp();
             }
         }

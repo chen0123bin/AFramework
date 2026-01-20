@@ -250,6 +250,18 @@ namespace LWAssets
 
             // 其次从StreamingAssets加载
             string streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
+            if (File.Exists(cachePath))
+            {
+                return streamingPath;
+            }
+#if UNITY_EDITOR
+            // 最后如果在编辑器下尝试从BuildOutput加载
+            string buildOutputPath = Path.Combine(m_Config.GetBuildOutputPath(), bundleInfo.GetFileName());
+            if (File.Exists(buildOutputPath))
+            {
+                return buildOutputPath;
+            }
+#endif
             return streamingPath;
         }
 

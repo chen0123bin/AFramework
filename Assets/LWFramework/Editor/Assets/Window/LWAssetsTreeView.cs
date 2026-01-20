@@ -135,14 +135,26 @@ namespace LWAssets.Editor
             EditorGUILayout.LabelField("资源管理器", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Open Build Folder", GUILayout.Height(40)))
+                if (GUILayout.Button("Open Player Folder", GUILayout.Height(40)))
+                {
+                    if (m_BuildConfig != null)
+                    {
+                        string path = Path.Combine(Application.dataPath, "..", "BuildPlayer");
+                        if (Directory.Exists(path))
+                        {
+                            EditorUtility.OpenWithDefaultApp(path);
+                        }
+                    }
+                }
+                if (GUILayout.Button("Open Bundle Folder", GUILayout.Height(40)))
                 {
                     if (m_BuildConfig != null)
                     {
                         string path = Path.Combine(Application.dataPath, "..", m_BuildConfig.OutputPath);
+                        Debug.Log($"Open Bundle Folder: {path}");
                         if (Directory.Exists(path))
                         {
-                            EditorUtility.RevealInFinder(path);
+                            EditorUtility.OpenWithDefaultApp(path);
                         }
                     }
                 }
@@ -151,7 +163,14 @@ namespace LWAssets.Editor
                 {
                     if (m_RuntimeConfig != null)
                     {
-                        EditorUtility.RevealInFinder(m_RuntimeConfig.GetPersistentDataPath());
+                        if (Directory.Exists(m_RuntimeConfig.GetPersistentDataPath()))
+                        {
+                            EditorUtility.OpenWithDefaultApp(m_RuntimeConfig.GetPersistentDataPath());
+                        }
+                        else
+                        {
+                            Debug.LogError($"Download Folder not found: {m_RuntimeConfig.GetPersistentDataPath()}");
+                        }
                     }
                 }
 
@@ -212,7 +231,7 @@ namespace LWAssets.Editor
             }
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Build Player", GUILayout.Height(40)))
+                if (GUILayout.Button("Build Player And Copy", GUILayout.Height(40)))
                 {
                     RequestBuildPlayer();
                 }
@@ -358,6 +377,7 @@ namespace LWAssets.Editor
 
                 BuildTarget buildTarget = EditorUserBuildSettings.activeBuildTarget;
                 string playerPath = GetPlayerLocationPath(buildTarget);
+
                 if (string.IsNullOrEmpty(playerPath))
                 {
                     return;
@@ -441,7 +461,7 @@ namespace LWAssets.Editor
         /// <param name="buildTarget">当前构建目标平台。</param>
         private string GetPlayerLocationPath(BuildTarget buildTarget)
         {
-            string defaultDirectory = Path.Combine(Application.dataPath, "..");
+            string defaultDirectory = Path.Combine(Application.dataPath, "..", "BuildPlayer");
             string productName = PlayerSettings.productName;
             if (string.IsNullOrEmpty(productName))
             {

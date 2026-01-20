@@ -272,8 +272,18 @@ namespace LWAssets
                 var json = await File.ReadAllTextAsync(streamingPath);
                 return BundleManifest.FromJson(json);
             }
-#endif
 
+#endif
+#if UNITY_EDITOR
+            // 最后从AssetBundle加载
+            var assetBundlePath = Path.Combine(m_Config.GetBuildOutputPath(), m_Config.ManifestFileName);
+            if (File.Exists(assetBundlePath))
+            {
+                var json = await File.ReadAllTextAsync(assetBundlePath);
+                Debug.LogWarning($"[LWAssets] 从BuildOutput加载清单: {assetBundlePath}");
+                return BundleManifest.FromJson(json);
+            }
+#endif
             return new BundleManifest();
         }
 
