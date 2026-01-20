@@ -5,6 +5,7 @@ using LWAudio;
 using LWCore;
 using LWFMS;
 using LWHotfix;
+using LWStep;
 using LWUI;
 using UnityEngine;
 
@@ -33,6 +34,7 @@ public class Startup : MonoBehaviour
         ManagerUtility.MainMgr.AddManager(typeof(IHotfixManager).ToString(), new HotFixCodeManager());
         ManagerUtility.MainMgr.AddManager(typeof(IFSMManager).ToString(), new FSMManager());
         ManagerUtility.MainMgr.AddManager(typeof(IAudioManager).ToString(), new AudioManager());
+        ManagerUtility.MainMgr.AddManager(typeof(IStepManager).ToString(), new StepManager());
         await ManagerUtility.AssetsMgr.InitializeAsync();
         ManagerUtility.MainMgr.MonoBehaviour = this;
 

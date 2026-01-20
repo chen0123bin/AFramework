@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-16"?>
+<graph id="step_demo" start="step1">
+  <nodes>
+    <node id="step1" name="步骤1" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="进入步骤1" />
+        </action>
+      </actions>
+    </node>
+    <node id="step2" name="步骤2" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="进入步骤2" />
+        </action>
+      </actions>
+    </node>
+    <node id="step3" name="步骤3" x="425.60" y="-25.60">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="进入步骤3" />
+        </action>
+      </actions>
+    </node>
+    <node id="node1" name="node1" x="670.40" y="-164.00">
+      <actions>
+        <action type="LWStep.StepLogAction" />
+      </actions>
+    </node>
+    <node id="node2" name="node2" x="668.00" y="152.00">
+      <actions>
+        <action type="LWStep.StepLogAction" />
+      </actions>
+    </node>
+    <node id="node3" name="node3" x="968.80" y="130.40">
+      <actions />
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step1" to="step2" priority="0" />
+    <edge from="step2" to="step3" priority="0" />
+    <edge from="step3" to="node1" priority="0" />
+    <edge from="step3" to="node2" priority="0" />
+    <edge from="node1" to="node3" priority="0" />
+    <edge from="node2" to="node3" priority="0" />
+  </edges>
+</graph>

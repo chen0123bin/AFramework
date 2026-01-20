@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-16"?>
+<graph id="step_action_test" start="step_move">
+  <nodes>
+    <node id="step_move" name="物体移动" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepWaitMouseLeftClickAction" />
+        <action type="LWStep.StepMoveObjectAction">
+          <param key="target" value="Cube" />
+          <param key="x" value="1" />
+          <param key="y" value="0" />
+          <param key="z" value="2" />
+          <param key="isLocal" value="false" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_hide" name="物体隐藏" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepToggleObjectAction">
+          <param key="target" value="Cube" />
+          <param key="isActive" value="false" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_show" name="物体显示" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepToggleObjectAction">
+          <param key="target" value="Cube" />
+          <param key="isActive" value="true" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_audio" name="音频播放" x="660.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepPlayAudioAction">
+          <param key="target" value="AudioSourceObj" />
+          <param key="clip" value="Assets/0Res/Audios/bgm.wav" />
+          <param key="volume" value="1" />
+          <param key="isLoop" value="false" />
+          <param key="fadeInSeconds" value="0" />
+        </action>
+        <action type="LWStep.StepToggleObjectAction">
+          <param key="target" value="Cube" />
+          <param key="isActive" value="false" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_end" name="结束" x="802.40" y="124.80">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="步骤动作测试完成" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_move" to="step_hide" priority="0" />
+    <edge from="step_hide" to="step_show" priority="0" />
+    <edge from="step_show" to="step_audio" priority="0" />
+    <edge from="step_audio" to="step_end" priority="0" />
+  </edges>
+</graph>

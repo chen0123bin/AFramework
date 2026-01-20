@@ -1,0 +1,29 @@
+<graph id="step_demo" start="step1">
+  <nodes>
+    <node id="step1" name="步骤1">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="进入步骤1" />
+        </action>
+      </actions>
+    </node>
+    <node id="step2" name="步骤2">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="进入步骤2" />
+        </action>
+      </actions>
+    </node>
+    <node id="step3" name="步骤3">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="进入步骤3" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step1" to="step2" priority="0" />
+    <edge from="step2" to="step3" priority="0" />
+  </edges>
+</graph>
