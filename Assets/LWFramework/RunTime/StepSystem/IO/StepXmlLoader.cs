@@ -44,9 +44,8 @@ namespace LWStep
                 return null;
             }
 
-            string graphId = GetAttr(graphElement, "id");
             string startNodeId = GetAttr(graphElement, "start");
-            StepGraph graph = new StepGraph(graphId, startNodeId);
+            StepGraph graph = new StepGraph(startNodeId);
 
             XmlNode nodesNode = graphElement.SelectSingleNode("nodes");
             if (nodesNode != null)

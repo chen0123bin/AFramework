@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using LWCore;
 using LWStep;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,7 +12,6 @@ public class StepDemoRunner : MonoBehaviour
 {
 #if UNITY_EDITOR
     private const string PREVIEW_XML_PATH_KEY = "LWStep.StepEditor.Preview.XmlPath";
-    private const string PREVIEW_GRAPH_ID_KEY = "LWStep.StepEditor.Preview.GraphId";
     private const string PREVIEW_START_NODE_ID_KEY = "LWStep.StepEditor.Preview.StartNodeId";
     private const string PREVIEW_JUMP_NODE_ID_KEY = "LWStep.StepEditor.Preview.JumpNodeId";
     private const string PREVIEW_REQUIRED_TAG_KEY = "LWStep.StepEditor.Preview.RequiredTag";
@@ -19,7 +19,6 @@ public class StepDemoRunner : MonoBehaviour
 #endif
 
     [SerializeField] private string m_XmlPath = "Assets/0Res/RawFiles/StepStage4Test.xml";
-    [SerializeField] private string m_GraphId = "step_stage4_demo";
     [SerializeField] private int m_AutoForwardCount = 3;
     [SerializeField] private int m_AutoForwardDelayMs = 3000;
     [SerializeField] private string m_JumpTargetNodeId = "step_priority_gate";
@@ -47,7 +46,6 @@ public class StepDemoRunner : MonoBehaviour
         if (m_UsePreviewConfig)
         {
             string previewXmlPath = EditorPrefs.GetString(PREVIEW_XML_PATH_KEY, string.Empty);
-            string previewGraphId = EditorPrefs.GetString(PREVIEW_GRAPH_ID_KEY, string.Empty);
             m_PreviewStartNodeId = EditorPrefs.GetString(PREVIEW_START_NODE_ID_KEY, string.Empty);
             m_PreviewJumpNodeId = EditorPrefs.GetString(PREVIEW_JUMP_NODE_ID_KEY, string.Empty);
             m_PreviewRequiredTag = EditorPrefs.GetString(PREVIEW_REQUIRED_TAG_KEY, string.Empty);
@@ -55,10 +53,6 @@ public class StepDemoRunner : MonoBehaviour
             if (!string.IsNullOrEmpty(previewXmlPath))
             {
                 m_XmlPath = previewXmlPath;
-            }
-            if (!string.IsNullOrEmpty(previewGraphId))
-            {
-                m_GraphId = previewGraphId;
             }
         }
 #endif
@@ -75,13 +69,19 @@ public class StepDemoRunner : MonoBehaviour
         stepManager.OnJumpProgress += OnJumpProgress;
         stepManager.OnJumpFailed += OnJumpFailed;
         stepManager.LoadGraph(m_XmlPath);
+        string graphName = Path.GetFileNameWithoutExtension(m_XmlPath);
+        if (string.IsNullOrEmpty(graphName))
+        {
+            LWDebug.LogError("步骤Demo：图名称为空，请检查XML路径");
+            return;
+        }
         if (m_UsePreviewConfig && !string.IsNullOrEmpty(m_PreviewStartNodeId))
         {
-            stepManager.Start(m_GraphId, m_PreviewStartNodeId);
+            stepManager.Start(graphName, m_PreviewStartNodeId);
         }
         else
         {
-            stepManager.Start(m_GraphId);
+            stepManager.Start(graphName);
         }
 
         if (m_ApplyPresetContextOnStart)

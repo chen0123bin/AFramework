@@ -8,7 +8,6 @@ namespace LWStep
     /// </summary>
     public class StepGraph
     {
-        public string Id { get; private set; }
         public string StartNodeId { get; private set; }
 
         private Dictionary<string, StepNode> m_Nodes;
@@ -18,9 +17,8 @@ namespace LWStep
         /// <summary>
         /// 创建步骤图
         /// </summary>
-        public StepGraph(string id, string startNodeId)
+        public StepGraph(string startNodeId)
         {
-            Id = id;
             StartNodeId = startNodeId;
             m_Nodes = new Dictionary<string, StepNode>();
             m_Edges = new List<StepEdge>();

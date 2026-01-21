@@ -36,9 +36,9 @@ namespace LWCore
         /// <summary>
         /// 启动步骤图
         /// </summary>
-        /// <param name="graphId">图ID</param>
+        /// <param name="graphName">图名称（XML文件名）</param>
         /// <param name="startNodeId">开始节点ID（为空则使用图配置默认）</param>
-        void Start(string graphId, string startNodeId = null);
+        void Start(string graphName, string startNodeId = null);
 
         /// <summary>
         /// 停止步骤图并清理上下文

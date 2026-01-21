@@ -943,7 +943,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_XmlPath: Assets/0Res/RawFiles/StepStage4Test.xml
-  m_GraphId: step_stage4_demo
   m_AutoForwardCount: 4
   m_AutoForwardDelayMs: 3000
   m_JumpTargetNodeId: step_move

@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-16"?>
-<graph id="step_stage4_demo" start="step_start">
+<graph start="step_start">
   <nodes>
-    <node id="step_start" name="开始" x="0.00" y="0.00">
+    <node id="step_start" name="开始" x="0.00" y="-2.00">
       <actions>
         <action type="LWStep.StepLogAction">
-          <param key="message" value="阶段4测试：开始" />
+          <param key="message" value="2222" />
           <param key="message2" value="333333" />
         </action>
       </actions>
     </node>
-    <node id="step_mode_gate" name="模式判断" x="220.00" y="0.00">
+    <node id="step_mode_gate" name="模式判断" x="220.00" y="-2.00">
       <actions>
-        <action type="LWStep.StepPlayAudioAction">
-          <param key="message" value="阶段4测试：模式判断" />
+        <action type="" />
+        <action type="LWStep.StepWaitMouseLeftClickAction" />
+        <action type="LWStep.StepToggleObjectAction">
+          <param key="target" value="Cube" />
+          <param key="isActive" value="False" />
         </action>
       </actions>
     </node>
@@ -21,15 +24,23 @@
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：进入模式A" />
         </action>
-        <action type="LWStep.StepLogAction">
+        <action type="LWStep.StepPlayAudioAction">
+          <param key="clip" value="Assets/0Res/Audios/bgm.wav" />
+          <param key="target" value="AudioSourceObj" />
+          <param key="volume" value="1" />
+          <param key="isLoop" value="False" />
+          <param key="fadeInSeconds" value="0" />
+        </action>
+        <action type="LWStep.StepMoveObjectAction">
           <param key="target" value="Cube" />
-          <param key="x" value="1" />
-          <param key="y" value="2" />
-          <param key="z" value="3" />
+          <param key="x" value="0" />
+          <param key="y" value="3" />
+          <param key="z" value="0" />
+          <param key="isLocal" value="False" />
         </action>
       </actions>
     </node>
-    <node id="step_mode_other" name="非A模式" x="440.00" y="-120.00">
+    <node id="step_mode_other" name="非A模式" x="453.00" y="-44.00">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：进入非A模式" />

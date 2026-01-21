@@ -7,10 +7,9 @@ namespace LWStep.Editor
 {
     public class StepGraphView : GraphView
     {
-        private const string EDGE_LABEL_NAME = "StepEdgeLabel";
         private StepEditorGraphData m_Data;
         private Dictionary<string, StepNodeView> m_NodeViews;
-        public System.Action<System.Collections.Generic.List<ISelectable>> SelectionChanged;
+        public System.Action<List<ISelectable>> SelectionChanged;
         public System.Action GraphChanged;
         private bool m_IsPanning;
         private Vector2 m_LastMousePosition;

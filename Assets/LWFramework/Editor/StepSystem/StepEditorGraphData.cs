@@ -7,7 +7,6 @@ namespace LWStep.Editor
     [Serializable]
     public class StepEditorGraphData
     {
-        public string GraphId;
         public string StartNodeId;
         public List<StepEditorNodeData> Nodes;
         public List<StepEditorEdgeData> Edges;
@@ -17,7 +16,6 @@ namespace LWStep.Editor
         /// </summary>
         public StepEditorGraphData()
         {
-            GraphId = "step_graph";
             StartNodeId = string.Empty;
             Nodes = new List<StepEditorNodeData>();
             Edges = new List<StepEditorEdgeData>();

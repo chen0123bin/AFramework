@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using LWCore;
 
 namespace LWStep
@@ -22,6 +23,7 @@ namespace LWStep
 
         private Dictionary<string, StepGraph> m_Graphs;
         private StepGraph m_CurrentGraph;
+        private string m_CurrentGraphName;
         private StepNode m_CurrentNode;
         private StepContext m_Context;
         private StepXmlLoader m_Loader;
@@ -46,6 +48,7 @@ namespace LWStep
             m_BaselineStateActions = new List<IStepBaselineStateAction>();
             IsRunning = false;
             m_HasAllStepsCompleted = false;
+            m_CurrentGraphName = string.Empty;
         }
 
         /// <summary>
@@ -95,23 +98,24 @@ namespace LWStep
                 LWDebug.LogError("步骤图加载失败: " + xmlAssetPath);
                 return;
             }
-            if (string.IsNullOrEmpty(graph.Id))
+            string graphName = Path.GetFileNameWithoutExtension(xmlAssetPath);
+            if (string.IsNullOrEmpty(graphName))
             {
-                LWDebug.LogError("步骤图缺少ID");
+                LWDebug.LogError("步骤图名称为空: " + xmlAssetPath);
                 return;
             }
-            m_Graphs[graph.Id] = graph;
+            m_Graphs[graphName] = graph;
         }
 
         /// <summary>
         /// 启动步骤图
         /// </summary>
-        public void Start(string graphId, string startNodeId = null)
+        public void Start(string graphName, string startNodeId = null)
         {
             StepGraph graph;
-            if (!m_Graphs.TryGetValue(graphId, out graph))
+            if (!m_Graphs.TryGetValue(graphName, out graph))
             {
-                LWDebug.LogError("步骤图不存在: " + graphId);
+                LWDebug.LogError("步骤图不存在: " + graphName);
                 return;
             }
 
@@ -124,6 +128,7 @@ namespace LWStep
             }
 
             m_CurrentGraph = graph;
+            m_CurrentGraphName = graphName;
             m_CurrentNode = node;
             m_History.Clear();
             m_History.Add(node.Id);
@@ -154,6 +159,7 @@ namespace LWStep
                 m_CurrentNode.Leave();
             }
             m_CurrentGraph = null;
+            m_CurrentGraphName = string.Empty;
             m_CurrentNode = null;
             m_History.Clear();
             m_ForwardHistory.Clear();
@@ -173,7 +179,7 @@ namespace LWStep
                 LWDebug.LogWarning("当前没有可重启的步骤图");
                 return;
             }
-            Start(m_CurrentGraph.Id, m_CurrentGraph.StartNodeId);
+            Start(m_CurrentGraphName, m_CurrentGraph.StartNodeId);
         }
 
         /// <summary>

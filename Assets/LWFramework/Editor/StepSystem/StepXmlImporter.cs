@@ -22,7 +22,6 @@ namespace LWStep.Editor
             }
 
             StepEditorGraphData data = new StepEditorGraphData();
-            data.GraphId = GetAttr(graphElement, "id");
             data.StartNodeId = GetAttr(graphElement, "start");
 
             XmlNode nodesNode = graphElement.SelectSingleNode("nodes");

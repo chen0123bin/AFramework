@@ -7,8 +7,6 @@ namespace LWStep
         [StepParam("message")]
         private string m_Message = "步骤动作执行";
 
-        [StepParam("message2")]
-        private string m_Message2 = "步骤动作执行";
         /// <summary>
         /// 进入动作：输出日志并结束
         /// </summary>

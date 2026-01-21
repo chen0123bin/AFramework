@@ -15,7 +15,6 @@ namespace LWStep.Editor
     public class StepEditorWindow : EditorWindow
     {
         private const string PREVIEW_XML_PATH_KEY = "LWStep.StepEditor.Preview.XmlPath";
-        private const string PREVIEW_GRAPH_ID_KEY = "LWStep.StepEditor.Preview.GraphId";
         private const string PREVIEW_START_NODE_ID_KEY = "LWStep.StepEditor.Preview.StartNodeId";
         private const string PREVIEW_JUMP_NODE_ID_KEY = "LWStep.StepEditor.Preview.JumpNodeId";
         private const string PREVIEW_REQUIRED_TAG_KEY = "LWStep.StepEditor.Preview.RequiredTag";
@@ -36,15 +35,15 @@ namespace LWStep.Editor
         private static Type[] s_ActionTypes;
         private static string[] s_ActionTypeNames;
         private static Dictionary<Type, List<ActionParamMember>> s_ActionParamMembersCache = new Dictionary<Type, List<ActionParamMember>>();
-        private static Dictionary<string, bool> s_FoldoutStates = new Dictionary<string, bool>();
+
 
         private TextAsset m_PreviewXmlAsset;
         private string m_PreviewXmlPath;
-        private string m_PreviewGraphId;
         private string m_PreviewStartNodeId;
         private string m_PreviewJumpNodeId;
         private string m_PreviewRequiredTag;
         private string m_RuntimeNodeId;
+        private Vector2 m_NodeInspectorScroll;
 
         private class ActionParamMember
         {
@@ -167,6 +166,7 @@ namespace LWStep.Editor
         /// </summary>
         private void OnSelectionChanged(List<ISelectable> selection)
         {
+            Debug.Log($"OnSelectionChanged: {selection.Count}");
             m_SelectedNode = null;
             m_SelectedEdge = null;
             m_SelectedEdgeView = null;
@@ -255,6 +255,7 @@ namespace LWStep.Editor
         /// </summary>
         private void DrawNodeInspector()
         {
+            m_NodeInspectorScroll = EditorGUILayout.BeginScrollView(m_NodeInspectorScroll, false, true);
             EditorGUILayout.LabelField("节点", EditorStyles.boldLabel);
 
             EditorGUI.BeginChangeCheck();
@@ -323,6 +324,7 @@ namespace LWStep.Editor
                     SaveUndoSnapshot("删除节点");
                 }
             }
+            EditorGUILayout.EndScrollView();
         }
 
         /// <summary>
@@ -346,31 +348,7 @@ namespace LWStep.Editor
             stepManager.JumpTo(nodeId);
         }
 
-        private static bool GetFoldoutState(string key, bool defaultValue)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return defaultValue;
-            }
 
-            bool value;
-            if (s_FoldoutStates.TryGetValue(key, out value))
-            {
-                return value;
-            }
-
-            s_FoldoutStates[key] = defaultValue;
-            return defaultValue;
-        }
-
-        private static void SetFoldoutState(string key, bool value)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return;
-            }
-            s_FoldoutStates[key] = value;
-        }
 
         private void RefreshActionTypes()
         {
@@ -560,14 +538,16 @@ namespace LWStep.Editor
             s_ActionParamMembersCache[actionType] = members;
             return members;
         }
-
+        /// <summary>
+        /// 绘制步骤动作的类型选择器
+        /// </summary>
+        /// <param name="action"></param>
         private void DrawActionTypeSelector(StepEditorActionData action)
         {
             if (action == null)
             {
                 return;
             }
-
             if (s_ActionTypeNames == null)
             {
                 RefreshActionTypes();
@@ -592,18 +572,7 @@ namespace LWStep.Editor
             }
 
             List<string> options = new List<string>(s_ActionTypeNames.Length + 1);
-            if (string.IsNullOrEmpty(currentTypeName))
-            {
-                options.Add("未选择");
-            }
-            else if (matchIndex < 0)
-            {
-                options.Add("自定义: " + currentTypeName);
-            }
-            else
-            {
-                options.Add("未选择");
-            }
+            options.Add("未选择");
             for (int i = 0; i < s_ActionTypeNames.Length; i++)
             {
                 options.Add(s_ActionTypeNames[i]);
@@ -619,20 +588,63 @@ namespace LWStep.Editor
                 }
                 else
                 {
+
                     int typeIndex = newIndex - 1;
                     if (typeIndex >= 0 && typeIndex < s_ActionTypeNames.Length)
                     {
                         action.TypeName = s_ActionTypeNames[typeIndex];
                     }
+                    //切换不同type 重置参数
+                    ResetActionParameters(action, action.TypeName);
                 }
             }
 
-            if (!string.IsNullOrEmpty(action.TypeName) && FindActionType(action.TypeName) == null)
-            {
-                action.TypeName = EditorGUILayout.TextField("自定义类型", action.TypeName);
-            }
+
         }
 
+        private void ResetActionParameters(StepEditorActionData action, string typeName)
+        {
+            if (action.Parameters == null)
+            {
+                action.Parameters = new List<StepEditorParameterData>();
+            }
+            else
+            {
+                action.Parameters.Clear();
+            }
+
+            Type actionType = FindActionType(typeName);
+            if (actionType == null)
+            {
+                return;
+            }
+
+            List<ActionParamMember> members = GetOrCreateActionParamMembers(actionType);
+            if (members == null || members.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < members.Count; i++)
+            {
+                ActionParamMember member = members[i];
+                if (member == null || string.IsNullOrEmpty(member.Key) || member.ValueType == null)
+                {
+                    continue;
+                }
+
+                object defaultValue = GetDefaultValue(member.ValueType);
+                string rawValue = ConvertToRawString(defaultValue, member.ValueType);
+                StepEditorParameterData param = new StepEditorParameterData();
+                param.Key = member.Key;
+                param.Value = rawValue;
+                action.Parameters.Add(param);
+            }
+        }
+        /// <summary>
+        /// 绘制步骤动作的类型化参数
+        /// </summary>
+        /// <param name="action"></param>
         private void DrawActionTypedParameters(StepEditorActionData action)
         {
             if (action == null)
@@ -718,7 +730,12 @@ namespace LWStep.Editor
 
             return false;
         }
-
+        /// <summary>
+        /// 设置或更新步骤动作的参数
+        /// </summary>
+        /// <param name="parameters">参数数据</param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         private static void SetOrUpdateParameter(List<StepEditorParameterData> parameters, string key, string value)
         {
             if (parameters == null)
@@ -1024,14 +1041,12 @@ namespace LWStep.Editor
         }
 
         /// <summary>
-        /// 绘制图设置面板（图ID/开始节点/运行时预览参数）
+        /// 绘制图设置面板（开始节点/运行时预览参数）
         /// </summary>
         private void DrawGraphInspector()
         {
             EditorGUILayout.LabelField("图设置", EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
-            m_Data.GraphId = EditorGUILayout.TextField("图ID", m_Data.GraphId);
-
             string[] nodeIds = GetNodeIdList();
             if (nodeIds.Length > 0)
             {
@@ -1065,7 +1080,6 @@ namespace LWStep.Editor
                 m_PreviewXmlAsset = newPreviewAsset;
                 m_PreviewXmlPath = m_PreviewXmlAsset != null ? AssetDatabase.GetAssetPath(m_PreviewXmlAsset) : string.Empty;
             }
-            m_PreviewGraphId = EditorGUILayout.TextField("图ID", string.IsNullOrEmpty(m_PreviewGraphId) ? m_Data.GraphId : m_PreviewGraphId);
             m_PreviewStartNodeId = EditorGUILayout.TextField("开始节点", m_PreviewStartNodeId);
             m_PreviewJumpNodeId = EditorGUILayout.TextField("定位节点", m_PreviewJumpNodeId);
             m_PreviewRequiredTag = EditorGUILayout.TextField("定位标签", m_PreviewRequiredTag);
@@ -1249,7 +1263,6 @@ namespace LWStep.Editor
         private void LoadPreviewSettings()
         {
             m_PreviewXmlPath = EditorPrefs.GetString(PREVIEW_XML_PATH_KEY, string.Empty);
-            m_PreviewGraphId = EditorPrefs.GetString(PREVIEW_GRAPH_ID_KEY, string.Empty);
             m_PreviewStartNodeId = EditorPrefs.GetString(PREVIEW_START_NODE_ID_KEY, string.Empty);
             m_PreviewJumpNodeId = EditorPrefs.GetString(PREVIEW_JUMP_NODE_ID_KEY, string.Empty);
             m_PreviewRequiredTag = EditorPrefs.GetString(PREVIEW_REQUIRED_TAG_KEY, string.Empty);
@@ -1266,7 +1279,6 @@ namespace LWStep.Editor
         private void SavePreviewSettings()
         {
             EditorPrefs.SetString(PREVIEW_XML_PATH_KEY, m_PreviewXmlPath ?? string.Empty);
-            EditorPrefs.SetString(PREVIEW_GRAPH_ID_KEY, m_PreviewGraphId ?? string.Empty);
             EditorPrefs.SetString(PREVIEW_START_NODE_ID_KEY, m_PreviewStartNodeId ?? string.Empty);
             EditorPrefs.SetString(PREVIEW_JUMP_NODE_ID_KEY, m_PreviewJumpNodeId ?? string.Empty);
             EditorPrefs.SetString(PREVIEW_REQUIRED_TAG_KEY, m_PreviewRequiredTag ?? string.Empty);
@@ -1337,10 +1349,6 @@ namespace LWStep.Editor
         private List<string> ValidateGraphData()
         {
             List<string> errors = new List<string>();
-            if (string.IsNullOrEmpty(m_Data.GraphId))
-            {
-                errors.Add("图ID不能为空");
-            }
             if (m_Data.Nodes.Count == 0)
             {
                 errors.Add("步骤图节点为空");
@@ -1382,7 +1390,7 @@ namespace LWStep.Editor
                 }
             }
 
-            StepGraph graph = new StepGraph(m_Data.GraphId, m_Data.StartNodeId);
+            StepGraph graph = new StepGraph(m_Data.StartNodeId);
             for (int i = 0; i < m_Data.Nodes.Count; i++)
             {
                 StepEditorNodeData node = m_Data.Nodes[i];
