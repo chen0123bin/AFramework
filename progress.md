@@ -17,3 +17,10 @@
 - 已补齐阶段4测试数据：新增 StepStage4Test.xml 覆盖条件边、标签选路与优先级选路
 - 已更新阶段4测试 demo：StepDemoRunner 默认参数支持带标签前进与跳转，并支持上下文保存/恢复
 - 已进行诊断确认：当前新增改动无 IDE 报错
+
+## 2026-01-21
+- 新增 StepMoveObjectAction/StepToggleObjectAction/StepPlayAudioAction/StepWaitMouseLeftClickAction，用于步骤动作测试
+- 新增 StepActionTest.xml 覆盖移动、显隐、音频、等待点击动作
+- StepPlayAudioAction 改为使用 ManagerUtility.AssetsMgr/AudioMgr 加载与播放音频
+- 修复 StepManager 节点完成后不自动进入下一节点的问题
+- 诊断确认：当前新增改动无 IDE 报错

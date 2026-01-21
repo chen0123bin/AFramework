@@ -5,27 +5,23 @@
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：开始" />
-          <param key="message2" value="333333" />
+          <param key="applyStrategy" value="AutoPass" />
+          <param key="autoPassDelayMs" value="100" />
         </action>
       </actions>
     </node>
     <node id="step_mode_gate" name="模式判断" x="220.00" y="0.00">
       <actions>
-        <action type="LWStep.StepPlayAudioAction">
+        <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：模式判断" />
+          <param key="applyStrategy" value="AutoPass" />
         </action>
       </actions>
     </node>
-    <node id="step_mode_a" name="模式A" x="440.00" y="120.00">
+    <node id="step_mode_a" name="模式A" x="441.00" y="120.00">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：进入模式A" />
-        </action>
-        <action type="LWStep.StepLogAction">
-          <param key="target" value="Cube" />
-          <param key="x" value="1" />
-          <param key="y" value="2" />
-          <param key="z" value="3" />
         </action>
       </actions>
     </node>
@@ -148,7 +144,7 @@
     <edge from="step_tag_normal" to="step_condition_gate" priority="0" />
     <edge from="step_tag_default" to="step_condition_gate" priority="0" />
     <edge from="step_condition_gate" to="step_vip_true" priority="10" condition="isVip == true" />
-    <edge from="step_condition_gate" to="step_vip_false" priority="5" condition="isVip ==false" />
+    <edge from="step_condition_gate" to="step_vip_false" priority="5" condition="isVip == false" />
     <edge from="step_vip_true" to="step_score_gate" priority="0" />
     <edge from="step_vip_false" to="step_score_gate" priority="0" />
     <edge from="step_score_gate" to="step_score_good" priority="10" condition="score == 5" />

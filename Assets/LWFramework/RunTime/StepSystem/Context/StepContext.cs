@@ -175,21 +175,10 @@ namespace LWStep
                     continue;
                 }
 
-                string valueJson;
-                try
-                {
-                    valueJson = JsonMapper.ToJson(value);
-                }
-                catch (Exception e)
-                {
-                    LWDebug.LogWarning("步骤上下文序列化失败：" + key + "，原因=" + e.Message);
-                    continue;
-                }
-
                 StepContextPersistEntry entry = new StepContextPersistEntry();
                 entry.Key = key;
                 entry.TypeName = valueType.AssemblyQualifiedName;
-                entry.ValueJson = valueJson;
+                entry.Value = value.ToString();
                 data.Entries.Add(entry);
             }
             return JsonMapper.ToJson(data);
@@ -240,18 +229,9 @@ namespace LWStep
                     continue;
                 }
 
-                object value;
-                try
-                {
-                    value = JsonMapper.ToObject(entry.ValueJson, valueType);
-                }
-                catch (Exception e)
-                {
-                    LWDebug.LogWarning("步骤上下文反序列化失败：" + entry.Key + "，原因=" + e.Message);
-                    continue;
-                }
 
-                m_Data[entry.Key] = value;
+
+                m_Data[entry.Key] = entry.Value;
                 m_Types[entry.Key] = valueType;
             }
         }
@@ -280,7 +260,7 @@ namespace LWStep
         {
             public string Key { get; set; }
             public string TypeName { get; set; }
-            public string ValueJson { get; set; }
+            public string Value { get; set; }
         }
     }
 }

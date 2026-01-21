@@ -1,7 +1,27 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
 
 namespace LWStep
 {
+    /// <summary>
+    /// 步骤动作参数绑定特性：用于将 XML 参数 key 绑定到字段/属性
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public sealed class StepParamAttribute : Attribute
+    {
+        public string Key { get; private set; }
+
+        /// <summary>
+        /// 创建参数绑定特性
+        /// </summary>
+        public StepParamAttribute(string key)
+        {
+            Key = key;
+        }
+    }
+
     public interface IStepBaselineStateAction
     {
         void CaptureBaselineState();
@@ -13,6 +33,16 @@ namespace LWStep
     /// </summary>
     public abstract class BaseStepAction
     {
+        private class StepParamBinding
+        {
+            public string Key;
+            public Type ValueType;
+            public FieldInfo Field;
+            public PropertyInfo Property;
+        }
+
+        private static Dictionary<Type, List<StepParamBinding>> s_ParamBindingsCache = new Dictionary<Type, List<StepParamBinding>>();
+
         private bool m_IsFinished;
         private bool m_HasEntered;
         private bool m_HasExited;
@@ -49,6 +79,7 @@ namespace LWStep
         public void SetParameters(Dictionary<string, string> parameters)
         {
             m_Parameters = parameters;
+            BindParametersToMembers();
         }
 
         /// <summary>
@@ -57,6 +88,218 @@ namespace LWStep
         protected Dictionary<string, string> GetParameters()
         {
             return m_Parameters;
+        }
+
+        /// <summary>
+        /// 将参数字典绑定到带 StepParamAttribute 的字段/属性
+        /// </summary>
+        private void BindParametersToMembers()
+        {
+            if (m_Parameters == null || m_Parameters.Count == 0)
+            {
+                return;
+            }
+
+            Type actionType = GetType();
+            List<StepParamBinding> bindings = GetOrCreateParamBindings(actionType);
+            if (bindings == null || bindings.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                StepParamBinding binding = bindings[i];
+                if (binding == null || string.IsNullOrEmpty(binding.Key) || binding.ValueType == null)
+                {
+                    continue;
+                }
+
+                string rawValue;
+                if (!m_Parameters.TryGetValue(binding.Key, out rawValue))
+                {
+                    continue;
+                }
+
+                object parsedValue;
+                if (!TryParseValue(rawValue, binding.ValueType, out parsedValue))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    if (binding.Field != null)
+                    {
+                        binding.Field.SetValue(this, parsedValue);
+                    }
+                    else if (binding.Property != null && binding.Property.CanWrite)
+                    {
+                        binding.Property.SetValue(this, parsedValue, null);
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取或创建指定动作类型的参数绑定缓存
+        /// </summary>
+        private static List<StepParamBinding> GetOrCreateParamBindings(Type actionType)
+        {
+            if (actionType == null)
+            {
+                return null;
+            }
+
+            List<StepParamBinding> cached;
+            if (s_ParamBindingsCache.TryGetValue(actionType, out cached))
+            {
+                return cached;
+            }
+
+            List<StepParamBinding> bindings = new List<StepParamBinding>();
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+            FieldInfo[] fields = actionType.GetFields(flags);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                FieldInfo field = fields[i];
+                if (field == null)
+                {
+                    continue;
+                }
+
+                StepParamAttribute attr = Attribute.GetCustomAttribute(field, typeof(StepParamAttribute), true) as StepParamAttribute;
+                if (attr == null || string.IsNullOrEmpty(attr.Key))
+                {
+                    continue;
+                }
+
+                StepParamBinding binding = new StepParamBinding();
+                binding.Key = attr.Key;
+                binding.ValueType = field.FieldType;
+                binding.Field = field;
+                binding.Property = null;
+                bindings.Add(binding);
+            }
+
+            PropertyInfo[] properties = actionType.GetProperties(flags);
+            for (int i = 0; i < properties.Length; i++)
+            {
+                PropertyInfo property = properties[i];
+                if (property == null || !property.CanWrite)
+                {
+                    continue;
+                }
+
+                if (property.GetIndexParameters() != null && property.GetIndexParameters().Length > 0)
+                {
+                    continue;
+                }
+
+                StepParamAttribute attr = Attribute.GetCustomAttribute(property, typeof(StepParamAttribute), true) as StepParamAttribute;
+                if (attr == null || string.IsNullOrEmpty(attr.Key))
+                {
+                    continue;
+                }
+
+                StepParamBinding binding = new StepParamBinding();
+                binding.Key = attr.Key;
+                binding.ValueType = property.PropertyType;
+                binding.Field = null;
+                binding.Property = property;
+                bindings.Add(binding);
+            }
+
+            s_ParamBindingsCache[actionType] = bindings;
+            return bindings;
+        }
+
+        /// <summary>
+        /// 尝试将字符串解析为目标类型
+        /// </summary>
+        private static bool TryParseValue(string rawValue, Type valueType, out object parsedValue)
+        {
+            parsedValue = null;
+            if (valueType == typeof(string))
+            {
+                parsedValue = rawValue;
+                return true;
+            }
+
+            if (valueType == typeof(int))
+            {
+                int intValue;
+                if (int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out intValue))
+                {
+                    parsedValue = intValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(float))
+            {
+                float floatValue;
+                if (float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue))
+                {
+                    parsedValue = floatValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(double))
+            {
+                double doubleValue;
+                if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out doubleValue))
+                {
+                    parsedValue = doubleValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(long))
+            {
+                long longValue;
+                if (long.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out longValue))
+                {
+                    parsedValue = longValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(bool))
+            {
+                bool boolValue;
+                if (bool.TryParse(rawValue, out boolValue))
+                {
+                    parsedValue = boolValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType.IsEnum)
+            {
+                try
+                {
+                    object enumValue = Enum.Parse(valueType, rawValue, true);
+                    parsedValue = enumValue;
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

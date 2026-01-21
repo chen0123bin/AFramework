@@ -7,6 +7,9 @@ namespace LWStep.Editor
 {
     public static class StepXmlImporter
     {
+        /// <summary>
+        /// 从XML文本解析编辑器步骤图数据
+        /// </summary>
         public static StepEditorGraphData LoadFromText(string xmlText)
         {
             XmlDocument doc = new XmlDocument();
@@ -116,6 +119,9 @@ namespace LWStep.Editor
             return data;
         }
 
+        /// <summary>
+        /// 读取节点坐标（若缺失则根据索引生成默认布局）
+        /// </summary>
         private static Vector2 ReadPosition(XmlElement element, int index)
         {
             float x = GetAttrFloat(element, "x", float.NaN);
@@ -129,6 +135,9 @@ namespace LWStep.Editor
             return new Vector2(x, y);
         }
 
+        /// <summary>
+        /// 读取XML属性字符串
+        /// </summary>
         private static string GetAttr(XmlElement element, string name)
         {
             if (element.HasAttribute(name))
@@ -138,6 +147,9 @@ namespace LWStep.Editor
             return string.Empty;
         }
 
+        /// <summary>
+        /// 读取XML属性整数
+        /// </summary>
         private static int GetAttrInt(XmlElement element, string name, int defaultValue)
         {
             string value = GetAttr(element, name);
@@ -149,6 +161,9 @@ namespace LWStep.Editor
             return defaultValue;
         }
 
+        /// <summary>
+        /// 读取XML属性浮点数（使用InvariantCulture解析）
+        /// </summary>
         private static float GetAttrFloat(XmlElement element, string name, float defaultValue)
         {
             string value = GetAttr(element, name);

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Globalization;
 using LWAudio;
 using LWCore;
 using UnityEngine;
@@ -8,6 +6,21 @@ namespace LWStep
 {
     public class StepPlayAudioAction : BaseStepAction, IStepBaselineStateAction
     {
+        [StepParam("clip")]
+        private string m_ClipPath;
+
+        [StepParam("target")]
+        private string m_TargetName;
+
+        [StepParam("volume")]
+        private float m_Volume = -1f;
+
+        [StepParam("isLoop")]
+        private bool m_IsLoop;
+
+        [StepParam("fadeInSeconds")]
+        private float m_FadeInSeconds;
+
         private bool m_HasBaseline;
         private AudioChannel m_LastChannel;
         private AudioClip m_LastClip;
@@ -62,12 +75,18 @@ namespace LWStep
             m_LastClip = null;
         }
 
+        /// <summary>
+        /// 进入动作：执行播放并结束
+        /// </summary>
         protected override void OnEnter()
         {
             ExecutePlay();
             Finish();
         }
 
+        /// <summary>
+        /// 更新动作：确保完成
+        /// </summary>
         protected override void OnUpdate()
         {
             if (!IsFinished)
@@ -76,15 +95,24 @@ namespace LWStep
             }
         }
 
+        /// <summary>
+        /// 退出动作
+        /// </summary>
         protected override void OnExit()
         {
         }
 
+        /// <summary>
+        /// 快速应用：执行播放
+        /// </summary>
         protected override void OnApply()
         {
             ExecutePlay();
         }
 
+        /// <summary>
+        /// 执行播放逻辑
+        /// </summary>
         private void ExecutePlay()
         {
             if (ManagerUtility.AudioMgr == null)
@@ -99,22 +127,22 @@ namespace LWStep
                 return;
             }
 
-            float volume = GetFloatParam("volume", -1f);
-            bool isLoop = GetBoolParam("isLoop", false);
-            float fadeInSeconds = GetFloatParam("fadeInSeconds", 0f);
             GameObject target = GetTarget();
             if (target != null)
             {
-                m_LastChannel = ManagerUtility.AudioMgr.Play(clip, target.transform, isLoop, fadeInSeconds, volume);
+                m_LastChannel = ManagerUtility.AudioMgr.Play(clip, target.transform, m_IsLoop, m_FadeInSeconds, m_Volume);
             }
             else
             {
-                m_LastChannel = ManagerUtility.AudioMgr.Play(clip, isLoop, fadeInSeconds, volume);
+                m_LastChannel = ManagerUtility.AudioMgr.Play(clip, m_IsLoop, m_FadeInSeconds, m_Volume);
             }
             m_LastClip = clip;
             LWDebug.Log("步骤动作-音频播放：" + clip.name);
         }
 
+        /// <summary>
+        /// 加载音频资源
+        /// </summary>
         private AudioClip LoadClip()
         {
             if (ManagerUtility.AssetsMgr == null || !ManagerUtility.AssetsMgr.IsInitialized)
@@ -123,72 +151,36 @@ namespace LWStep
                 return null;
             }
 
-            string clipPath = GetStringParam("clip", string.Empty);
-            if (string.IsNullOrEmpty(clipPath))
+            if (string.IsNullOrEmpty(m_ClipPath))
             {
                 LWDebug.LogWarning("步骤动作-音频播放：clip 路径为空");
                 return null;
             }
 
-            AudioClip clip = ManagerUtility.AssetsMgr.LoadAsset<AudioClip>(clipPath);
+            AudioClip clip = ManagerUtility.AssetsMgr.LoadAsset<AudioClip>(m_ClipPath);
             if (clip == null)
             {
-                LWDebug.LogWarning("步骤动作-音频播放：加载 clip 失败 " + clipPath);
+                LWDebug.LogWarning("步骤动作-音频播放：加载 clip 失败 " + m_ClipPath);
             }
             return clip;
         }
 
+        /// <summary>
+        /// 获取可选的目标对象（用于3D音频跟随）
+        /// </summary>
         private GameObject GetTarget()
         {
-            string targetName = GetStringParam("target", string.Empty);
-            if (string.IsNullOrEmpty(targetName))
+            if (string.IsNullOrEmpty(m_TargetName))
             {
                 return null;
             }
 
-            GameObject target = GameObject.Find(targetName);
+            GameObject target = GameObject.Find(m_TargetName);
             if (target == null)
             {
-                LWDebug.LogWarning("步骤动作-音频播放：未找到对象 " + targetName);
+                LWDebug.LogWarning("步骤动作-音频播放：未找到对象 " + m_TargetName);
             }
             return target;
-        }
-
-        private string GetStringParam(string key, string defaultValue)
-        {
-            Dictionary<string, string> parameters = GetParameters();
-            if (parameters == null)
-            {
-                return defaultValue;
-            }
-            string value;
-            if (parameters.TryGetValue(key, out value))
-            {
-                return value;
-            }
-            return defaultValue;
-        }
-
-        private float GetFloatParam(string key, float defaultValue)
-        {
-            string value = GetStringParam(key, string.Empty);
-            float result;
-            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
-
-        private bool GetBoolParam(string key, bool defaultValue)
-        {
-            string value = GetStringParam(key, string.Empty);
-            bool result;
-            if (bool.TryParse(value, out result))
-            {
-                return result;
-            }
-            return defaultValue;
         }
     }
 }

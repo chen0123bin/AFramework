@@ -7,6 +7,7 @@ namespace LWStep.Editor
 {
     public class StepGraphView : GraphView
     {
+        private const string EDGE_LABEL_NAME = "StepEdgeLabel";
         private StepEditorGraphData m_Data;
         private Dictionary<string, StepNodeView> m_NodeViews;
         public System.Action<System.Collections.Generic.List<ISelectable>> SelectionChanged;
@@ -15,7 +16,11 @@ namespace LWStep.Editor
         private Vector2 m_LastMousePosition;
         private Port m_PendingOutputPort;
         private Vector2 m_LastMouseWorldPosition;
+        private string m_RuntimeNodeId;
 
+        /// <summary>
+        /// 创建步骤图视图并绑定编辑器数据
+        /// </summary>
         public StepGraphView(StepEditorGraphData data)
         {
             m_Data = data;
@@ -30,7 +35,7 @@ namespace LWStep.Editor
 
             RegisterCallback<MouseUpEvent>(OnMouseUp);
             RegisterCallback<KeyUpEvent>(OnKeyUp);
-            RegisterCallback<MouseDownEvent>(OnMouseDown);
+            RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
             RegisterCallback<MouseMoveEvent>(OnMouseMove);
             RegisterCallback<MouseUpEvent>(OnMouseUpForPan);
 
@@ -39,11 +44,17 @@ namespace LWStep.Editor
             RebuildView();
         }
 
+        /// <summary>
+        /// 获取当前绑定的步骤图编辑器数据
+        /// </summary>
         public StepEditorGraphData GetData()
         {
             return m_Data;
         }
 
+        /// <summary>
+        /// 根据节点ID获取节点视图
+        /// </summary>
         public StepNodeView GetNodeView(string nodeId)
         {
             StepNodeView nodeView;
@@ -54,6 +65,9 @@ namespace LWStep.Editor
             return null;
         }
 
+        /// <summary>
+        /// 根据编辑器数据重建节点与连线视图
+        /// </summary>
         public void RebuildView()
         {
             List<GraphElement> elements = new List<GraphElement>();
@@ -86,13 +100,29 @@ namespace LWStep.Editor
                     continue;
                 }
                 Edge edge = fromView.OutputPort.ConnectTo(toView.InputPort);
-                edge.userData = edgeData;
+                ConfigureEdgeView(edge, edgeData);
                 AddElement(edge);
             }
 
             UpdateAllNodeTitles();
         }
 
+        /// <summary>
+        /// 设置运行时当前节点并刷新视图
+        /// </summary>
+        public void SetRuntimeNodeId(string nodeId)
+        {
+            if (m_RuntimeNodeId == nodeId)
+            {
+                return;
+            }
+            m_RuntimeNodeId = nodeId;
+            UpdateAllNodeTitles();
+        }
+
+        /// <summary>
+        /// 在指定位置新增节点（写入数据并创建视图）
+        /// </summary>
         public StepNodeView AddNode(Vector2 position)
         {
             StepEditorNodeData nodeData = new StepEditorNodeData();
@@ -109,12 +139,18 @@ namespace LWStep.Editor
             return nodeView;
         }
 
+        /// <summary>
+        /// 在最近一次鼠标位置新增节点
+        /// </summary>
         public StepNodeView AddNodeAtLastMousePosition()
         {
             Vector2 localPos = GetLocalMousePosition();
             return AddNode(localPos);
         }
 
+        /// <summary>
+        /// 删除节点及其相关连线
+        /// </summary>
         public void RemoveNode(StepEditorNodeData nodeData)
         {
             StepNodeView nodeView = GetNodeView(nodeData.Id);
@@ -133,6 +169,9 @@ namespace LWStep.Editor
             NotifyGraphChanged();
         }
 
+        /// <summary>
+        /// 设置开始节点并刷新显示
+        /// </summary>
         public void SetStartNode(string nodeId)
         {
             m_Data.StartNodeId = nodeId;
@@ -140,6 +179,9 @@ namespace LWStep.Editor
             NotifyGraphChanged();
         }
 
+        /// <summary>
+        /// 重命名节点ID并同步视图索引
+        /// </summary>
         public bool RenameNodeId(string oldId, string newId)
         {
             StepNodeView nodeView;
@@ -155,6 +197,9 @@ namespace LWStep.Editor
             return true;
         }
 
+        /// <summary>
+        /// 构建右键上下文菜单
+        /// </summary>
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             base.BuildContextualMenu(evt);
@@ -164,6 +209,9 @@ namespace LWStep.Editor
             }, DropdownMenuAction.Status.Normal);
         }
 
+        /// <summary>
+        /// 创建节点视图并绑定回调
+        /// </summary>
         private StepNodeView CreateNodeView(StepEditorNodeData data)
         {
             StepNodeView nodeView = new StepNodeView(data);
@@ -172,6 +220,9 @@ namespace LWStep.Editor
             return nodeView;
         }
 
+        /// <summary>
+        /// GraphView 结构变更回调（创建/删除连线与节点时同步数据）
+        /// </summary>
         private GraphViewChange OnGraphViewChanged(GraphViewChange change)
         {
             if (change.edgesToCreate != null)
@@ -188,7 +239,7 @@ namespace LWStep.Editor
                     StepEditorEdgeData existing = m_Data.GetEdge(fromView.Data.Id, toView.Data.Id);
                     if (existing != null)
                     {
-                        edge.userData = existing;
+                        ConfigureEdgeView(edge, existing);
                         continue;
                     }
                     StepEditorEdgeData edgeData = new StepEditorEdgeData();
@@ -198,7 +249,7 @@ namespace LWStep.Editor
                     edgeData.Condition = string.Empty;
                     edgeData.Tag = string.Empty;
                     m_Data.Edges.Add(edgeData);
-                    edge.userData = edgeData;
+                    ConfigureEdgeView(edge, edgeData);
                     NotifyGraphChanged();
                 }
             }
@@ -226,6 +277,9 @@ namespace LWStep.Editor
             return change;
         }
 
+        /// <summary>
+        /// 删除连线对应的数据
+        /// </summary>
         private void RemoveEdgeData(Edge edge)
         {
             StepEditorEdgeData edgeData = edge.userData as StepEditorEdgeData;
@@ -248,6 +302,9 @@ namespace LWStep.Editor
             NotifyGraphChanged();
         }
 
+        /// <summary>
+        /// 删除与指定节点相关的所有连线数据
+        /// </summary>
         private void RemoveEdgesByNodeId(string nodeId)
         {
             for (int i = m_Data.Edges.Count - 1; i >= 0; i--)
@@ -260,6 +317,26 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 刷新指定连线的显示
+        /// </summary>
+        public void UpdateEdgeView(Edge edge)
+        {
+            if (edge == null)
+            {
+                return;
+            }
+            StepEditorEdgeData edgeData = edge.userData as StepEditorEdgeData;
+            if (edgeData == null)
+            {
+                return;
+            }
+            ConfigureEdgeView(edge, edgeData);
+        }
+
+        /// <summary>
+        /// 生成当前图内不重复的节点ID
+        /// </summary>
         private string GenerateUniqueNodeId()
         {
             int index = 1;
@@ -274,22 +351,41 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 刷新所有节点标题（开始节点/运行时节点标记）
+        /// </summary>
         private void UpdateAllNodeTitles()
         {
             foreach (KeyValuePair<string, StepNodeView> kvp in m_NodeViews)
             {
-                kvp.Value.UpdateTitle(m_Data.StartNodeId);
+                kvp.Value.UpdateTitle(m_Data.StartNodeId, m_RuntimeNodeId);
             }
         }
 
+
+        /// <summary>
+        /// 鼠标抬起时派发选中变化
+        /// </summary>
         private void OnMouseUp(MouseUpEvent evt)
         {
             DispatchSelectionChanged();
         }
 
+        /// <summary>
+        /// 鼠标按下：记录鼠标位置、处理空白选中、处理中键拖拽
+        /// </summary>
         private void OnMouseDown(MouseDownEvent evt)
         {
             m_LastMouseWorldPosition = this.LocalToWorld(evt.mousePosition);
+            if (evt.button == 0)
+            {
+                VisualElement target = evt.target as VisualElement;
+                if (IsClickOnEmpty(target))
+                {
+                    ClearSelection();
+                }
+                schedule.Execute(DispatchSelectionChanged);
+            }
             if (evt.button != 2)
             {
                 return;
@@ -299,6 +395,9 @@ namespace LWStep.Editor
             evt.StopPropagation();
         }
 
+        /// <summary>
+        /// 鼠标移动：更新鼠标位置并处理中键拖拽平移
+        /// </summary>
         private void OnMouseMove(MouseMoveEvent evt)
         {
             m_LastMouseWorldPosition = this.LocalToWorld(evt.mousePosition);
@@ -314,6 +413,9 @@ namespace LWStep.Editor
             evt.StopPropagation();
         }
 
+        /// <summary>
+        /// 鼠标抬起：结束中键拖拽平移
+        /// </summary>
         private void OnMouseUpForPan(MouseUpEvent evt)
         {
             m_LastMouseWorldPosition = this.LocalToWorld(evt.mousePosition);
@@ -329,11 +431,17 @@ namespace LWStep.Editor
             evt.StopPropagation();
         }
 
+        /// <summary>
+        /// 按键抬起时派发选中变化
+        /// </summary>
         private void OnKeyUp(KeyUpEvent evt)
         {
             DispatchSelectionChanged();
         }
 
+        /// <summary>
+        /// 派发选中变化事件（GraphView.selection -> List<ISelectable>）
+        /// </summary>
         private void DispatchSelectionChanged()
         {
             if (SelectionChanged == null)
@@ -346,6 +454,31 @@ namespace LWStep.Editor
                 list.Add(s);
             }
             SelectionChanged(list);
+        }
+
+        /// <summary>
+        /// 判断当前点击是否发生在空白区域
+        /// </summary>
+        private bool IsClickOnEmpty(VisualElement target)
+        {
+            if (target == null)
+            {
+                return false;
+            }
+            GraphElement ancestor = target.GetFirstAncestorOfType<GraphElement>();
+            if (ancestor != null)
+            {
+                return false;
+            }
+            if (target == this || target == contentViewContainer)
+            {
+                return true;
+            }
+            if (target is GridBackground)
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -406,24 +539,45 @@ namespace LWStep.Editor
             Edge edge = new Edge();
             edge.output = outputPort;
             edge.input = inputPort;
-            edge.userData = edgeData;
+            ConfigureEdgeView(edge, edgeData);
             outputPort.Connect(edge);
             inputPort.Connect(edge);
             AddElement(edge);
             NotifyGraphChanged();
         }
 
+        /// <summary>
+        /// 配置连线视图与数据绑定
+        /// </summary>
+        private void ConfigureEdgeView(Edge edge, StepEditorEdgeData edgeData)
+        {
+            if (edge == null || edgeData == null)
+            {
+                return;
+            }
+            edge.userData = edgeData;
+        }
+
+        /// <summary>
+        /// 获取最近鼠标位置对应的GraphView本地坐标
+        /// </summary>
         private Vector2 GetLocalMousePosition()
         {
             Vector2 worldPos = m_LastMouseWorldPosition;
             return contentViewContainer.WorldToLocal(worldPos);
         }
 
+        /// <summary>
+        /// 节点拖拽结束回调
+        /// </summary>
         private void OnNodeDragEnded(StepNodeView nodeView)
         {
             NotifyGraphChanged();
         }
 
+        /// <summary>
+        /// 通知图数据已变更
+        /// </summary>
         private void NotifyGraphChanged()
         {
             if (GraphChanged != null)

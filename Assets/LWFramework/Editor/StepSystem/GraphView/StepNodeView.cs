@@ -29,6 +29,9 @@ namespace LWStep.Editor
             get { return m_OutputPort; }
         }
 
+        /// <summary>
+        /// 创建节点视图并绑定编辑器数据
+        /// </summary>
         public StepNodeView(StepEditorNodeData data)
         {
             m_Data = data;
@@ -53,6 +56,9 @@ namespace LWStep.Editor
             RefreshPorts();
         }
 
+        /// <summary>
+        /// 设置节点位置并同步写回编辑器数据
+        /// </summary>
         public override void SetPosition(Rect newPos)
         {
             base.SetPosition(newPos);
@@ -147,19 +153,43 @@ namespace LWStep.Editor
             }
         }
 
-        public void UpdateTitle(string startNodeId)
+        /// <summary>
+        /// 更新节点标题与运行时高亮
+        /// </summary>
+        public void UpdateTitle(string startNodeId, string runtimeNodeId)
         {
             if (m_Data == null)
             {
                 return;
             }
-            if (!string.IsNullOrEmpty(startNodeId) && m_Data.Id == startNodeId)
+            bool isStart = !string.IsNullOrEmpty(startNodeId) && m_Data.Id == startNodeId;
+            bool isRuntime = !string.IsNullOrEmpty(runtimeNodeId) && m_Data.Id == runtimeNodeId;
+            string suffix = string.Empty;
+            if (isStart && isRuntime)
             {
-                title = m_Data.Id + " (Start)";
+                suffix = " (Start, 运行中)";
+            }
+            else if (isStart)
+            {
+                suffix = " (Start)";
+            }
+            else if (isRuntime)
+            {
+                suffix = " (运行中)";
+            }
+            title = m_Data.Id + suffix;
+
+            if (isRuntime)
+            {
+                mainContainer.style.borderLeftWidth = 4;
+                mainContainer.style.borderLeftColor = new Color(1f, 0.8f, 0.2f, 1f);
+                mainContainer.style.backgroundColor = new Color(1f, 0.9f, 0.2f, 0.08f);
             }
             else
             {
-                title = m_Data.Id;
+                mainContainer.style.borderLeftWidth = 0;
+                mainContainer.style.borderLeftColor = new Color(0f, 0f, 0f, 0f);
+                mainContainer.style.backgroundColor = new Color(0f, 0f, 0f, 0f);
             }
         }
     }

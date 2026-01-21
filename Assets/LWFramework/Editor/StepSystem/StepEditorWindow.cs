@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
+using LWCore;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
@@ -10,6 +14,13 @@ namespace LWStep.Editor
 {
     public class StepEditorWindow : EditorWindow
     {
+        private const string PREVIEW_XML_PATH_KEY = "LWStep.StepEditor.Preview.XmlPath";
+        private const string PREVIEW_GRAPH_ID_KEY = "LWStep.StepEditor.Preview.GraphId";
+        private const string PREVIEW_START_NODE_ID_KEY = "LWStep.StepEditor.Preview.StartNodeId";
+        private const string PREVIEW_JUMP_NODE_ID_KEY = "LWStep.StepEditor.Preview.JumpNodeId";
+        private const string PREVIEW_REQUIRED_TAG_KEY = "LWStep.StepEditor.Preview.RequiredTag";
+        private const string PREVIEW_ENABLED_KEY = "LWStep.StepEditor.Preview.Enabled";
+
         private StepEditorGraphData m_Data;
         private StepGraphView m_GraphView;
         private VisualElement m_GraphContainer;
@@ -22,18 +33,45 @@ namespace LWStep.Editor
         private StepEditorEdgeData m_SelectedEdge;
         private Edge m_SelectedEdgeView;
 
+        private static Type[] s_ActionTypes;
+        private static string[] s_ActionTypeNames;
+        private static Dictionary<Type, List<ActionParamMember>> s_ActionParamMembersCache = new Dictionary<Type, List<ActionParamMember>>();
+        private static Dictionary<string, bool> s_FoldoutStates = new Dictionary<string, bool>();
+
+        private TextAsset m_PreviewXmlAsset;
+        private string m_PreviewXmlPath;
+        private string m_PreviewGraphId;
+        private string m_PreviewStartNodeId;
+        private string m_PreviewJumpNodeId;
+        private string m_PreviewRequiredTag;
+        private string m_RuntimeNodeId;
+
+        private class ActionParamMember
+        {
+            public string Key;
+            public Type ValueType;
+            public FieldInfo Field;
+            public PropertyInfo Property;
+        }
+
         private class StepEditorUndoState : ScriptableObject
         {
             public string GraphJson;
         }
 
         [MenuItem("LWFramework/Step/Step Editor")]
+        /// <summary>
+        /// 打开步骤图编辑器窗口
+        /// </summary>
         public static void ShowWindow()
         {
             StepEditorWindow window = GetWindow<StepEditorWindow>();
             window.titleContent = new GUIContent("Step Editor");
         }
 
+        /// <summary>
+        /// 窗口启用时初始化数据与回调
+        /// </summary>
         private void OnEnable()
         {
             if (m_Data == null)
@@ -41,14 +79,24 @@ namespace LWStep.Editor
                 m_Data = new StepEditorGraphData();
             }
             EnsureUndoState();
+            LoadPreviewSettings();
+            RefreshActionTypes();
             Undo.undoRedoPerformed += OnUndoRedo;
+            EditorApplication.update += OnEditorUpdate;
         }
 
+        /// <summary>
+        /// 窗口关闭/禁用时解绑回调
+        /// </summary>
         private void OnDisable()
         {
             Undo.undoRedoPerformed -= OnUndoRedo;
+            EditorApplication.update -= OnEditorUpdate;
         }
 
+        /// <summary>
+        /// 构建UI Toolkit界面
+        /// </summary>
         public void CreateGUI()
         {
             rootVisualElement.Clear();
@@ -59,11 +107,13 @@ namespace LWStep.Editor
             Button exportButton = new Button(OnExportXml) { text = "导出XML" };
             Button validateButton = new Button(OnValidateGraph) { text = "校验" };
             Button frameButton = new Button(OnFrameAll) { text = "居中" };
+            Button previewButton = new Button(OnPreviewPlayMode) { text = "预览PlayMode" };
             toolbar.Add(newButton);
             toolbar.Add(importButton);
             toolbar.Add(exportButton);
             toolbar.Add(validateButton);
             toolbar.Add(frameButton);
+            toolbar.Add(previewButton);
             rootVisualElement.Add(toolbar);
 
             VisualElement body = new VisualElement();
@@ -88,6 +138,9 @@ namespace LWStep.Editor
             SaveUndoSnapshot("初始化");
         }
 
+        /// <summary>
+        /// 加载图数据并重建GraphView
+        /// </summary>
         private void LoadGraphData(StepEditorGraphData data)
         {
             m_Data = data;
@@ -109,6 +162,9 @@ namespace LWStep.Editor
             m_GraphContainer.Add(m_GraphView);
         }
 
+        /// <summary>
+        /// 选中项变化：更新当前选中节点/连线
+        /// </summary>
         private void OnSelectionChanged(List<ISelectable> selection)
         {
             m_SelectedNode = null;
@@ -132,6 +188,46 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 编辑器更新时同步运行时节点显示
+        /// </summary>
+        private void OnEditorUpdate()
+        {
+            if (m_GraphView == null)
+            {
+                return;
+            }
+            if (!EditorApplication.isPlaying)
+            {
+                if (!string.IsNullOrEmpty(m_RuntimeNodeId))
+                {
+                    m_RuntimeNodeId = string.Empty;
+                    m_GraphView.SetRuntimeNodeId(string.Empty);
+                }
+                return;
+            }
+            IStepManager stepManager = ManagerUtility.StepMgr;
+            if (stepManager == null || !stepManager.IsRunning)
+            {
+                if (!string.IsNullOrEmpty(m_RuntimeNodeId))
+                {
+                    m_RuntimeNodeId = string.Empty;
+                    m_GraphView.SetRuntimeNodeId(string.Empty);
+                }
+                return;
+            }
+            string currentNodeId = stepManager.CurrentNodeId;
+            if (m_RuntimeNodeId == currentNodeId)
+            {
+                return;
+            }
+            m_RuntimeNodeId = currentNodeId;
+            m_GraphView.SetRuntimeNodeId(m_RuntimeNodeId);
+        }
+
+        /// <summary>
+        /// 绘制右侧检查器面板（根据选中项切换节点/连线/图设置）
+        /// </summary>
         private void DrawInspectorGUI()
         {
             if (m_Data == null)
@@ -154,6 +250,9 @@ namespace LWStep.Editor
             DrawGraphInspector();
         }
 
+        /// <summary>
+        /// 绘制节点面板（节点基本信息/动作列表/快捷操作）
+        /// </summary>
         private void DrawNodeInspector()
         {
             EditorGUILayout.LabelField("节点", EditorStyles.boldLabel);
@@ -179,32 +278,12 @@ namespace LWStep.Editor
                 StepEditorActionData action = m_SelectedNode.Actions[i];
                 EditorGUILayout.BeginVertical("box");
                 EditorGUI.BeginChangeCheck();
-                action.TypeName = EditorGUILayout.TextField("类型", action.TypeName);
-
-                for (int j = 0; j < action.Parameters.Count; j++)
-                {
-                    StepEditorParameterData param = action.Parameters[j];
-                    EditorGUILayout.BeginHorizontal();
-                    param.Key = EditorGUILayout.TextField(param.Key, GUILayout.Width(120));
-                    param.Value = EditorGUILayout.TextField(param.Value);
-                    if (GUILayout.Button("删除", GUILayout.Width(50)))
-                    {
-                        action.Parameters.RemoveAt(j);
-                        EditorGUILayout.EndHorizontal();
-                        break;
-                    }
-                    EditorGUILayout.EndHorizontal();
-                }
+                DrawActionTypeSelector(action);
+                DrawActionTypedParameters(action);
 
                 if (EditorGUI.EndChangeCheck())
                 {
                     SaveUndoSnapshot("编辑动作");
-                }
-
-                if (GUILayout.Button("新增参数"))
-                {
-                    action.Parameters.Add(new StepEditorParameterData());
-                    SaveUndoSnapshot("新增参数");
                 }
 
                 if (GUILayout.Button("删除动作"))
@@ -232,6 +311,10 @@ namespace LWStep.Editor
                     m_GraphView.SetStartNode(m_SelectedNode.Id);
                     SaveUndoSnapshot("设置开始节点");
                 }
+                if (GUILayout.Button("跳转到此节点"))
+                {
+                    JumpToRuntimeNode(m_SelectedNode.Id);
+                }
                 if (GUILayout.Button("删除节点"))
                 {
                     StepEditorNodeData nodeToRemove = m_SelectedNode;
@@ -242,6 +325,662 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 运行时跳转到指定节点
+        /// </summary>
+        private void JumpToRuntimeNode(string nodeId)
+        {
+            if (!EditorApplication.isPlaying)
+            {
+                return;
+            }
+            if (string.IsNullOrEmpty(nodeId))
+            {
+                return;
+            }
+            IStepManager stepManager = ManagerUtility.StepMgr;
+            if (stepManager == null || !stepManager.IsRunning)
+            {
+                return;
+            }
+            stepManager.JumpTo(nodeId);
+        }
+
+        private static bool GetFoldoutState(string key, bool defaultValue)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return defaultValue;
+            }
+
+            bool value;
+            if (s_FoldoutStates.TryGetValue(key, out value))
+            {
+                return value;
+            }
+
+            s_FoldoutStates[key] = defaultValue;
+            return defaultValue;
+        }
+
+        private static void SetFoldoutState(string key, bool value)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+            s_FoldoutStates[key] = value;
+        }
+
+        private void RefreshActionTypes()
+        {
+            List<Type> typeList = new List<Type>();
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (int i = 0; i < assemblies.Length; i++)
+            {
+                Assembly assembly = assemblies[i];
+                Type[] types;
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    types = ex.Types;
+                }
+
+                if (types == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < types.Length; j++)
+                {
+                    Type type = types[j];
+                    if (type == null)
+                    {
+                        continue;
+                    }
+                    if (type.IsAbstract)
+                    {
+                        continue;
+                    }
+                    if (!typeof(BaseStepAction).IsAssignableFrom(type))
+                    {
+                        continue;
+                    }
+                    typeList.Add(type);
+                }
+            }
+
+            typeList.Sort(CompareTypeFullName);
+            s_ActionTypes = typeList.ToArray();
+            s_ActionTypeNames = new string[s_ActionTypes.Length];
+            for (int i = 0; i < s_ActionTypes.Length; i++)
+            {
+                Type type = s_ActionTypes[i];
+                s_ActionTypeNames[i] = type.FullName != null ? type.FullName : type.Name;
+            }
+        }
+
+        private static int CompareTypeFullName(Type a, Type b)
+        {
+            string aName = a != null ? (a.FullName != null ? a.FullName : a.Name) : string.Empty;
+            string bName = b != null ? (b.FullName != null ? b.FullName : b.Name) : string.Empty;
+            return string.CompareOrdinal(aName, bName);
+        }
+
+        private static Type FindActionType(string typeName)
+        {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return null;
+            }
+
+            if (s_ActionTypes != null)
+            {
+                for (int i = 0; i < s_ActionTypes.Length; i++)
+                {
+                    Type type = s_ActionTypes[i];
+                    if (type != null && string.Equals(type.FullName, typeName, StringComparison.Ordinal))
+                    {
+                        return type;
+                    }
+                }
+            }
+
+            Type directType = Type.GetType(typeName);
+            if (directType != null)
+            {
+                return directType;
+            }
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (int i = 0; i < assemblies.Length; i++)
+            {
+                Type[] types;
+                try
+                {
+                    types = assemblies[i].GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    types = ex.Types;
+                }
+
+                if (types == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < types.Length; j++)
+                {
+                    Type type = types[j];
+                    if (type == null)
+                    {
+                        continue;
+                    }
+                    if (string.Equals(type.FullName, typeName, StringComparison.Ordinal))
+                    {
+                        return type;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static List<ActionParamMember> GetOrCreateActionParamMembers(Type actionType)
+        {
+            if (actionType == null)
+            {
+                return null;
+            }
+
+            List<ActionParamMember> cached;
+            if (s_ActionParamMembersCache.TryGetValue(actionType, out cached))
+            {
+                return cached;
+            }
+
+            List<ActionParamMember> members = new List<ActionParamMember>();
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+            FieldInfo[] fields = actionType.GetFields(flags);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                FieldInfo field = fields[i];
+                if (field == null)
+                {
+                    continue;
+                }
+
+                StepParamAttribute attr = Attribute.GetCustomAttribute(field, typeof(StepParamAttribute), true) as StepParamAttribute;
+                if (attr == null || string.IsNullOrEmpty(attr.Key))
+                {
+                    continue;
+                }
+
+                ActionParamMember member = new ActionParamMember();
+                member.Key = attr.Key;
+                member.ValueType = field.FieldType;
+                member.Field = field;
+                member.Property = null;
+                members.Add(member);
+            }
+
+            PropertyInfo[] properties = actionType.GetProperties(flags);
+            for (int i = 0; i < properties.Length; i++)
+            {
+                PropertyInfo property = properties[i];
+                if (property == null || !property.CanWrite || !property.CanRead)
+                {
+                    continue;
+                }
+                if (property.GetIndexParameters() != null && property.GetIndexParameters().Length > 0)
+                {
+                    continue;
+                }
+
+                StepParamAttribute attr = Attribute.GetCustomAttribute(property, typeof(StepParamAttribute), true) as StepParamAttribute;
+                if (attr == null || string.IsNullOrEmpty(attr.Key))
+                {
+                    continue;
+                }
+
+                ActionParamMember member = new ActionParamMember();
+                member.Key = attr.Key;
+                member.ValueType = property.PropertyType;
+                member.Field = null;
+                member.Property = property;
+                members.Add(member);
+            }
+
+            s_ActionParamMembersCache[actionType] = members;
+            return members;
+        }
+
+        private void DrawActionTypeSelector(StepEditorActionData action)
+        {
+            if (action == null)
+            {
+                return;
+            }
+
+            if (s_ActionTypeNames == null)
+            {
+                RefreshActionTypes();
+            }
+
+            if (s_ActionTypeNames == null || s_ActionTypeNames.Length == 0)
+            {
+                EditorGUILayout.HelpBox("未找到可用的步骤动作类型（BaseStepAction 派生类）", MessageType.Info);
+                action.TypeName = EditorGUILayout.TextField("类型", action.TypeName);
+                return;
+            }
+
+            string currentTypeName = action.TypeName != null ? action.TypeName : string.Empty;
+            int matchIndex = -1;
+            for (int i = 0; i < s_ActionTypeNames.Length; i++)
+            {
+                if (string.Equals(s_ActionTypeNames[i], currentTypeName, StringComparison.Ordinal))
+                {
+                    matchIndex = i;
+                    break;
+                }
+            }
+
+            List<string> options = new List<string>(s_ActionTypeNames.Length + 1);
+            if (string.IsNullOrEmpty(currentTypeName))
+            {
+                options.Add("未选择");
+            }
+            else if (matchIndex < 0)
+            {
+                options.Add("自定义: " + currentTypeName);
+            }
+            else
+            {
+                options.Add("未选择");
+            }
+            for (int i = 0; i < s_ActionTypeNames.Length; i++)
+            {
+                options.Add(s_ActionTypeNames[i]);
+            }
+
+            int currentIndex = matchIndex >= 0 ? matchIndex + 1 : 0;
+            int newIndex = EditorGUILayout.Popup("类型", currentIndex, options.ToArray());
+            if (newIndex != currentIndex)
+            {
+                if (newIndex == 0)
+                {
+                    action.TypeName = matchIndex >= 0 ? string.Empty : currentTypeName;
+                }
+                else
+                {
+                    int typeIndex = newIndex - 1;
+                    if (typeIndex >= 0 && typeIndex < s_ActionTypeNames.Length)
+                    {
+                        action.TypeName = s_ActionTypeNames[typeIndex];
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(action.TypeName) && FindActionType(action.TypeName) == null)
+            {
+                action.TypeName = EditorGUILayout.TextField("自定义类型", action.TypeName);
+            }
+        }
+
+        private void DrawActionTypedParameters(StepEditorActionData action)
+        {
+            if (action == null)
+            {
+                return;
+            }
+
+            Type actionType = FindActionType(action.TypeName);
+            if (actionType == null)
+            {
+                return;
+            }
+
+            List<ActionParamMember> members = GetOrCreateActionParamMembers(actionType);
+            if (members == null || members.Count == 0)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("参数（类型化）", EditorStyles.boldLabel);
+
+            for (int i = 0; i < members.Count; i++)
+            {
+                ActionParamMember member = members[i];
+                if (member == null || string.IsNullOrEmpty(member.Key) || member.ValueType == null)
+                {
+                    continue;
+                }
+
+                string rawValue;
+                int existingIndex;
+                bool hasRawValue = TryGetParameter(action.Parameters, member.Key, out rawValue, out existingIndex);
+
+                object currentValue;
+                if (hasRawValue)
+                {
+                    object parsedValue;
+                    if (TryParseEditorValue(rawValue, member.ValueType, out parsedValue))
+                    {
+                        currentValue = parsedValue;
+                    }
+                    else
+                    {
+                        currentValue = GetDefaultValue(member.ValueType);
+                    }
+                }
+                else
+                {
+                    currentValue = GetDefaultValue(member.ValueType);
+                }
+
+                EditorGUI.BeginChangeCheck();
+                object newValue = DrawValueField(member.Key, member.ValueType, currentValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    string newRawValue = ConvertToRawString(newValue, member.ValueType);
+                    SetOrUpdateParameter(action.Parameters, member.Key, newRawValue);
+                }
+            }
+        }
+
+
+        private static bool TryGetParameter(List<StepEditorParameterData> parameters, string key, out string value, out int index)
+        {
+            value = string.Empty;
+            index = -1;
+            if (parameters == null || parameters.Count == 0 || string.IsNullOrEmpty(key))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                StepEditorParameterData param = parameters[i];
+                if (param != null && string.Equals(param.Key, key, StringComparison.Ordinal))
+                {
+                    value = param.Value != null ? param.Value : string.Empty;
+                    index = i;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void SetOrUpdateParameter(List<StepEditorParameterData> parameters, string key, string value)
+        {
+            if (parameters == null)
+            {
+                return;
+            }
+            if (string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                StepEditorParameterData param = parameters[i];
+                if (param != null && string.Equals(param.Key, key, StringComparison.Ordinal))
+                {
+                    param.Value = value;
+                    return;
+                }
+            }
+
+            StepEditorParameterData newParam = new StepEditorParameterData();
+            newParam.Key = key;
+            newParam.Value = value;
+            parameters.Add(newParam);
+        }
+
+        private static object DrawValueField(string label, Type valueType, object value)
+        {
+            if (valueType == typeof(string))
+            {
+                string current = value as string;
+                if (current == null)
+                {
+                    current = string.Empty;
+                }
+                return EditorGUILayout.TextField(label, current);
+            }
+
+            if (valueType == typeof(int))
+            {
+                int current = value is int ? (int)value : 0;
+                return EditorGUILayout.IntField(label, current);
+            }
+
+            if (valueType == typeof(float))
+            {
+                float current = value is float ? (float)value : 0f;
+                return EditorGUILayout.FloatField(label, current);
+            }
+
+            if (valueType == typeof(double))
+            {
+                double current = value is double ? (double)value : 0d;
+                return EditorGUILayout.DoubleField(label, current);
+            }
+
+            if (valueType == typeof(long))
+            {
+                long current = value is long ? (long)value : 0L;
+                return EditorGUILayout.LongField(label, current);
+            }
+
+            if (valueType == typeof(bool))
+            {
+                bool current = value is bool && (bool)value;
+                return EditorGUILayout.Toggle(label, current);
+            }
+
+            if (valueType.IsEnum)
+            {
+                Enum current = value as Enum;
+                if (current == null)
+                {
+                    Array values = Enum.GetValues(valueType);
+                    if (values != null && values.Length > 0)
+                    {
+                        current = (Enum)values.GetValue(0);
+                    }
+                }
+                if (current != null)
+                {
+                    return EditorGUILayout.EnumPopup(label, current);
+                }
+                return value;
+            }
+
+            EditorGUILayout.LabelField(label, "不支持类型: " + valueType.Name);
+            return value;
+        }
+
+        private static object GetDefaultValue(Type valueType)
+        {
+            if (valueType == typeof(string))
+            {
+                return string.Empty;
+            }
+            if (valueType == typeof(int))
+            {
+                return 0;
+            }
+            if (valueType == typeof(float))
+            {
+                return 0f;
+            }
+            if (valueType == typeof(double))
+            {
+                return 0d;
+            }
+            if (valueType == typeof(long))
+            {
+                return 0L;
+            }
+            if (valueType == typeof(bool))
+            {
+                return false;
+            }
+            if (valueType != null && valueType.IsEnum)
+            {
+                Array values = Enum.GetValues(valueType);
+                if (values != null && values.Length > 0)
+                {
+                    return values.GetValue(0);
+                }
+            }
+            return null;
+        }
+
+        private static bool TryParseEditorValue(string rawValue, Type valueType, out object parsedValue)
+        {
+            parsedValue = null;
+            if (valueType == typeof(string))
+            {
+                parsedValue = rawValue != null ? rawValue : string.Empty;
+                return true;
+            }
+
+            if (valueType == typeof(int))
+            {
+                int intValue;
+                if (int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out intValue))
+                {
+                    parsedValue = intValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(float))
+            {
+                float floatValue;
+                if (float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue))
+                {
+                    parsedValue = floatValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(double))
+            {
+                double doubleValue;
+                if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out doubleValue))
+                {
+                    parsedValue = doubleValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(long))
+            {
+                long longValue;
+                if (long.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out longValue))
+                {
+                    parsedValue = longValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType == typeof(bool))
+            {
+                bool boolValue;
+                if (bool.TryParse(rawValue, out boolValue))
+                {
+                    parsedValue = boolValue;
+                    return true;
+                }
+                return false;
+            }
+
+            if (valueType != null && valueType.IsEnum)
+            {
+                try
+                {
+                    object enumValue = Enum.Parse(valueType, rawValue, true);
+                    parsedValue = enumValue;
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        private static string ConvertToRawString(object value, Type valueType)
+        {
+            if (valueType == typeof(string))
+            {
+                return value as string ?? string.Empty;
+            }
+
+            if (valueType == typeof(int))
+            {
+                int intValue = value is int ? (int)value : 0;
+                return intValue.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (valueType == typeof(float))
+            {
+                float floatValue = value is float ? (float)value : 0f;
+                return floatValue.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (valueType == typeof(double))
+            {
+                double doubleValue = value is double ? (double)value : 0d;
+                return doubleValue.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (valueType == typeof(long))
+            {
+                long longValue = value is long ? (long)value : 0L;
+                return longValue.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (valueType == typeof(bool))
+            {
+                bool boolValue = value is bool && (bool)value;
+                return boolValue.ToString();
+            }
+
+            if (valueType != null && valueType.IsEnum)
+            {
+                Enum enumValue = value as Enum;
+                if (enumValue != null)
+                {
+                    return enumValue.ToString();
+                }
+                return string.Empty;
+            }
+
+            return value != null ? value.ToString() : string.Empty;
+        }
+
+        /// <summary>
+        /// 绘制连线面板（条件/标签/优先级）
+        /// </summary>
         private void DrawEdgeInspector()
         {
             EditorGUILayout.LabelField("连线", EditorStyles.boldLabel);
@@ -254,7 +993,22 @@ namespace LWStep.Editor
             m_SelectedEdge.Tag = EditorGUILayout.TextField("标签", m_SelectedEdge.Tag);
             if (EditorGUI.EndChangeCheck())
             {
+                if (m_SelectedEdgeView != null)
+                {
+                    m_GraphView.UpdateEdgeView(m_SelectedEdgeView);
+                }
                 SaveUndoSnapshot("编辑连线");
+            }
+
+            string conditionError = GetEdgeConditionError(m_SelectedEdge.Condition);
+            if (!string.IsNullOrEmpty(conditionError))
+            {
+                EditorGUILayout.HelpBox(conditionError, MessageType.Warning);
+            }
+            string tagError = GetEdgeTagError(m_SelectedEdge.Tag);
+            if (!string.IsNullOrEmpty(tagError))
+            {
+                EditorGUILayout.HelpBox(tagError, MessageType.Warning);
             }
 
             if (GUILayout.Button("删除连线"))
@@ -269,6 +1023,9 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 绘制图设置面板（图ID/开始节点/运行时预览参数）
+        /// </summary>
         private void DrawGraphInspector()
         {
             EditorGUILayout.LabelField("图设置", EditorStyles.boldLabel);
@@ -298,8 +1055,34 @@ namespace LWStep.Editor
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField("节点数", m_Data.Nodes.Count.ToString());
             EditorGUILayout.LabelField("连线数", m_Data.Edges.Count.ToString());
+
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("运行时预览", EditorStyles.boldLabel);
+            EditorGUI.BeginChangeCheck();
+            TextAsset newPreviewAsset = EditorGUILayout.ObjectField("预览XML", m_PreviewXmlAsset, typeof(TextAsset), false) as TextAsset;
+            if (newPreviewAsset != m_PreviewXmlAsset)
+            {
+                m_PreviewXmlAsset = newPreviewAsset;
+                m_PreviewXmlPath = m_PreviewXmlAsset != null ? AssetDatabase.GetAssetPath(m_PreviewXmlAsset) : string.Empty;
+            }
+            m_PreviewGraphId = EditorGUILayout.TextField("图ID", string.IsNullOrEmpty(m_PreviewGraphId) ? m_Data.GraphId : m_PreviewGraphId);
+            m_PreviewStartNodeId = EditorGUILayout.TextField("开始节点", m_PreviewStartNodeId);
+            m_PreviewJumpNodeId = EditorGUILayout.TextField("定位节点", m_PreviewJumpNodeId);
+            m_PreviewRequiredTag = EditorGUILayout.TextField("定位标签", m_PreviewRequiredTag);
+            if (EditorGUI.EndChangeCheck())
+            {
+                SavePreviewSettings();
+            }
+
+            if (GUILayout.Button("进入PlayMode预览"))
+            {
+                OnPreviewPlayMode();
+            }
         }
 
+        /// <summary>
+        /// 尝试重命名节点ID并同步更新相关连线与开始节点
+        /// </summary>
         private void TryRenameNode(StepEditorNodeData node, string newId)
         {
             if (string.IsNullOrEmpty(newId))
@@ -342,6 +1125,9 @@ namespace LWStep.Editor
             SaveUndoSnapshot("重命名节点");
         }
 
+        /// <summary>
+        /// 获取当前所有节点ID列表（用于下拉选择）
+        /// </summary>
         private string[] GetNodeIdList()
         {
             int count = m_Data.Nodes.Count;
@@ -353,6 +1139,9 @@ namespace LWStep.Editor
             return result;
         }
 
+        /// <summary>
+        /// 获取开始节点在ID列表中的索引
+        /// </summary>
         private int GetStartNodeIndex(string[] nodeIds, string startId)
         {
             for (int i = 0; i < nodeIds.Length; i++)
@@ -365,6 +1154,9 @@ namespace LWStep.Editor
             return 0;
         }
 
+        /// <summary>
+        /// 新建空步骤图
+        /// </summary>
         private void OnNewGraph()
         {
             StepEditorGraphData data = new StepEditorGraphData();
@@ -372,6 +1164,9 @@ namespace LWStep.Editor
             SaveUndoSnapshot("新建图");
         }
 
+        /// <summary>
+        /// 从文件导入步骤图XML
+        /// </summary>
         private void OnImportXml()
         {
             string path = EditorUtility.OpenFilePanel("导入步骤XML", Application.dataPath, "xml");
@@ -390,6 +1185,9 @@ namespace LWStep.Editor
             SaveUndoSnapshot("导入图");
         }
 
+        /// <summary>
+        /// 导出当前步骤图为XML文件
+        /// </summary>
         private void OnExportXml()
         {
             string path = EditorUtility.SaveFilePanel("导出步骤XML", Application.dataPath, "StepGraph.xml", "xml");
@@ -401,6 +1199,9 @@ namespace LWStep.Editor
             AssetDatabase.Refresh();
         }
 
+        /// <summary>
+        /// 校验当前步骤图数据并弹窗提示结果
+        /// </summary>
         private void OnValidateGraph()
         {
             List<string> errors = ValidateGraphData();
@@ -413,6 +1214,9 @@ namespace LWStep.Editor
             EditorUtility.DisplayDialog("校验失败", message, "确定");
         }
 
+        /// <summary>
+        /// 视图居中显示所有节点
+        /// </summary>
         private void OnFrameAll()
         {
             if (m_GraphView != null)
@@ -421,11 +1225,64 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 进入PlayMode预览（保存预览参数并切换到播放模式）
+        /// </summary>
+        private void OnPreviewPlayMode()
+        {
+            SavePreviewSettings();
+            if (string.IsNullOrEmpty(m_PreviewXmlPath))
+            {
+                EditorUtility.DisplayDialog("预览失败", "请先选择预览XML", "确定");
+                return;
+            }
+            EditorPrefs.SetBool(PREVIEW_ENABLED_KEY, true);
+            if (!EditorApplication.isPlaying)
+            {
+                EditorApplication.isPlaying = true;
+            }
+        }
+
+        /// <summary>
+        /// 读取本地保存的预览参数
+        /// </summary>
+        private void LoadPreviewSettings()
+        {
+            m_PreviewXmlPath = EditorPrefs.GetString(PREVIEW_XML_PATH_KEY, string.Empty);
+            m_PreviewGraphId = EditorPrefs.GetString(PREVIEW_GRAPH_ID_KEY, string.Empty);
+            m_PreviewStartNodeId = EditorPrefs.GetString(PREVIEW_START_NODE_ID_KEY, string.Empty);
+            m_PreviewJumpNodeId = EditorPrefs.GetString(PREVIEW_JUMP_NODE_ID_KEY, string.Empty);
+            m_PreviewRequiredTag = EditorPrefs.GetString(PREVIEW_REQUIRED_TAG_KEY, string.Empty);
+
+            if (!string.IsNullOrEmpty(m_PreviewXmlPath))
+            {
+                m_PreviewXmlAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(m_PreviewXmlPath);
+            }
+        }
+
+        /// <summary>
+        /// 保存预览参数到本地（EditorPrefs）
+        /// </summary>
+        private void SavePreviewSettings()
+        {
+            EditorPrefs.SetString(PREVIEW_XML_PATH_KEY, m_PreviewXmlPath ?? string.Empty);
+            EditorPrefs.SetString(PREVIEW_GRAPH_ID_KEY, m_PreviewGraphId ?? string.Empty);
+            EditorPrefs.SetString(PREVIEW_START_NODE_ID_KEY, m_PreviewStartNodeId ?? string.Empty);
+            EditorPrefs.SetString(PREVIEW_JUMP_NODE_ID_KEY, m_PreviewJumpNodeId ?? string.Empty);
+            EditorPrefs.SetString(PREVIEW_REQUIRED_TAG_KEY, m_PreviewRequiredTag ?? string.Empty);
+        }
+
+        /// <summary>
+        /// 图数据变更：写入Undo快照
+        /// </summary>
         private void OnGraphChanged()
         {
             SaveUndoSnapshot("修改步骤图");
         }
 
+        /// <summary>
+        /// 确保Undo状态对象存在
+        /// </summary>
         private void EnsureUndoState()
         {
             if (m_UndoState == null)
@@ -436,6 +1293,9 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 保存Undo快照（使用Json序列化步骤图数据）
+        /// </summary>
         private void SaveUndoSnapshot(string actionName)
         {
             if (m_IsApplyingUndo)
@@ -448,6 +1308,9 @@ namespace LWStep.Editor
             EditorUtility.SetDirty(m_UndoState);
         }
 
+        /// <summary>
+        /// Undo/Redo回调：从快照还原步骤图数据
+        /// </summary>
         private void OnUndoRedo()
         {
             if (m_UndoState == null)
@@ -468,6 +1331,9 @@ namespace LWStep.Editor
             m_IsApplyingUndo = false;
         }
 
+        /// <summary>
+        /// 校验步骤图数据：基础字段、条件/标签格式、DAG结构、可达与孤立节点
+        /// </summary>
         private List<string> ValidateGraphData()
         {
             List<string> errors = new List<string>();
@@ -501,6 +1367,21 @@ namespace LWStep.Editor
                 errors.Add("开始节点不存在: " + m_Data.StartNodeId);
             }
 
+            for (int i = 0; i < m_Data.Edges.Count; i++)
+            {
+                StepEditorEdgeData edge = m_Data.Edges[i];
+                string conditionError = GetEdgeConditionError(edge.Condition);
+                if (!string.IsNullOrEmpty(conditionError))
+                {
+                    errors.Add("连线条件非法: " + edge.FromId + " -> " + edge.ToId + "，" + conditionError);
+                }
+                string tagError = GetEdgeTagError(edge.Tag);
+                if (!string.IsNullOrEmpty(tagError))
+                {
+                    errors.Add("连线标签非法: " + edge.FromId + " -> " + edge.ToId + "，" + tagError);
+                }
+            }
+
             StepGraph graph = new StepGraph(m_Data.GraphId, m_Data.StartNodeId);
             for (int i = 0; i < m_Data.Nodes.Count; i++)
             {
@@ -523,6 +1404,80 @@ namespace LWStep.Editor
 
             AppendReachableAndIsolatedErrors(errors, nodeIds);
             return errors;
+        }
+
+        /// <summary>
+        /// 校验连线条件表达式格式
+        /// </summary>
+        private string GetEdgeConditionError(string condition)
+        {
+            if (string.IsNullOrEmpty(condition))
+            {
+                return string.Empty;
+            }
+            string trimmed = condition.Trim();
+            if (string.IsNullOrEmpty(trimmed))
+            {
+                return string.Empty;
+            }
+            int notEqualIndex = trimmed.IndexOf("!=", StringComparison.Ordinal);
+            int equalIndex = trimmed.IndexOf("==", StringComparison.Ordinal);
+            bool hasNotEqual = notEqualIndex >= 0;
+            bool hasEqual = equalIndex >= 0;
+            if (hasEqual && hasNotEqual)
+            {
+                return "条件格式不支持同时包含==和!=";
+            }
+            if (hasEqual)
+            {
+                if (trimmed.IndexOf("==", equalIndex + 2, StringComparison.Ordinal) >= 0)
+                {
+                    return "条件格式仅支持单个==";
+                }
+                string left = trimmed.Substring(0, equalIndex).Trim();
+                string right = trimmed.Substring(equalIndex + 2).Trim();
+                if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right))
+                {
+                    return "条件格式需要包含左右值";
+                }
+                return string.Empty;
+            }
+            if (hasNotEqual)
+            {
+                if (trimmed.IndexOf("!=", notEqualIndex + 2, StringComparison.Ordinal) >= 0)
+                {
+                    return "条件格式仅支持单个!=";
+                }
+                string left = trimmed.Substring(0, notEqualIndex).Trim();
+                string right = trimmed.Substring(notEqualIndex + 2).Trim();
+                if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right))
+                {
+                    return "条件格式需要包含左右值";
+                }
+                return string.Empty;
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// 校验连线标签格式（非空且无前后空格）
+        /// </summary>
+        private string GetEdgeTagError(string tag)
+        {
+            if (string.IsNullOrEmpty(tag))
+            {
+                return string.Empty;
+            }
+            string trimmed = tag.Trim();
+            if (string.IsNullOrEmpty(trimmed))
+            {
+                return "标签不能为空";
+            }
+            if (!string.Equals(trimmed, tag, StringComparison.Ordinal))
+            {
+                return "标签存在前后空格";
+            }
+            return string.Empty;
         }
 
         /// <summary>

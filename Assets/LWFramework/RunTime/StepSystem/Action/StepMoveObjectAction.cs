@@ -7,6 +7,21 @@ namespace LWStep
 {
     public class StepMoveObjectAction : BaseStepAction, IStepBaselineStateAction
     {
+        [StepParam("target")]
+        private string m_TargetName;
+
+        [StepParam("x")]
+        private float m_X;
+
+        [StepParam("y")]
+        private float m_Y;
+
+        [StepParam("z")]
+        private float m_Z;
+
+        [StepParam("isLocal")]
+        private bool m_IsLocal;
+
         private bool m_HasBaseline;
         private string m_BaselineTargetName;
         private GameObject m_BaselineTarget;
@@ -19,7 +34,7 @@ namespace LWStep
         /// </summary>
         public void CaptureBaselineState()
         {
-            m_BaselineTargetName = GetStringParam("target", string.Empty);
+            m_BaselineTargetName = m_TargetName;
             GameObject target = FindTarget();
             if (target == null)
             {
@@ -59,12 +74,18 @@ namespace LWStep
             transform.localScale = m_BaselineLocalScale;
         }
 
+        /// <summary>
+        /// 进入动作：执行移动并结束
+        /// </summary>
         protected override void OnEnter()
         {
             ExecuteMove();
             Finish();
         }
 
+        /// <summary>
+        /// 更新动作：确保完成
+        /// </summary>
         protected override void OnUpdate()
         {
             if (!IsFinished)
@@ -73,15 +94,24 @@ namespace LWStep
             }
         }
 
+        /// <summary>
+        /// 退出动作
+        /// </summary>
         protected override void OnExit()
         {
         }
 
+        /// <summary>
+        /// 快速应用：执行移动
+        /// </summary>
         protected override void OnApply()
         {
             ExecuteMove();
         }
 
+        /// <summary>
+        /// 执行移动逻辑
+        /// </summary>
         private void ExecuteMove()
         {
             GameObject target = FindTarget();
@@ -90,12 +120,8 @@ namespace LWStep
                 return;
             }
 
-            float x = GetFloatParam("x", 0f);
-            float y = GetFloatParam("y", 0f);
-            float z = GetFloatParam("z", 0f);
-            bool isLocal = GetBoolParam("isLocal", false);
-            Vector3 position = new Vector3(x, y, z);
-            if (isLocal)
+            Vector3 position = new Vector3(m_X, m_Y, m_Z);
+            if (m_IsLocal)
             {
                 target.transform.localPosition = position;
             }
@@ -106,58 +132,23 @@ namespace LWStep
             LWDebug.Log("步骤动作-物体移动：" + target.name + " -> " + position);
         }
 
+        /// <summary>
+        /// 查找目标对象
+        /// </summary>
         private GameObject FindTarget()
         {
-            string targetName = GetStringParam("target", string.Empty);
-            if (string.IsNullOrEmpty(targetName))
+            if (string.IsNullOrEmpty(m_TargetName))
             {
                 LWDebug.LogWarning("步骤动作-物体移动：target 为空");
                 return null;
             }
 
-            GameObject target = GameObject.Find(targetName);
+            GameObject target = GameObject.Find(m_TargetName);
             if (target == null)
             {
-                LWDebug.LogWarning("步骤动作-物体移动：未找到对象 " + targetName);
+                LWDebug.LogWarning("步骤动作-物体移动：未找到对象 " + m_TargetName);
             }
             return target;
-        }
-
-        private string GetStringParam(string key, string defaultValue)
-        {
-            Dictionary<string, string> parameters = GetParameters();
-            if (parameters == null)
-            {
-                return defaultValue;
-            }
-            string value;
-            if (parameters.TryGetValue(key, out value))
-            {
-                return value;
-            }
-            return defaultValue;
-        }
-
-        private float GetFloatParam(string key, float defaultValue)
-        {
-            string value = GetStringParam(key, string.Empty);
-            float result;
-            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
-
-        private bool GetBoolParam(string key, bool defaultValue)
-        {
-            string value = GetStringParam(key, string.Empty);
-            bool result;
-            if (bool.TryParse(value, out result))
-            {
-                return result;
-            }
-            return defaultValue;
         }
     }
 }

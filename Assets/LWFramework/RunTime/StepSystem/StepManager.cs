@@ -261,7 +261,6 @@ namespace LWStep
                 return;
             }
 
-            string failReason;
             m_CurrentNode.ApplyRemaining(m_Context);
 
             string currentNodeId = m_History[m_History.Count - 1];
@@ -307,7 +306,6 @@ namespace LWStep
             int targetHistoryIndex = m_History.LastIndexOf(targetNodeId);
             if (targetHistoryIndex >= 0 && targetHistoryIndex < m_History.Count - 1)
             {
-                string backFailReason;
                 m_CurrentNode.ApplyRemaining(m_Context);
 
                 m_ForwardHistory.Clear();

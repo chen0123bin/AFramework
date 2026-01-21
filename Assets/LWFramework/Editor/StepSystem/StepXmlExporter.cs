@@ -6,6 +6,9 @@ namespace LWStep.Editor
 {
     public static class StepXmlExporter
     {
+        /// <summary>
+        /// 将编辑器步骤图数据导出为XML文本
+        /// </summary>
         public static string ExportToText(StepEditorGraphData data)
         {
             XmlDocument doc = new XmlDocument();
@@ -83,6 +86,9 @@ namespace LWStep.Editor
             }
         }
 
+        /// <summary>
+        /// 将编辑器步骤图数据保存为XML文件
+        /// </summary>
         public static void SaveToFile(string path, StepEditorGraphData data)
         {
             string xmlText = ExportToText(data);

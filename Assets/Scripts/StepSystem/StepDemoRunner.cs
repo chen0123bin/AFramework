@@ -3,9 +3,21 @@ using LWCore;
 using LWStep;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class StepDemoRunner : MonoBehaviour
 {
+#if UNITY_EDITOR
+    private const string PREVIEW_XML_PATH_KEY = "LWStep.StepEditor.Preview.XmlPath";
+    private const string PREVIEW_GRAPH_ID_KEY = "LWStep.StepEditor.Preview.GraphId";
+    private const string PREVIEW_START_NODE_ID_KEY = "LWStep.StepEditor.Preview.StartNodeId";
+    private const string PREVIEW_JUMP_NODE_ID_KEY = "LWStep.StepEditor.Preview.JumpNodeId";
+    private const string PREVIEW_REQUIRED_TAG_KEY = "LWStep.StepEditor.Preview.RequiredTag";
+    private const string PREVIEW_ENABLED_KEY = "LWStep.StepEditor.Preview.Enabled";
+#endif
+
     [SerializeField] private string m_XmlPath = "Assets/0Res/RawFiles/StepStage4Test.xml";
     [SerializeField] private string m_GraphId = "step_stage4_demo";
     [SerializeField] private int m_AutoForwardCount = 3;
@@ -20,9 +32,37 @@ public class StepDemoRunner : MonoBehaviour
 
     private List<string> m_EventLogs;
     private string m_SavedContextJson;
+    private string m_PreviewJumpNodeId;
+    private string m_PreviewRequiredTag;
+    private string m_PreviewStartNodeId;
+    private bool m_UsePreviewConfig;
 
+    /// <summary>
+    /// Demo入口：读取预览配置并启动步骤系统
+    /// </summary>
     private async void Start()
     {
+#if UNITY_EDITOR
+        m_UsePreviewConfig = EditorPrefs.GetBool(PREVIEW_ENABLED_KEY, false);
+        if (m_UsePreviewConfig)
+        {
+            string previewXmlPath = EditorPrefs.GetString(PREVIEW_XML_PATH_KEY, string.Empty);
+            string previewGraphId = EditorPrefs.GetString(PREVIEW_GRAPH_ID_KEY, string.Empty);
+            m_PreviewStartNodeId = EditorPrefs.GetString(PREVIEW_START_NODE_ID_KEY, string.Empty);
+            m_PreviewJumpNodeId = EditorPrefs.GetString(PREVIEW_JUMP_NODE_ID_KEY, string.Empty);
+            m_PreviewRequiredTag = EditorPrefs.GetString(PREVIEW_REQUIRED_TAG_KEY, string.Empty);
+
+            if (!string.IsNullOrEmpty(previewXmlPath))
+            {
+                m_XmlPath = previewXmlPath;
+            }
+            if (!string.IsNullOrEmpty(previewGraphId))
+            {
+                m_GraphId = previewGraphId;
+            }
+        }
+#endif
+
         await WaitForStepReady();
 
         m_EventLogs = new List<string>();
@@ -35,7 +75,14 @@ public class StepDemoRunner : MonoBehaviour
         stepManager.OnJumpProgress += OnJumpProgress;
         stepManager.OnJumpFailed += OnJumpFailed;
         stepManager.LoadGraph(m_XmlPath);
-        stepManager.Start(m_GraphId);
+        if (m_UsePreviewConfig && !string.IsNullOrEmpty(m_PreviewStartNodeId))
+        {
+            stepManager.Start(m_GraphId, m_PreviewStartNodeId);
+        }
+        else
+        {
+            stepManager.Start(m_GraphId);
+        }
 
         if (m_ApplyPresetContextOnStart)
         {
@@ -45,7 +92,20 @@ public class StepDemoRunner : MonoBehaviour
             presetContext.SetValue("isVip", m_PresetIsVip);
             string presetJson = presetContext.ToJson();
             stepManager.LoadContextFromJson(presetJson);
+
             LWDebug.Log("步骤Demo：已加载预设上下文");
+        }
+
+        if (m_UsePreviewConfig && !string.IsNullOrEmpty(m_PreviewJumpNodeId))
+        {
+            if (string.IsNullOrEmpty(m_PreviewRequiredTag))
+            {
+                stepManager.JumpTo(m_PreviewJumpNodeId);
+            }
+            else
+            {
+                stepManager.JumpTo(m_PreviewJumpNodeId, m_PreviewRequiredTag);
+            }
         }
 
         // for (int i = 0; i < m_AutoForwardCount; i++)
@@ -55,36 +115,57 @@ public class StepDemoRunner : MonoBehaviour
         // }
     }
 
+    /// <summary>
+    /// 节点切换事件回调
+    /// </summary>
     private void OnNodeChanged(string nodeId)
     {
         AddEventLog("节点切换：" + nodeId);
     }
 
+    /// <summary>
+    /// 节点进入事件回调
+    /// </summary>
     private void OnNodeEnter(string nodeId)
     {
         AddEventLog("节点进入：" + nodeId);
     }
 
+    /// <summary>
+    /// 节点离开事件回调
+    /// </summary>
     private void OnNodeLeave(string nodeId)
     {
         AddEventLog("节点离开：" + nodeId);
     }
 
+    /// <summary>
+    /// 动作切换事件回调
+    /// </summary>
     private void OnActionChanged(string actionId)
     {
         AddEventLog("动作切换：" + actionId);
     }
 
+    /// <summary>
+    /// 跳转补齐过程事件回调
+    /// </summary>
     private void OnJumpProgress(string nodeId)
     {
         AddEventLog("跳转补齐：" + nodeId);
     }
 
+    /// <summary>
+    /// 跳转失败事件回调
+    /// </summary>
     private void OnJumpFailed(string reason)
     {
         AddEventLog("跳转失败：" + reason);
     }
 
+    /// <summary>
+    /// 记录并输出事件日志
+    /// </summary>
     private void AddEventLog(string message)
     {
         if (m_EventLogs != null)
@@ -94,6 +175,9 @@ public class StepDemoRunner : MonoBehaviour
         LWDebug.Log(message);
     }
 
+    /// <summary>
+    /// 等待步骤系统与资源系统初始化完成
+    /// </summary>
     private async UniTask WaitForStepReady()
     {
         while (ManagerUtility.StepMgr == null || ManagerUtility.AssetsMgr == null || !ManagerUtility.AssetsMgr.IsInitialized)
@@ -101,7 +185,11 @@ public class StepDemoRunner : MonoBehaviour
             await UniTask.Yield();
         }
     }
-    void Update()
+
+    /// <summary>
+    /// 快捷键控制：空格跳转、左右方向前进/后退、S保存上下文、L恢复上下文
+    /// </summary>
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -143,6 +231,10 @@ public class StepDemoRunner : MonoBehaviour
             }
         }
     }
+
+    /// <summary>
+    /// 组件销毁时解绑步骤事件，避免重复订阅
+    /// </summary>
     private void OnDestroy()
     {
         IStepManager stepManager = ManagerUtility.StepMgr;
@@ -160,6 +252,9 @@ public class StepDemoRunner : MonoBehaviour
         stepManager.OnJumpFailed -= OnJumpFailed;
     }
 
+    /// <summary>
+    /// 全部步骤完成事件回调
+    /// </summary>
     private void OnAllStepsCompleted()
     {
         AddEventLog("所有步骤完成");

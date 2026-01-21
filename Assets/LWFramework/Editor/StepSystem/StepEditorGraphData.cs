@@ -12,6 +12,9 @@ namespace LWStep.Editor
         public List<StepEditorNodeData> Nodes;
         public List<StepEditorEdgeData> Edges;
 
+        /// <summary>
+        /// 创建步骤图编辑器数据
+        /// </summary>
         public StepEditorGraphData()
         {
             GraphId = "step_graph";
@@ -20,6 +23,9 @@ namespace LWStep.Editor
             Edges = new List<StepEditorEdgeData>();
         }
 
+        /// <summary>
+        /// 根据节点ID获取节点数据
+        /// </summary>
         public StepEditorNodeData GetNode(string nodeId)
         {
             for (int i = 0; i < Nodes.Count; i++)
@@ -32,6 +38,9 @@ namespace LWStep.Editor
             return null;
         }
 
+        /// <summary>
+        /// 根据起点与终点ID获取连线数据
+        /// </summary>
         public StepEditorEdgeData GetEdge(string fromId, string toId)
         {
             for (int i = 0; i < Edges.Count; i++)
@@ -54,6 +63,9 @@ namespace LWStep.Editor
         public Vector2 Position;
         public List<StepEditorActionData> Actions;
 
+        /// <summary>
+        /// 创建节点数据
+        /// </summary>
         public StepEditorNodeData()
         {
             Id = string.Empty;
@@ -72,6 +84,9 @@ namespace LWStep.Editor
         public string Condition;
         public string Tag;
 
+        /// <summary>
+        /// 创建连线数据
+        /// </summary>
         public StepEditorEdgeData()
         {
             FromId = string.Empty;
@@ -88,6 +103,9 @@ namespace LWStep.Editor
         public string TypeName;
         public List<StepEditorParameterData> Parameters;
 
+        /// <summary>
+        /// 创建动作数据
+        /// </summary>
         public StepEditorActionData()
         {
             TypeName = string.Empty;
@@ -101,6 +119,9 @@ namespace LWStep.Editor
         public string Key;
         public string Value;
 
+        /// <summary>
+        /// 创建参数数据
+        /// </summary>
         public StepEditorParameterData()
         {
             Key = string.Empty;

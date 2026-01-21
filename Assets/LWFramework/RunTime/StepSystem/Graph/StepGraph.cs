@@ -271,7 +271,12 @@ namespace LWStep
             }
             return string.Equals(edge.Tag, requiredTag, StringComparison.Ordinal);
         }
-
+        /// <summary>
+        /// 检查值是否匹配
+        /// </summary>
+        /// <param name="actual">实际值</param>
+        /// <param name="expected">预期值连线中设置的值</param>
+        /// <returns></returns>
         private bool IsValueMatched(object actual, string expected)
         {
             if (actual == null)
@@ -280,12 +285,8 @@ namespace LWStep
             }
 
             bool expectedBool;
-            if (actual is bool)
+            if (bool.TryParse(expected, out expectedBool))
             {
-                if (bool.TryParse(expected, out expectedBool))
-                {
-                    return ((bool)actual) == expectedBool;
-                }
                 return string.Equals(actual.ToString(), expected, StringComparison.OrdinalIgnoreCase);
             }
 

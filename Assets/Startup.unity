@@ -942,13 +942,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_XmlPath: Assets/0Res/RawFiles/StepActionTest.xml
-  m_GraphId: step_action_test
+  m_XmlPath: Assets/0Res/RawFiles/StepStage4Test.xml
+  m_GraphId: step_stage4_demo
   m_AutoForwardCount: 4
   m_AutoForwardDelayMs: 3000
   m_JumpTargetNodeId: step_move
   m_JumpRequiredTag: normal
-  m_ForwardRequiredTag: vip
+  m_ForwardRequiredTag: 
   m_ApplyPresetContextOnStart: 1
   m_PresetMode: A
   m_PresetScore: 5
