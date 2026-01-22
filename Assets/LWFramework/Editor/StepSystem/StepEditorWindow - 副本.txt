@@ -38,8 +38,7 @@ namespace LWStep.Editor
         private float m_ContextPanelWidth = 260f;
         private float m_ContextPanelMaxHeight = 320f;
         private float m_ContextPanelMinHeight = 20f;
-        private bool m_AutoUpdateContext = true;
-        private Button m_AutoUpdateButton;
+        private bool m_AutoUpdateContextPanel = true;
         private StepEditorNodeData m_SelectedNode;
         private StepEditorEdgeData m_SelectedEdge;
         private Edge m_SelectedEdgeView;
@@ -209,6 +208,7 @@ namespace LWStep.Editor
             {
                 return;
             }
+
             m_ContextPanel = new VisualElement();
             m_ContextPanel.style.position = Position.Absolute;
             m_ContextPanel.style.left = 2;
@@ -225,6 +225,16 @@ namespace LWStep.Editor
             m_ContextScroll = new ScrollView();
             m_ContextFoldout.Add(m_ContextScroll);
 
+            // VisualElement m_ToolPanel = new VisualElement();
+            // m_ToolPanel.style.flexDirection = FlexDirection.Row;
+            // Button changeButton = new Button(OnChangeContext) { text = "修改" };
+            // m_ToolPanel.Add(changeButton);
+            // Toggle autoUpdateToggle = new Toggle("自动更新");
+            // autoUpdateToggle.value = m_AutoUpdateContextPanel;
+            // autoUpdateToggle.RegisterValueChangedCallback(OnAutoUpdateToggleChanged);
+
+            // m_ToolPanel.Add(autoUpdateToggle);
+            // m_ContextScroll.Add(m_ToolPanel);
 
 
             m_ContextText = new TextField();
@@ -232,25 +242,15 @@ namespace LWStep.Editor
             m_ContextText.style.whiteSpace = WhiteSpace.Normal;
             m_ContextScroll.Add(m_ContextText);
 
-            VisualElement m_ToolPanel = new VisualElement();
-            m_ToolPanel.style.flexDirection = FlexDirection.Row;
-            m_ToolPanel.style.position = Position.Relative;
-            Button changeButton = new Button(OnChangeContext) { text = "修改" };
-            m_ToolPanel.Add(changeButton);
-            m_AutoUpdateButton = new Button(OnAutoUpdateToggleChanged) { text = "自动刷新" };
-            m_ToolPanel.Add(m_AutoUpdateButton);
-            m_AutoUpdateContext = true;
-            m_ContextScroll.Add(m_ToolPanel);
 
 
             m_GraphContainer.Add(m_ContextPanel);
 
             m_ContextFoldout.RegisterValueChangedCallback(OnContextFoldoutValueChanged);
         }
-        private void OnAutoUpdateToggleChanged()
+        private void OnAutoUpdateToggleChanged(ChangeEvent<bool> evt)
         {
-            m_AutoUpdateContext = !m_AutoUpdateContext;
-            m_AutoUpdateButton.text = m_AutoUpdateContext ? "自动刷新" : "手动刷新";
+            m_AutoUpdateContextPanel = evt.newValue;
         }
         /// <summary>
         /// 修改上下文中的StepContext
@@ -261,22 +261,16 @@ namespace LWStep.Editor
             {
                 return;
             }
-            if (m_AutoUpdateContext)
-            {
-                EditorUtility.DisplayDialog("警告", $"自动刷新已开启，不能修改数据", "确定");
-                return;
-            }
             ManagerUtility.StepMgr.LoadContextFromJson(m_ContextText.value);
         }
         private void OnContextFoldoutValueChanged(ChangeEvent<bool> evt)
         {
-            Debug.Log($"OnContextFoldoutValueChanged: {evt.newValue}");
             m_ContextPanel.style.height = evt.newValue ? m_ContextPanelMaxHeight : m_ContextPanelMinHeight;
         }
 
         private void UpdateContextPanel()
         {
-            if (m_ContextText == null || !m_AutoUpdateContext)
+            if (m_ContextText == null || !m_AutoUpdateContextPanel)
             {
                 return;
             }
@@ -1037,7 +1031,7 @@ namespace LWStep.Editor
                 ImportXml(m_BindingXmlAsset.text);
                 EditorUtility.DisplayDialog("快速导入成功", $"XML 导入成功\n路径：{m_BindingXmlPath}", "确定");
             }
-            BuildContextPanel();
+
 
         }
         private void ImportXml(string xmlText)

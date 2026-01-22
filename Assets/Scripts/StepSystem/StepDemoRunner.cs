@@ -10,13 +10,7 @@ using UnityEditor;
 
 public class StepDemoRunner : MonoBehaviour
 {
-#if UNITY_EDITOR
-    private const string PREVIEW_XML_PATH_KEY = "LWStep.StepEditor.Preview.XmlPath";
-    private const string PREVIEW_START_NODE_ID_KEY = "LWStep.StepEditor.Preview.StartNodeId";
-    private const string PREVIEW_JUMP_NODE_ID_KEY = "LWStep.StepEditor.Preview.JumpNodeId";
-    private const string PREVIEW_REQUIRED_TAG_KEY = "LWStep.StepEditor.Preview.RequiredTag";
-    private const string PREVIEW_ENABLED_KEY = "LWStep.StepEditor.Preview.Enabled";
-#endif
+
 
     [SerializeField] private string m_XmlPath = "Assets/0Res/RawFiles/StepStage4Test.xml";
     [SerializeField] private int m_AutoForwardCount = 3;
@@ -41,32 +35,16 @@ public class StepDemoRunner : MonoBehaviour
     /// </summary>
     private async void Start()
     {
-#if UNITY_EDITOR
-        m_UsePreviewConfig = EditorPrefs.GetBool(PREVIEW_ENABLED_KEY, false);
-        if (m_UsePreviewConfig)
-        {
-            string previewXmlPath = EditorPrefs.GetString(PREVIEW_XML_PATH_KEY, string.Empty);
-            m_PreviewStartNodeId = EditorPrefs.GetString(PREVIEW_START_NODE_ID_KEY, string.Empty);
-            m_PreviewJumpNodeId = EditorPrefs.GetString(PREVIEW_JUMP_NODE_ID_KEY, string.Empty);
-            m_PreviewRequiredTag = EditorPrefs.GetString(PREVIEW_REQUIRED_TAG_KEY, string.Empty);
-
-            if (!string.IsNullOrEmpty(previewXmlPath))
-            {
-                m_XmlPath = previewXmlPath;
-            }
-        }
-#endif
 
         await WaitForStepReady();
-
         m_EventLogs = new List<string>();
         IStepManager stepManager = ManagerUtility.StepMgr;
         stepManager.OnAllStepsCompleted += OnAllStepsCompleted;
-        stepManager.OnNodeEnter += OnNodeEnter;
-        stepManager.OnNodeLeave += OnNodeLeave;
+        //stepManager.OnNodeEnter += OnNodeEnter;
+        //stepManager.OnNodeLeave += OnNodeLeave;
         stepManager.OnNodeChanged += OnNodeChanged;
         stepManager.OnActionChanged += OnActionChanged;
-        stepManager.OnJumpProgress += OnJumpProgress;
+        //stepManager.OnJumpProgress += OnJumpProgress;
         stepManager.OnJumpFailed += OnJumpFailed;
         stepManager.LoadGraph(m_XmlPath);
         string graphName = Path.GetFileNameWithoutExtension(m_XmlPath);
@@ -108,11 +86,6 @@ public class StepDemoRunner : MonoBehaviour
             }
         }
 
-        // for (int i = 0; i < m_AutoForwardCount; i++)
-        // {
-        //     await UniTask.Delay(m_AutoForwardDelayMs);
-        //     stepManager.Forward();
-        // }
     }
 
     /// <summary>
@@ -219,7 +192,7 @@ public class StepDemoRunner : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.S))
         {
-            m_SavedContextJson = ManagerUtility.StepMgr.SaveContextToJson();
+            m_SavedContextJson = ManagerUtility.StepMgr.GetContextToJson();
             LWDebug.Log("步骤Demo：已保存上下文");
         }
         if (Input.GetKeyDown(KeyCode.L))

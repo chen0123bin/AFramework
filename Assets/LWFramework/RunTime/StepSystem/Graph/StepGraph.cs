@@ -212,12 +212,7 @@ namespace LWStep
             {
                 return false;
             }
-
             string trimmed = condition.Trim();
-            if (string.IsNullOrEmpty(trimmed))
-            {
-                return true;
-            }
 
             int notEqualIndex = trimmed.IndexOf("!=", StringComparison.Ordinal);
             if (notEqualIndex >= 0)

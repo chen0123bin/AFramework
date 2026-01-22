@@ -162,6 +162,7 @@ namespace LWStep.Editor
             {
                 return;
             }
+            // Debug.Log("UpdateTitle: " + m_Data.Id + " startNodeId=" + startNodeId + " runtimeNodeId=" + runtimeNodeId);
             bool isStart = !string.IsNullOrEmpty(startNodeId) && m_Data.Id == startNodeId;
             bool isRuntime = !string.IsNullOrEmpty(runtimeNodeId) && m_Data.Id == runtimeNodeId;
             string suffix = string.Empty;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LWStep;
 
 namespace LWCore
 {
@@ -58,9 +59,7 @@ namespace LWCore
         /// <summary>
         /// 前进到下一个节点（优先级最高的出边）
         /// </summary>
-        void Forward();
-
-        void Forward(string requiredTag);
+        void Forward(string requiredTag = null);
 
         /// <summary>
         /// 后退到上一个节点（不回滚结果，MVP策略）
@@ -71,20 +70,34 @@ namespace LWCore
         /// 跳转到目标节点（中间节点执行快速应用Apply）
         /// </summary>
         /// <param name="targetNodeId">目标节点ID</param>
-        void JumpTo(string targetNodeId);
-
-        void JumpTo(string targetNodeId, string requiredTag);
+        /// <param name="requiredTag"></param>
+        void JumpTo(string targetNodeId, string requiredTag = null);
 
         /// <summary>
         /// 获取当前节点的可前进目标集合
         /// </summary>
         /// <returns>可前进的节点ID集合</returns>
         List<string> GetAvailableNextNodes();
-
+        /// <summary>
+        /// 获取当前节点的可前进目标集合（指定标签）
+        /// </summary>
+        /// <param name="requiredTag">要求的标签</param>
+        /// <returns>可前进的节点ID集合</returns>
         List<string> GetAvailableNextNodes(string requiredTag);
-
-        string SaveContextToJson();
-
+        /// <summary>
+        /// 获取当前StepContext
+        /// </summary>
+        /// <returns>当前StepContext</returns>
+        StepContext GetStepContext();
+        /// <summary>
+        /// 获取当前StepContext的JSON字符串表示
+        /// </summary>
+        /// <returns>JSON字符串</returns>
+        string GetContextToJson();
+        /// <summary>
+        /// 从JSON字符串加载上下文数据
+        /// </summary>
+        /// <param name="json">JSON字符串</param>
         void LoadContextFromJson(string json);
     }
 }

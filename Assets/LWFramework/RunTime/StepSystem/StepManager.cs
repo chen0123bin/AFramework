@@ -76,10 +76,7 @@ namespace LWStep
                     if (!m_HasAllStepsCompleted)
                     {
                         m_HasAllStepsCompleted = true;
-                        if (OnAllStepsCompleted != null)
-                        {
-                            OnAllStepsCompleted();
-                        }
+                        OnAllStepsCompleted?.Invoke();
                     }
                     return;
                 }
@@ -138,14 +135,9 @@ namespace LWStep
             m_HasAllStepsCompleted = false;
             m_CurrentNode.Enter(m_Context);
             m_LastActionName = string.Empty;
-            if (OnNodeEnter != null)
-            {
-                OnNodeEnter(node.Id);
-            }
-            if (OnNodeChanged != null)
-            {
-                OnNodeChanged(node.Id);
-            }
+
+            OnNodeEnter?.Invoke(node.Id);
+            OnNodeChanged?.Invoke(node.Id);
             NotifyActionChanged(true);
         }
 
@@ -190,39 +182,7 @@ namespace LWStep
             m_Context.Clear();
         }
 
-        /// <summary>
-        /// 前进到下一个节点
-        /// </summary>
-        public void Forward()
-        {
-            if (!IsRunning || m_CurrentGraph == null || m_CurrentNode == null)
-            {
-                LWDebug.LogWarning("步骤系统未运行，无法前进");
-                return;
-            }
-
-            // 关键：前进前补齐当前节点未完成动作
-            m_CurrentNode.ApplyRemaining(m_Context);
-
-            if (m_ForwardHistory.Count > 0)
-            {
-                string redoNodeId = m_ForwardHistory[m_ForwardHistory.Count - 1];
-                m_ForwardHistory.RemoveAt(m_ForwardHistory.Count - 1);
-                SwitchToNode(redoNodeId, true);
-                return;
-            }
-
-            m_ForwardHistory.Clear();
-            List<string> nextNodes = m_CurrentGraph.GetNextNodeIds(m_CurrentNode.Id, m_Context);
-            if (nextNodes.Count == 0)
-            {
-                LWDebug.LogWarning("当前节点没有可前进目标: " + m_CurrentNode.Id);
-                return;
-            }
-            SwitchToNode(nextNodes[0], true);
-        }
-
-        public void Forward(string requiredTag)
+        public void Forward(string requiredTag = null)
         {
             if (!IsRunning || m_CurrentGraph == null || m_CurrentNode == null)
             {
@@ -274,89 +234,6 @@ namespace LWStep
             m_ForwardHistory.Add(currentNodeId);
             string targetNodeId = m_History[m_History.Count - 1];
             SwitchToNodeWithRebuild(targetNodeId, m_History.Count - 1);
-        }
-
-
-        /// <summary>
-        /// 跳转到目标节点（补齐中间步骤结果）
-        /// </summary>
-        public void JumpTo(string targetNodeId)
-        {
-            if (!IsRunning || m_CurrentGraph == null || m_CurrentNode == null)
-            {
-                LWDebug.LogWarning("步骤系统未运行，无法跳转");
-                HandleJumpFailed("步骤系统未运行");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(targetNodeId))
-            {
-                LWDebug.LogWarning("目标节点ID为空，无法跳转");
-                HandleJumpFailed("目标节点ID为空");
-                return;
-            }
-
-            if (m_CurrentNode.Id == targetNodeId)
-            {
-                return;
-            }
-
-            StepNode targetNode = m_CurrentGraph.GetNode(targetNodeId);
-            if (targetNode == null)
-            {
-                LWDebug.LogError("步骤节点不存在: " + targetNodeId);
-                HandleJumpFailed("步骤节点不存在: " + targetNodeId);
-                return;
-            }
-
-            int targetHistoryIndex = m_History.LastIndexOf(targetNodeId);
-            if (targetHistoryIndex >= 0 && targetHistoryIndex < m_History.Count - 1)
-            {
-                m_CurrentNode.ApplyRemaining(m_Context);
-
-                m_ForwardHistory.Clear();
-                for (int i = m_History.Count - 1; i > targetHistoryIndex; i--)
-                {
-                    m_ForwardHistory.Add(m_History[i]);
-                }
-                m_History.RemoveRange(targetHistoryIndex + 1, m_History.Count - (targetHistoryIndex + 1));
-                SwitchToNodeWithRebuild(targetNodeId, targetHistoryIndex);
-                return;
-            }
-
-            m_ForwardHistory.Clear();
-
-            List<string> path = m_CurrentGraph.FindPath(m_CurrentNode.Id, targetNodeId, m_Context);
-            bool hasPath = path != null && path.Count > 0;
-
-            // 关键：先补齐当前节点未完成动作
-            m_CurrentNode.ApplyRemaining(m_Context);
-
-            if (hasPath)
-            {
-                for (int i = 1; i < path.Count - 1; i++)
-                {
-                    string nodeId = path[i];
-                    StepNode node = m_CurrentGraph.GetNode(nodeId);
-                    if (node == null)
-                    {
-                        continue;
-                    }
-                    node.Apply(m_Context);
-                    m_History.Add(node.Id);
-                    if (OnJumpProgress != null)
-                    {
-                        OnJumpProgress(node.Id);
-                    }
-                }
-            }
-            else
-            {
-                LWDebug.LogWarning("找不到跳转路径，已直接跳转到目标节点: " + targetNodeId);
-                HandleJumpFailed("找不到跳转路径，已直接跳转: " + targetNodeId);
-            }
-
-            SwitchToNode(targetNodeId, true);
         }
 
         public void JumpTo(string targetNodeId, string requiredTag)
@@ -422,10 +299,7 @@ namespace LWStep
                     }
                     node.Apply(m_Context);
                     m_History.Add(node.Id);
-                    if (OnJumpProgress != null)
-                    {
-                        OnJumpProgress(node.Id);
-                    }
+                    OnJumpProgress?.Invoke(node.Id);
                 }
             }
             else
@@ -436,8 +310,6 @@ namespace LWStep
 
             SwitchToNode(targetNodeId, true);
         }
-
-
         /// <summary>
         /// 获取当前节点的可前进目标集合
         /// </summary>
@@ -458,8 +330,12 @@ namespace LWStep
             }
             return m_CurrentGraph.GetNextNodeIds(m_CurrentNode.Id, m_Context, requiredTag);
         }
+        public StepContext GetStepContext()
+        {
+            return m_Context;
+        }
 
-        public string SaveContextToJson()
+        public string GetContextToJson()
         {
             if (m_Context == null)
             {
@@ -489,10 +365,7 @@ namespace LWStep
             if (m_CurrentNode != null)
             {
                 m_CurrentNode.Leave();
-                if (OnNodeLeave != null)
-                {
-                    OnNodeLeave(m_CurrentNode.Id);
-                }
+                OnNodeLeave?.Invoke(m_CurrentNode.Id);
             }
 
             m_CurrentNode = node;
@@ -504,14 +377,8 @@ namespace LWStep
             m_CurrentNode.Enter(m_Context);
             m_HasAllStepsCompleted = false;
             m_LastActionName = string.Empty;
-            if (OnNodeEnter != null)
-            {
-                OnNodeEnter(node.Id);
-            }
-            if (OnNodeChanged != null)
-            {
-                OnNodeChanged(node.Id);
-            }
+            OnNodeEnter?.Invoke(node.Id);
+            OnNodeChanged?.Invoke(node.Id);
             NotifyActionChanged(true);
         }
 
@@ -527,10 +394,7 @@ namespace LWStep
             if (m_CurrentNode != null)
             {
                 m_CurrentNode.Leave();
-                if (OnNodeLeave != null)
-                {
-                    OnNodeLeave(m_CurrentNode.Id);
-                }
+                OnNodeLeave?.Invoke(m_CurrentNode.Id);
             }
 
             RebuildStateToHistoryIndex(historyIndex);
@@ -539,14 +403,9 @@ namespace LWStep
             m_CurrentNode.Enter(m_Context);
             m_HasAllStepsCompleted = false;
             m_LastActionName = string.Empty;
-            if (OnNodeEnter != null)
-            {
-                OnNodeEnter(node.Id);
-            }
-            if (OnNodeChanged != null)
-            {
-                OnNodeChanged(node.Id);
-            }
+            OnNodeEnter?.Invoke(node.Id);
+            OnNodeChanged?.Invoke(node.Id);
+
             NotifyActionChanged(true);
         }
 
@@ -631,7 +490,7 @@ namespace LWStep
             }
 
             RestoreBaselineSnapshots();
-            m_Context.Clear();
+            //m_Context.Clear();
 
             for (int i = 0; i < historyIndex; i++)
             {
@@ -660,17 +519,14 @@ namespace LWStep
             if (force || m_LastActionName != actionName)
             {
                 m_LastActionName = actionName;
-                OnActionChanged(actionName);
+                OnActionChanged?.Invoke(actionName);
             }
         }
 
         private void HandleJumpFailed(string reason)
         {
             LWDebug.LogWarning("跳转被阻止: " + reason);
-            if (OnJumpFailed != null)
-            {
-                OnJumpFailed(reason);
-            }
+            OnJumpFailed?.Invoke(reason);
         }
 
     }
