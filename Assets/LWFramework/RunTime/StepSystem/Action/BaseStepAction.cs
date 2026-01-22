@@ -144,6 +144,7 @@ namespace LWStep
             }
         }
 
+
         /// <summary>
         /// 获取或创建指定动作类型的参数绑定缓存
         /// </summary>
@@ -394,5 +395,6 @@ namespace LWStep
         /// 动作快速应用时调用
         /// </summary>
         protected abstract void OnApply();
+
     }
 }
