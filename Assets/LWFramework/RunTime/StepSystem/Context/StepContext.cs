@@ -11,6 +11,8 @@ namespace LWStep
     /// </summary>
     public class StepContext
     {
+
+        private List<StepContextPersistEntry> m_Entries { get; set; }
         private Dictionary<string, object> m_Data;
         private Dictionary<string, Type> m_Types;
 
@@ -148,8 +150,7 @@ namespace LWStep
 
         public string ToJson()
         {
-            StepContextPersistData data = new StepContextPersistData();
-            data.Entries = new List<StepContextPersistEntry>();
+            m_Entries = new List<StepContextPersistEntry>();
             foreach (KeyValuePair<string, object> kvp in m_Data)
             {
                 string key = kvp.Key;
@@ -179,9 +180,9 @@ namespace LWStep
                 entry.Key = key;
                 entry.TypeName = valueType.AssemblyQualifiedName;
                 entry.Value = value.ToString();
-                data.Entries.Add(entry);
+                m_Entries.Add(entry);
             }
-            return JsonMapper.ToJson(data);
+            return JsonMapper.ToJson(m_Entries);
         }
 
         public void LoadFromJson(string json)
@@ -191,11 +192,9 @@ namespace LWStep
             {
                 return;
             }
-
-            StepContextPersistData data;
             try
             {
-                data = JsonMapper.ToObject<StepContextPersistData>(json);
+                m_Entries = JsonMapper.ToObject<List<StepContextPersistEntry>>(json);
             }
             catch (Exception e)
             {
@@ -203,14 +202,14 @@ namespace LWStep
                 return;
             }
 
-            if (data == null || data.Entries == null)
+            if (m_Entries == null)
             {
                 return;
             }
 
-            for (int i = 0; i < data.Entries.Count; i++)
+            for (int i = 0; i < m_Entries.Count; i++)
             {
-                StepContextPersistEntry entry = data.Entries[i];
+                StepContextPersistEntry entry = m_Entries[i];
                 if (entry == null || string.IsNullOrEmpty(entry.Key) || string.IsNullOrEmpty(entry.TypeName))
                 {
                     continue;
@@ -249,11 +248,6 @@ namespace LWStep
                 return false;
             }
             return true;
-        }
-
-        private class StepContextPersistData
-        {
-            public List<StepContextPersistEntry> Entries { get; set; }
         }
 
         private class StepContextPersistEntry

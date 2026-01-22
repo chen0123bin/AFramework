@@ -28,18 +28,18 @@ namespace LWStep
         void RestoreBaselineState();
     }
 
+    public class StepParamBinding
+    {
+        public string Key;
+        public Type ValueType;
+        public FieldInfo Field;
+        public PropertyInfo Property;
+    }
     /// <summary>
     /// 步骤动作基类（可继承扩展）
     /// </summary>
     public abstract class BaseStepAction
     {
-        private class StepParamBinding
-        {
-            public string Key;
-            public Type ValueType;
-            public FieldInfo Field;
-            public PropertyInfo Property;
-        }
 
         private static Dictionary<Type, List<StepParamBinding>> s_ParamBindingsCache = new Dictionary<Type, List<StepParamBinding>>();
 
@@ -122,11 +122,10 @@ namespace LWStep
                 }
 
                 object parsedValue;
-                if (!TryParseValue(rawValue, binding.ValueType, out parsedValue))
+                if (!StepUtility.TryParseValue(rawValue, binding.ValueType, out parsedValue))
                 {
                     continue;
                 }
-
                 try
                 {
                     if (binding.Field != null)
@@ -140,10 +139,10 @@ namespace LWStep
                 }
                 catch
                 {
+
                 }
             }
         }
-
 
         /// <summary>
         /// 获取或创建指定动作类型的参数绑定缓存
@@ -160,148 +159,12 @@ namespace LWStep
             {
                 return cached;
             }
-
-            List<StepParamBinding> bindings = new List<StepParamBinding>();
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
-            FieldInfo[] fields = actionType.GetFields(flags);
-            for (int i = 0; i < fields.Length; i++)
-            {
-                FieldInfo field = fields[i];
-                if (field == null)
-                {
-                    continue;
-                }
-
-                StepParamAttribute attr = Attribute.GetCustomAttribute(field, typeof(StepParamAttribute), true) as StepParamAttribute;
-                if (attr == null || string.IsNullOrEmpty(attr.Key))
-                {
-                    continue;
-                }
-
-                StepParamBinding binding = new StepParamBinding();
-                binding.Key = attr.Key;
-                binding.ValueType = field.FieldType;
-                binding.Field = field;
-                binding.Property = null;
-                bindings.Add(binding);
-            }
-
-            PropertyInfo[] properties = actionType.GetProperties(flags);
-            for (int i = 0; i < properties.Length; i++)
-            {
-                PropertyInfo property = properties[i];
-                if (property == null || !property.CanWrite)
-                {
-                    continue;
-                }
-
-                if (property.GetIndexParameters() != null && property.GetIndexParameters().Length > 0)
-                {
-                    continue;
-                }
-
-                StepParamAttribute attr = Attribute.GetCustomAttribute(property, typeof(StepParamAttribute), true) as StepParamAttribute;
-                if (attr == null || string.IsNullOrEmpty(attr.Key))
-                {
-                    continue;
-                }
-
-                StepParamBinding binding = new StepParamBinding();
-                binding.Key = attr.Key;
-                binding.ValueType = property.PropertyType;
-                binding.Field = null;
-                binding.Property = property;
-                bindings.Add(binding);
-            }
-
+            List<StepParamBinding> bindings = StepUtility.CreateStepParamBindings(actionType);
             s_ParamBindingsCache[actionType] = bindings;
             return bindings;
         }
 
-        /// <summary>
-        /// 尝试将字符串解析为目标类型
-        /// </summary>
-        private static bool TryParseValue(string rawValue, Type valueType, out object parsedValue)
-        {
-            parsedValue = null;
-            if (valueType == typeof(string))
-            {
-                parsedValue = rawValue;
-                return true;
-            }
 
-            if (valueType == typeof(int))
-            {
-                int intValue;
-                if (int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out intValue))
-                {
-                    parsedValue = intValue;
-                    return true;
-                }
-                return false;
-            }
-
-            if (valueType == typeof(float))
-            {
-                float floatValue;
-                if (float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue))
-                {
-                    parsedValue = floatValue;
-                    return true;
-                }
-                return false;
-            }
-
-            if (valueType == typeof(double))
-            {
-                double doubleValue;
-                if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out doubleValue))
-                {
-                    parsedValue = doubleValue;
-                    return true;
-                }
-                return false;
-            }
-
-            if (valueType == typeof(long))
-            {
-                long longValue;
-                if (long.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out longValue))
-                {
-                    parsedValue = longValue;
-                    return true;
-                }
-                return false;
-            }
-
-            if (valueType == typeof(bool))
-            {
-                bool boolValue;
-                if (bool.TryParse(rawValue, out boolValue))
-                {
-                    parsedValue = boolValue;
-                    return true;
-                }
-                return false;
-            }
-
-            if (valueType.IsEnum)
-            {
-                try
-                {
-                    object enumValue = Enum.Parse(valueType, rawValue, true);
-                    parsedValue = enumValue;
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// 重置动作状态
@@ -395,6 +258,5 @@ namespace LWStep
         /// 动作快速应用时调用
         /// </summary>
         protected abstract void OnApply();
-
     }
 }

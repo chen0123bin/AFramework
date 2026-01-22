@@ -13,8 +13,6 @@ public class StepDemoRunner : MonoBehaviour
 
 
     [SerializeField] private string m_XmlPath = "Assets/0Res/RawFiles/StepStage4Test.xml";
-    [SerializeField] private int m_AutoForwardCount = 3;
-    [SerializeField] private int m_AutoForwardDelayMs = 3000;
     [SerializeField] private string m_JumpTargetNodeId = "step_priority_gate";
     [SerializeField] private string m_JumpRequiredTag = "normal";
     [SerializeField] private string m_ForwardRequiredTag = "vip";

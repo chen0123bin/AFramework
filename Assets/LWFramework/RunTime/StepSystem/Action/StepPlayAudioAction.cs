@@ -100,6 +100,10 @@ namespace LWStep
         /// </summary>
         protected override void OnExit()
         {
+            if (m_LastChannel != null && m_LastChannel.IsPlay)
+            {
+                //ManagerUtility.AudioMgr.StopImmediate(m_LastChannel);
+            }
         }
 
         /// <summary>

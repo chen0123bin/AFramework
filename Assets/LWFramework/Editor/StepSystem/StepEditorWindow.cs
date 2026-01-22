@@ -9,6 +9,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using LWStep;
 
 namespace LWStep.Editor
 {
@@ -46,7 +47,7 @@ namespace LWStep.Editor
 
         private static Type[] s_ActionTypes;
         private static string[] s_ActionTypeNames;
-        private static Dictionary<Type, List<ActionParamMember>> s_ActionParamMembersCache = new Dictionary<Type, List<ActionParamMember>>();
+        private static Dictionary<Type, List<StepParamBinding>> s_ParamBindingsCache = new Dictionary<Type, List<StepParamBinding>>();
 
 
         private TextAsset m_BindingXmlAsset;
@@ -55,13 +56,13 @@ namespace LWStep.Editor
         private string m_RuntimeNodeId;
         private Vector2 m_NodeInspectorScroll;
 
-        internal class ActionParamMember
-        {
-            public string Key;
-            public Type ValueType;
-            public FieldInfo Field;
-            public PropertyInfo Property;
-        }
+        // internal class ActionParamMember
+        // {
+        //     public string Key;
+        //     public Type ValueType;
+        //     public FieldInfo Field;
+        //     public PropertyInfo Property;
+        // }
 
         private class StepEditorUndoState : ScriptableObject
         {
@@ -507,20 +508,20 @@ namespace LWStep.Editor
             return null;
         }
 
-        private static List<ActionParamMember> GetOrCreateActionParamMembers(Type actionType)
+        private static List<StepParamBinding> GetOrCreateStepParamBindings(Type actionType)
         {
             if (actionType == null)
             {
                 return null;
             }
 
-            List<ActionParamMember> cached;
-            if (s_ActionParamMembersCache.TryGetValue(actionType, out cached))
+            List<StepParamBinding> cached;
+            if (s_ParamBindingsCache.TryGetValue(actionType, out cached))
             {
                 return cached;
             }
-            List<ActionParamMember> members = StepUtility.CreateActionParamMembers(actionType);
-            s_ActionParamMembersCache[actionType] = members;
+            List<StepParamBinding> members = StepUtility.CreateStepParamBindings(actionType);
+            s_ParamBindingsCache[actionType] = members;
             return members;
         }
         /// <summary>
@@ -608,7 +609,7 @@ namespace LWStep.Editor
                 return;
             }
 
-            List<ActionParamMember> members = GetOrCreateActionParamMembers(actionType);
+            List<StepParamBinding> members = GetOrCreateStepParamBindings(actionType);
             if (members == null || members.Count == 0)
             {
                 return;
@@ -616,7 +617,7 @@ namespace LWStep.Editor
 
             for (int i = 0; i < members.Count; i++)
             {
-                ActionParamMember member = members[i];
+                StepParamBinding member = members[i];
                 if (member == null || string.IsNullOrEmpty(member.Key) || member.ValueType == null)
                 {
                     continue;
@@ -647,7 +648,7 @@ namespace LWStep.Editor
                 return;
             }
 
-            List<ActionParamMember> members = GetOrCreateActionParamMembers(actionType);
+            List<StepParamBinding> members = GetOrCreateStepParamBindings(actionType);
             if (members == null || members.Count == 0)
             {
                 return;
@@ -658,7 +659,7 @@ namespace LWStep.Editor
 
             for (int i = 0; i < members.Count; i++)
             {
-                ActionParamMember member = members[i];
+                StepParamBinding member = members[i];
                 if (member == null || string.IsNullOrEmpty(member.Key) || member.ValueType == null)
                 {
                     continue;

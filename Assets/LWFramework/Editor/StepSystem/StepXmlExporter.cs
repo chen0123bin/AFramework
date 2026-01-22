@@ -36,14 +36,6 @@ namespace LWStep.Editor
                     StepEditorActionData action = node.Actions[j];
                     XmlElement actionElement = doc.CreateElement("action");
                     actionElement.SetAttribute("type", action.TypeName ?? string.Empty);
-                    if (action.Phase >= 0)
-                    {
-                        actionElement.SetAttribute("phase", action.Phase.ToString(CultureInfo.InvariantCulture));
-                    }
-                    if (!action.IsBlocking)
-                    {
-                        actionElement.SetAttribute("isBlocking", "false");
-                    }
 
                     for (int k = 0; k < action.Parameters.Count; k++)
                     {

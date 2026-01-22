@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-16"?>
 <graph start="step_start">
   <nodes>
-    <node id="step_start" name="开始" x="0.00" y="-2.00">
+    <node id="step_start" name="开始" x="1.00" y="-2.00">
       <actions>
         <action type="LWStep.StepLogAction">
-          <param key="message" value="2222" />
+          <param key="message" value="开始启动" />
           <param key="message2" value="333333" />
         </action>
       </actions>
@@ -21,9 +21,12 @@
     <node id="step_mode_a" name="模式A" x="440.00" y="120.00">
       <actions>
         <action type="LWStep.StepLogAction">
+          <param key="isBlocking" value="false" />
           <param key="message" value="阶段4测试：进入模式A" />
         </action>
         <action type="LWStep.StepPlayAudioAction">
+          <param key="phase" value="1" />
+          <param key="isBlocking" value="false" />
           <param key="clip" value="Assets/0Res/Audios/bgm.wav" />
           <param key="target" value="AudioSourceObj" />
           <param key="volume" value="1" />
@@ -31,15 +34,21 @@
           <param key="fadeInSeconds" value="0" />
         </action>
         <action type="LWStep.StepMoveObjectAction">
+          <param key="phase" value="0" />
+          <param key="isBlocking" value="false" />
           <param key="target" value="Cube" />
           <param key="x" value="0" />
           <param key="y" value="3" />
           <param key="z" value="0" />
           <param key="isLocal" value="False" />
         </action>
+        <action type="LWStep.StepToggleObjectAction">
+          <param key="target" value="Cube" />
+          <param key="isActive" value="True" />
+        </action>
       </actions>
     </node>
-    <node id="step_mode_other" name="非A模式" x="453.00" y="-44.00">
+    <node id="step_mode_other" name="非A模式" x="452.80" y="-43.20">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：进入非A模式" />
@@ -50,6 +59,13 @@
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：标签选路" />
+        </action>
+        <action type="LWStep.StepMoveObjectAction">
+          <param key="target" value="Cube" />
+          <param key="x" value="0" />
+          <param key="y" value="0" />
+          <param key="z" value="5" />
+          <param key="isLocal" value="False" />
         </action>
       </actions>
     </node>

@@ -53,15 +53,13 @@ namespace LWStep.Editor
                             }
                             StepEditorActionData actionData = new StepEditorActionData();
                             actionData.TypeName = GetAttr(actionElement, "type");
-                            actionData.Phase = GetAttrInt(actionElement, "phase", -1);
-                            actionData.IsBlocking = GetAttrBool(actionElement, "isBlocking", true);
 
                             if (actionElement.HasAttributes)
                             {
                                 for (int k = 0; k < actionElement.Attributes.Count; k++)
                                 {
                                     XmlAttribute attr = actionElement.Attributes[k];
-                                    if (attr.Name == "type" || attr.Name == "phase" || attr.Name == "isBlocking")
+                                    if (attr.Name == "type")
                                     {
                                         continue;
                                     }
@@ -156,17 +154,6 @@ namespace LWStep.Editor
             string value = GetAttr(element, name);
             int result;
             if (int.TryParse(value, out result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
-
-        private static bool GetAttrBool(XmlElement element, string name, bool defaultValue)
-        {
-            string value = GetAttr(element, name);
-            bool result;
-            if (bool.TryParse(value, out result))
             {
                 return result;
             }

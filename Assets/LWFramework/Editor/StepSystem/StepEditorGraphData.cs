@@ -99,8 +99,6 @@ namespace LWStep.Editor
     public class StepEditorActionData
     {
         public string TypeName;
-        public int Phase;
-        public bool IsBlocking;
         public List<StepEditorParameterData> Parameters;
 
         /// <summary>
@@ -109,8 +107,6 @@ namespace LWStep.Editor
         public StepEditorActionData()
         {
             TypeName = string.Empty;
-            Phase = -1;
-            IsBlocking = true;
             Parameters = new List<StepEditorParameterData>();
         }
     }

@@ -74,8 +74,6 @@ namespace LWStep
                                 continue;
                             }
                             string typeName = GetAttr(actionElement, "type");
-                            int phase = GetAttrInt(actionElement, "phase", -1);
-                            bool isBlocking = GetAttrBool(actionElement, "isBlocking", true);
                             BaseStepAction action = factory.CreateAction(typeName);
                             if (action == null)
                             {
@@ -84,7 +82,7 @@ namespace LWStep
                             }
                             Dictionary<string, string> parameters = ReadActionParameters(actionElement);
                             action.SetParameters(parameters);
-                            stepNode.AddAction(action, phase, isBlocking);
+                            stepNode.AddAction(action);
                         }
                     }
 
@@ -138,7 +136,7 @@ namespace LWStep
                 for (int i = 0; i < actionElement.Attributes.Count; i++)
                 {
                     XmlAttribute attr = actionElement.Attributes[i];
-                    if (attr.Name == "type" || attr.Name == "phase" || attr.Name == "isBlocking")
+                    if (attr.Name == "type")
                     {
                         continue;
                     }
@@ -178,17 +176,6 @@ namespace LWStep
             string value = GetAttr(element, name);
             int result;
             if (int.TryParse(value, out result))
-            {
-                return result;
-            }
-            return defaultValue;
-        }
-
-        private bool GetAttrBool(XmlElement element, string name, bool defaultValue)
-        {
-            string value = GetAttr(element, name);
-            bool result;
-            if (bool.TryParse(value, out result))
             {
                 return result;
             }
