@@ -10,6 +10,7 @@ namespace LWStep
     {
         public string StartNodeId { get; private set; }
 
+        public string Name { get; private set; }
         private Dictionary<string, StepNode> m_Nodes;
         private List<StepEdge> m_Edges;
         private Dictionary<string, List<StepEdge>> m_OutgoingEdges;
@@ -17,9 +18,10 @@ namespace LWStep
         /// <summary>
         /// 创建步骤图
         /// </summary>
-        public StepGraph(string startNodeId)
+        public StepGraph(string startNodeId, string name)
         {
             StartNodeId = startNodeId;
+            Name = name;
             m_Nodes = new Dictionary<string, StepNode>();
             m_Edges = new List<StepEdge>();
             m_OutgoingEdges = new Dictionary<string, List<StepEdge>>();
@@ -28,7 +30,7 @@ namespace LWStep
         /// <summary>
         /// 获取图内所有节点快照（用于基线捕获与恢复）
         /// </summary>
-        public List<StepNode> GetAllNodesSnapshot()
+        public List<StepNode> GetAllNodes()
         {
             List<StepNode> nodes = new List<StepNode>(m_Nodes.Count);
             foreach (KeyValuePair<string, StepNode> kvp in m_Nodes)

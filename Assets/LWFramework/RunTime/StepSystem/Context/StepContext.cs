@@ -11,20 +11,8 @@ namespace LWStep
     /// </summary>
     public class StepContext
     {
-
         private List<StepContextPersistEntry> m_Entries { get; set; }
         private Dictionary<string, object> m_Data;
-        private Dictionary<string, Type> m_Types;
-
-        public struct StepContextKey<T>
-        {
-            public string Name { get; private set; }
-
-            public StepContextKey(string name)
-            {
-                Name = name;
-            }
-        }
 
         /// <summary>
         /// 创建上下文
@@ -32,7 +20,6 @@ namespace LWStep
         public StepContext()
         {
             m_Data = new Dictionary<string, object>();
-            m_Types = new Dictionary<string, Type>();
         }
 
         /// <summary>
@@ -43,16 +30,9 @@ namespace LWStep
             if (m_Data.ContainsKey(key))
             {
                 m_Data[key] = value;
-                m_Types[key] = typeof(T);
                 return;
             }
             m_Data.Add(key, value);
-            m_Types.Add(key, typeof(T));
-        }
-
-        public void SetValue<T>(StepContextKey<T> key, T value)
-        {
-            SetValue(key.Name, value);
         }
 
         /// <summary>
@@ -71,11 +51,6 @@ namespace LWStep
             return defaultValue;
         }
 
-        public T GetValue<T>(StepContextKey<T> key, T defaultValue = default(T))
-        {
-            return GetValue(key.Name, defaultValue);
-        }
-
         public bool TryGetValue<T>(string key, out T value)
         {
             object rawValue;
@@ -91,11 +66,6 @@ namespace LWStep
             return false;
         }
 
-        public bool TryGetValue<T>(StepContextKey<T> key, out T value)
-        {
-            return TryGetValue(key.Name, out value);
-        }
-
         /// <summary>
         /// 是否包含指定Key
         /// </summary>
@@ -104,21 +74,10 @@ namespace LWStep
             return m_Data.ContainsKey(key);
         }
 
-        public bool HasKey<T>(StepContextKey<T> key)
-        {
-            return HasKey(key.Name);
-        }
-
         public bool RemoveKey(string key)
         {
             bool removed = m_Data.Remove(key);
-            m_Types.Remove(key);
             return removed;
-        }
-
-        public bool RemoveKey<T>(StepContextKey<T> key)
-        {
-            return RemoveKey(key.Name);
         }
 
         public bool TryGetRawValue(string key, out object value)
@@ -132,7 +91,6 @@ namespace LWStep
         public void Clear()
         {
             m_Data.Clear();
-            m_Types.Clear();
         }
 
         /// <summary>
@@ -155,31 +113,23 @@ namespace LWStep
             {
                 string key = kvp.Key;
                 object value = kvp.Value;
-                Type valueType;
-                if (!m_Types.TryGetValue(key, out valueType) || valueType == null)
+                if (value == null)
                 {
-                    if (value != null)
-                    {
-                        valueType = value.GetType();
-                    }
-                }
-
-                if (valueType == null)
-                {
-                    LWDebug.LogWarning("步骤上下文序列化失败：类型为空，Key=" + key);
+                    LWDebug.LogWarning("步骤上下文序列化失败：值为空，Key=" + key);
                     continue;
                 }
 
-                if (!IsSerializableType(valueType))
+                Type valueType = value.GetType();
+                if (!IsBasicSerializableType(valueType))
                 {
                     LWDebug.LogWarning("步骤上下文序列化失败：类型不支持，Key=" + key + "，类型=" + valueType.FullName);
                     continue;
                 }
 
+                string valueString = StepUtility.ConvertToRawString(value, valueType);
                 StepContextPersistEntry entry = new StepContextPersistEntry();
                 entry.Key = key;
-                entry.TypeName = valueType.AssemblyQualifiedName;
-                entry.Value = value.ToString();
+                entry.Value = valueString;
                 m_Entries.Add(entry);
             }
             return JsonMapper.ToJson(m_Entries);
@@ -210,32 +160,28 @@ namespace LWStep
             for (int i = 0; i < m_Entries.Count; i++)
             {
                 StepContextPersistEntry entry = m_Entries[i];
-                if (entry == null || string.IsNullOrEmpty(entry.Key) || string.IsNullOrEmpty(entry.TypeName))
+                if (entry == null || string.IsNullOrEmpty(entry.Key))
                 {
                     continue;
                 }
 
-                Type valueType = Type.GetType(entry.TypeName);
-                if (valueType == null)
+                string rawValue = entry.Value;
+                object parsedValue;
+                if (StepUtility.TryParseBasicValue(rawValue, out parsedValue))
                 {
-                    LWDebug.LogWarning("步骤上下文反序列化失败：类型不存在，Key=" + entry.Key + "，类型=" + entry.TypeName);
-                    continue;
+                    m_Data[entry.Key] = parsedValue;
                 }
-
-                if (!IsSerializableType(valueType))
+                else
                 {
-                    LWDebug.LogWarning("步骤上下文反序列化失败：类型不支持，Key=" + entry.Key + "，类型=" + valueType.FullName);
-                    continue;
+                    m_Data[entry.Key] = rawValue;
                 }
-
-
-
-                m_Data[entry.Key] = entry.Value;
-                m_Types[entry.Key] = valueType;
             }
         }
 
-        private bool IsSerializableType(Type valueType)
+        /// <summary>
+        /// 判断是否为可序列化的基础类型
+        /// </summary>
+        private bool IsBasicSerializableType(Type valueType)
         {
             if (valueType == null)
             {
@@ -247,13 +193,16 @@ namespace LWStep
             {
                 return false;
             }
-            return true;
+            if (valueType == typeof(string) || valueType == typeof(int) || valueType == typeof(float) || valueType == typeof(double) || valueType == typeof(long) || valueType == typeof(bool))
+            {
+                return true;
+            }
+            return false;
         }
 
         private class StepContextPersistEntry
         {
             public string Key { get; set; }
-            public string TypeName { get; set; }
             public string Value { get; set; }
         }
     }

@@ -66,6 +66,7 @@ public class StepDemoRunner : MonoBehaviour
             presetContext.SetValue("mode", m_PresetMode);
             presetContext.SetValue("score", m_PresetScore);
             presetContext.SetValue("isVip", m_PresetIsVip);
+
             string presetJson = presetContext.ToJson();
             stepManager.LoadContextFromJson(presetJson);
 

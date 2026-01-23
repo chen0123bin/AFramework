@@ -95,13 +95,7 @@ namespace LWStep
                 LWDebug.LogError("步骤图加载失败: " + xmlAssetPath);
                 return;
             }
-            string graphName = Path.GetFileNameWithoutExtension(xmlAssetPath);
-            if (string.IsNullOrEmpty(graphName))
-            {
-                LWDebug.LogError("步骤图名称为空: " + xmlAssetPath);
-                return;
-            }
-            m_Graphs[graphName] = graph;
+            m_Graphs[graph.Name] = graph;
         }
 
         /// <summary>
@@ -311,6 +305,23 @@ namespace LWStep
             SwitchToNode(targetNodeId, true);
         }
         /// <summary>
+        /// 获取指定图内所有节点快照（用于基线捕获与恢复）
+        /// </summary>
+        /// <param name="graphName"></param>
+        /// <returns></returns>
+        public List<StepNode> GetAllNodes(string graphName = null)
+        {
+            if (string.IsNullOrEmpty(graphName))
+            {
+                return m_CurrentGraph?.GetAllNodes();
+            }
+            if (m_Graphs.TryGetValue(graphName, out StepGraph graph))
+            {
+                return graph.GetAllNodes();
+            }
+            return new List<StepNode>();
+        }
+        /// <summary>
         /// 获取当前节点的可前进目标集合
         /// </summary>
         public List<string> GetAvailableNextNodes()
@@ -418,7 +429,7 @@ namespace LWStep
                 return;
             }
 
-            List<StepNode> nodes = graph.GetAllNodesSnapshot();
+            List<StepNode> nodes = graph.GetAllNodes();
             for (int i = 0; i < nodes.Count; i++)
             {
                 StepNode node = nodes[i];
@@ -490,7 +501,7 @@ namespace LWStep
             }
 
             RestoreBaselineSnapshots();
-            //m_Context.Clear();
+            m_Context.Clear();
 
             for (int i = 0; i < historyIndex; i++)
             {

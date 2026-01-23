@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Xml;
+using LWStep;
 using UnityEngine;
 
 namespace LWStep.Editor
@@ -39,6 +41,15 @@ namespace LWStep.Editor
                     nodeData.Id = GetAttr(nodeElement, "id");
                     nodeData.Name = GetAttr(nodeElement, "name");
                     nodeData.Position = ReadPosition(nodeElement, i);
+                    string modeValue = GetAttr(nodeElement, "mode");
+                    if (!string.IsNullOrEmpty(modeValue) && string.Equals(modeValue, "parallel", StringComparison.OrdinalIgnoreCase))
+                    {
+                        nodeData.Mode = StepNodeMode.Parallel;
+                    }
+                    else
+                    {
+                        nodeData.Mode = StepNodeMode.Serial;
+                    }
 
                     XmlNode actionsNode = nodeElement.SelectSingleNode("actions");
                     if (actionsNode != null)

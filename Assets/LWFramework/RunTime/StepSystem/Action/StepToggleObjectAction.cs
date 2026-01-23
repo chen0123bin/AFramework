@@ -3,10 +3,8 @@ using UnityEngine;
 
 namespace LWStep
 {
-    public class StepToggleObjectAction : BaseStepAction, IStepBaselineStateAction
+    public class StepToggleObjectAction : BaseTargeStepAction, IStepBaselineStateAction
     {
-        [StepParam("target")]
-        private string m_TargetName;
 
         [StepParam("isActive")]
         private bool m_IsActive = true;
@@ -23,16 +21,16 @@ namespace LWStep
         public void CaptureBaselineState()
         {
             m_BaselineTargetName = m_TargetName;
-            GameObject target = FindTarget();
-            if (target == null)
+            m_Target = FindTarget();
+            if (m_Target == null)
             {
                 m_HasBaseline = false;
                 m_BaselineTarget = null;
                 return;
             }
 
-            m_BaselineTarget = target;
-            Renderer renderer = target.GetComponent<Renderer>();
+            m_BaselineTarget = m_Target;
+            Renderer renderer = m_Target.GetComponent<Renderer>();
             m_BaselineHasRenderer = renderer != null;
             m_BaselineRendererEnabled = renderer != null && renderer.enabled;
             m_HasBaseline = true;
@@ -110,39 +108,22 @@ namespace LWStep
         /// </summary>
         private void ExecuteToggle()
         {
-            GameObject target = FindTarget();
-            if (target == null)
+            if (m_Target == null)
             {
                 return;
             }
 
-            Renderer renderer = target.GetComponent<Renderer>();
+            Renderer renderer = m_Target.GetComponent<Renderer>();
             if (renderer == null)
             {
-                LWDebug.LogWarning("步骤动作-物体显隐：对象缺少 Renderer " + target.name);
+                LWDebug.LogWarning("步骤动作-物体显隐：对象缺少 Renderer " + m_Target.name);
                 return;
             }
             renderer.enabled = m_IsActive;
-            LWDebug.Log("步骤动作-物体显隐：" + target.name + " -> " + m_IsActive);
+            LWDebug.Log("步骤动作-物体显隐：" + m_Target.name + " -> " + m_IsActive);
+            GetContext().SetValue(m_TargetName + "-" + "isActive", m_IsActive);
         }
 
-        /// <summary>
-        /// 查找目标对象
-        /// </summary>
-        private GameObject FindTarget()
-        {
-            if (string.IsNullOrEmpty(m_TargetName))
-            {
-                LWDebug.LogWarning("步骤动作-物体显隐：target 为空");
-                return null;
-            }
 
-            GameObject target = GameObject.Find(m_TargetName);
-            if (target == null)
-            {
-                LWDebug.LogWarning("步骤动作-物体显隐：未找到对象 " + m_TargetName);
-            }
-            return target;
-        }
     }
 }

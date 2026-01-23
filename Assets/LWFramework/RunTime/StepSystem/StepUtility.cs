@@ -214,6 +214,54 @@ namespace LWStep
             return false;
         }
         /// <summary>
+        /// 尝试将字符串解析为基础类型
+        /// </summary>
+        public static bool TryParseBasicValue(string rawValue, out object parsedValue)
+        {
+            parsedValue = null;
+            if (rawValue == null)
+            {
+                return false;
+            }
+
+            bool boolValue;
+            if (bool.TryParse(rawValue, out boolValue))
+            {
+                parsedValue = boolValue;
+                return true;
+            }
+
+            int intValue;
+            if (int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out intValue))
+            {
+                parsedValue = intValue;
+                return true;
+            }
+
+            long longValue;
+            if (long.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out longValue))
+            {
+                parsedValue = longValue;
+                return true;
+            }
+
+            float floatValue;
+            if (float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue))
+            {
+                parsedValue = floatValue;
+                return true;
+            }
+
+            double doubleValue;
+            if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out doubleValue))
+            {
+                parsedValue = doubleValue;
+                return true;
+            }
+
+            return false;
+        }
+        /// <summary>
         /// 将指定值转换为编辑器输入的字符串表示
         /// </summary>
         /// <param name="value"></param>

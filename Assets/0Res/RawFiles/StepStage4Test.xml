@@ -4,7 +4,7 @@
     <node id="step_start" name="开始" x="1.00" y="-2.00">
       <actions>
         <action type="LWStep.StepLogAction">
-          <param key="message" value="开始启动" />
+          <param key="message" value="开始启动00333" />
           <param key="message2" value="333333" />
         </action>
       </actions>
@@ -18,7 +18,7 @@
         </action>
       </actions>
     </node>
-    <node id="step_mode_a" name="模式A" x="440.00" y="120.00">
+    <node id="step_mode_a" name="模式A" x="448.00" y="92.00" mode="parallel">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="isBlocking" value="false" />
@@ -27,11 +27,16 @@
         <action type="LWStep.StepPlayAudioAction">
           <param key="phase" value="1" />
           <param key="isBlocking" value="false" />
-          <param key="clip" value="Assets/0Res/Audios/bgm.wav" />
+          <param key="clip" value="Assets/0Res/Audios/bgm2.wav" />
           <param key="target" value="AudioSourceObj" />
           <param key="volume" value="1" />
           <param key="isLoop" value="False" />
           <param key="fadeInSeconds" value="0" />
+          <param key="waitForFinish" value="True" />
+        </action>
+        <action type="LWStep.StepToggleObjectAction">
+          <param key="target" value="Cube" />
+          <param key="isActive" value="True" />
         </action>
         <action type="LWStep.StepMoveObjectAction">
           <param key="phase" value="0" />
@@ -41,14 +46,19 @@
           <param key="y" value="3" />
           <param key="z" value="0" />
           <param key="isLocal" value="False" />
+          <param key="moveTime" value="3" />
         </action>
-        <action type="LWStep.StepToggleObjectAction">
+        <action type="LWStep.StepRotateObjectAction">
+          <param key="x" value="0" />
+          <param key="y" value="46.14" />
+          <param key="z" value="0" />
+          <param key="isLocal" value="False" />
+          <param key="rotateTime" value="2" />
           <param key="target" value="Cube" />
-          <param key="isActive" value="True" />
         </action>
       </actions>
     </node>
-    <node id="step_mode_other" name="非A模式" x="452.80" y="-43.20">
+    <node id="step_mode_other" name="非A模式" x="433.60" y="-57.60">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：进入非A模式" />
@@ -66,10 +76,18 @@
           <param key="y" value="0" />
           <param key="z" value="5" />
           <param key="isLocal" value="False" />
+          <param key="moveTime" value="2" />
+        </action>
+        <action type="LWStep.StepScaleObjectAction">
+          <param key="x" value="2" />
+          <param key="y" value="2" />
+          <param key="z" value="2" />
+          <param key="scaleTime" value="1" />
+          <param key="target" value="Cube" />
         </action>
       </actions>
     </node>
-    <node id="step_tag_vip" name="VIP标签" x="880.00" y="140.00">
+    <node id="step_tag_vip" name="VIP标签" x="879.20" y="140.80">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：VIP标签路径" />
@@ -83,7 +101,7 @@
         </action>
       </actions>
     </node>
-    <node id="step_tag_default" name="默认标签" x="880.00" y="-140.00">
+    <node id="step_tag_default" name="默认标签" x="913.60" y="-144.80">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：默认标签路径" />
@@ -169,10 +187,9 @@
     <edge from="step_mode_other" to="step_tag_gate" priority="0" />
     <edge from="step_tag_gate" to="step_tag_vip" priority="20" tag="vip" />
     <edge from="step_tag_gate" to="step_tag_normal" priority="10" tag="normal" />
-    <edge from="step_tag_gate" to="step_tag_default" priority="1" />
+    <edge from="step_tag_gate" to="step_tag_default" priority="1" tag="default" />
     <edge from="step_tag_vip" to="step_condition_gate" priority="0" />
     <edge from="step_tag_normal" to="step_condition_gate" priority="0" />
-    <edge from="step_tag_default" to="step_condition_gate" priority="0" />
     <edge from="step_condition_gate" to="step_vip_true" priority="10" condition="isVip == true" />
     <edge from="step_condition_gate" to="step_vip_false" priority="5" condition="isVip ==false" />
     <edge from="step_vip_true" to="step_score_gate" priority="0" />
@@ -185,5 +202,6 @@
     <edge from="step_priority_gate" to="step_priority_low" priority="10" />
     <edge from="step_priority_high" to="step_end" priority="0" />
     <edge from="step_priority_low" to="step_end" priority="0" />
+    <edge from="step_tag_default" to="step_condition_gate" priority="0" />
   </edges>
 </graph>

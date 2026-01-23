@@ -72,7 +72,11 @@ namespace LWCore
         /// <param name="targetNodeId">目标节点ID</param>
         /// <param name="requiredTag"></param>
         void JumpTo(string targetNodeId, string requiredTag = null);
-
+        /// <summary>
+        /// 获取当前图所有节点
+        /// </summary>
+        /// <returns>当前图所有节点ID集合</returns>
+        List<StepNode> GetAllNodes(string graphName = null);
         /// <summary>
         /// 获取当前节点的可前进目标集合
         /// </summary>

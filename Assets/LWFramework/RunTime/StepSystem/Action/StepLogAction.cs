@@ -41,6 +41,7 @@ namespace LWStep
         protected override void OnApply()
         {
             string message = GetMessage();
+
             LWDebug.Log(message);
         }
 

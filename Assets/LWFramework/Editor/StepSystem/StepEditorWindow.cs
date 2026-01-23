@@ -17,7 +17,6 @@ namespace LWStep.Editor
     {
         private const string BINDING_XML_PATH_KEY = "LWStep.StepEditor.Binding.XmlPath";
 
-        private const string PREVIEW_ENABLED_KEY = "LWStep.StepEditor.Preview.Enabled";
 
         private StepEditorGraphData m_Data;
         private StepGraphView m_GraphView;
@@ -69,7 +68,7 @@ namespace LWStep.Editor
             public string GraphJson;
         }
 
-        [MenuItem("LWFramework/Step/Step Editor")]
+        [MenuItem("LWFramework/Step/Step Editor", false, -1)]
         /// <summary>
         /// 打开步骤图编辑器窗口
         /// </summary>
@@ -271,7 +270,6 @@ namespace LWStep.Editor
         }
         private void OnContextFoldoutValueChanged(ChangeEvent<bool> evt)
         {
-            Debug.Log($"OnContextFoldoutValueChanged: {evt.newValue}");
             m_ContextPanel.style.height = evt.newValue ? m_ContextPanelMaxHeight : m_ContextPanelMinHeight;
         }
 
@@ -777,6 +775,7 @@ namespace LWStep.Editor
             }
             m_SelectedNode.Name = EditorGUILayout.TextField("节点名称", m_SelectedNode.Name);
             m_SelectedNode.Position = EditorGUILayout.Vector2Field("位置", m_SelectedNode.Position);
+            m_SelectedNode.Mode = (StepNodeMode)EditorGUILayout.EnumPopup("执行模式", m_SelectedNode.Mode);
             if (EditorGUI.EndChangeCheck())
             {
                 SaveUndoSnapshot("编辑节点");
@@ -1036,7 +1035,7 @@ namespace LWStep.Editor
             else
             {
                 ImportXml(m_BindingXmlAsset.text);
-                EditorUtility.DisplayDialog("快速导入成功", $"XML 导入成功\n路径：{m_BindingXmlPath}", "确定");
+                //EditorUtility.DisplayDialog("快速导入成功", $"XML 导入成功\n路径：{m_BindingXmlPath}", "确定");
             }
             BuildContextPanel();
 
@@ -1073,7 +1072,7 @@ namespace LWStep.Editor
 
                 StepXmlExporter.SaveToFile(m_BindingXmlPath, m_Data);
                 AssetDatabase.Refresh();
-                EditorUtility.DisplayDialog("快速导出成功", $"XML 导出成功\n路径：{m_BindingXmlPath}", "确定");
+                //EditorUtility.DisplayDialog("快速导出成功", $"XML 导出成功\n路径：{m_BindingXmlPath}", "确定");
             }
 
         }
@@ -1115,7 +1114,8 @@ namespace LWStep.Editor
                 EditorUtility.DisplayDialog("预览失败", "请先绑定XML", "确定");
                 return;
             }
-            EditorPrefs.SetBool(PREVIEW_ENABLED_KEY, true);
+            //快速导出xml
+            OnExportXml();
             if (!EditorApplication.isPlaying)
             {
                 EditorApplication.isPlaying = true;
@@ -1258,7 +1258,7 @@ namespace LWStep.Editor
             for (int i = 0; i < m_Data.Nodes.Count; i++)
             {
                 StepEditorNodeData node = m_Data.Nodes[i];
-                StepNode stepNode = new StepNode(node.Id, node.Name);
+                StepNode stepNode = new StepNode(node.Id, node.Name, node.Mode);
                 graph.AddNode(stepNode);
             }
             for (int i = 0; i < m_Data.Edges.Count; i++)

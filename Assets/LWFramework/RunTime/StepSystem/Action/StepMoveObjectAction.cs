@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Globalization;
+using DG.Tweening;
 using LWCore;
 using UnityEngine;
 
 namespace LWStep
 {
-    public class StepMoveObjectAction : BaseStepAction, IStepBaselineStateAction
+    public class StepMoveObjectAction : BaseTargeStepAction, IStepBaselineStateAction
     {
-        [StepParam("target")]
-        private string m_TargetName;
 
         [StepParam("x")]
         private float m_X;
@@ -21,13 +20,15 @@ namespace LWStep
 
         [StepParam("isLocal")]
         private bool m_IsLocal;
+        [StepParam("moveTime")]
+        private float m_MoveTime;
 
+        private Vector3 targetPosition;
         private bool m_HasBaseline;
         private string m_BaselineTargetName;
         private GameObject m_BaselineTarget;
         private Vector3 m_BaselineLocalPosition;
-        private Quaternion m_BaselineLocalRotation;
-        private Vector3 m_BaselineLocalScale;
+
 
         /// <summary>
         /// 捕获动作基线状态（用于回退恢复）
@@ -46,8 +47,7 @@ namespace LWStep
             m_BaselineTarget = target;
             Transform transform = target.transform;
             m_BaselineLocalPosition = transform.localPosition;
-            m_BaselineLocalRotation = transform.localRotation;
-            m_BaselineLocalScale = transform.localScale;
+
             m_HasBaseline = true;
         }
 
@@ -70,8 +70,7 @@ namespace LWStep
 
             Transform transform = target.transform;
             transform.localPosition = m_BaselineLocalPosition;
-            transform.localRotation = m_BaselineLocalRotation;
-            transform.localScale = m_BaselineLocalScale;
+
         }
 
         /// <summary>
@@ -79,8 +78,9 @@ namespace LWStep
         /// </summary>
         protected override void OnEnter()
         {
+            targetPosition = new Vector3(m_X, m_Y, m_Z);
             ExecuteMove();
-            Finish();
+            //Finish();
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace LWStep
         {
             if (!IsFinished)
             {
-                Finish();
+                //Finish();
             }
         }
 
@@ -99,6 +99,7 @@ namespace LWStep
         /// </summary>
         protected override void OnExit()
         {
+            m_Target.transform.DOKill();
         }
 
         /// <summary>
@@ -106,7 +107,19 @@ namespace LWStep
         /// </summary>
         protected override void OnApply()
         {
-            ExecuteMove();
+            if (m_Target == null)
+            {
+                LWDebug.LogWarning("步骤动作-物体移动：快速应用失败，未找到对象 " + m_TargetName);
+                return;
+            }
+            if (m_IsLocal)
+            {
+                m_Target.transform.localPosition = targetPosition;
+            }
+            else
+            {
+                m_Target.transform.position = targetPosition;
+            }
         }
 
         /// <summary>
@@ -114,41 +127,25 @@ namespace LWStep
         /// </summary>
         private void ExecuteMove()
         {
-            GameObject target = FindTarget();
-            if (target == null)
-            {
-                return;
-            }
 
-            Vector3 position = new Vector3(m_X, m_Y, m_Z);
+
             if (m_IsLocal)
             {
-                target.transform.localPosition = position;
+                m_Target.transform.DOLocalMove(targetPosition, m_MoveTime).OnComplete(() =>
+                {
+                    Finish();
+                });
             }
             else
             {
-                target.transform.position = position;
+                m_Target.transform.DOMove(targetPosition, m_MoveTime).OnComplete(() =>
+                {
+                    Finish();
+                });
             }
-            LWDebug.Log("步骤动作-物体移动：" + target.name + " -> " + position);
+            LWDebug.Log("步骤动作-物体移动：" + m_Target.name + " -> " + targetPosition);
         }
 
-        /// <summary>
-        /// 查找目标对象
-        /// </summary>
-        private GameObject FindTarget()
-        {
-            if (string.IsNullOrEmpty(m_TargetName))
-            {
-                LWDebug.LogWarning("步骤动作-物体移动：target 为空");
-                return null;
-            }
 
-            GameObject target = GameObject.Find(m_TargetName);
-            if (target == null)
-            {
-                LWDebug.LogWarning("步骤动作-物体移动：未找到对象 " + m_TargetName);
-            }
-            return target;
-        }
     }
 }

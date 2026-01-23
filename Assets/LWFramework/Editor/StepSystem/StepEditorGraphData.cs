@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LWStep;
 using UnityEngine;
 
 namespace LWStep.Editor
@@ -59,6 +60,7 @@ namespace LWStep.Editor
         public string Id;
         public string Name;
         public Vector2 Position;
+        public StepNodeMode Mode;
         public List<StepEditorActionData> Actions;
 
         /// <summary>
@@ -69,6 +71,7 @@ namespace LWStep.Editor
             Id = string.Empty;
             Name = string.Empty;
             Position = Vector2.zero;
+            Mode = StepNodeMode.Serial;
             Actions = new List<StepEditorActionData>();
         }
     }

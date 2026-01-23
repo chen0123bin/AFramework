@@ -2,6 +2,12 @@ using System.Collections.Generic;
 
 namespace LWStep
 {
+    public enum StepNodeMode
+    {
+        Serial = 0,
+        Parallel = 1
+    }
+
     /// <summary>
     /// 步骤节点
     /// </summary>
@@ -9,21 +15,30 @@ namespace LWStep
     {
         public string Id { get; private set; }
         public string Name { get; private set; }
+        public StepNodeMode Mode { get; private set; }
 
         private List<BaseStepAction> m_Actions;
         private int m_CurrentActionIndex;
         private bool m_IsEntered;
+        private bool[] m_ActionExitStates;
 
         /// <summary>
         /// 创建节点
         /// </summary>
         public StepNode(string id, string name)
+            : this(id, name, StepNodeMode.Serial)
+        {
+        }
+
+        public StepNode(string id, string name, StepNodeMode mode)
         {
             Id = id;
             Name = name;
+            Mode = mode;
             m_Actions = new List<BaseStepAction>();
             m_CurrentActionIndex = 0;
             m_IsEntered = false;
+            m_ActionExitStates = null;
         }
 
         /// <summary>
@@ -46,7 +61,18 @@ namespace LWStep
             BindContext(context);
             ResetActions();
             m_IsEntered = true;
-            if (m_Actions.Count > 0)
+            if (m_Actions.Count == 0)
+            {
+                return;
+            }
+            if (Mode == StepNodeMode.Parallel)
+            {
+                for (int i = 0; i < m_Actions.Count; i++)
+                {
+                    m_Actions[i].Enter();
+                }
+            }
+            else
             {
                 m_Actions[0].Enter();
             }
@@ -67,19 +93,56 @@ namespace LWStep
                 return true;
             }
 
-            BaseStepAction currentAction = m_Actions[m_CurrentActionIndex];
-            currentAction.Update();
-            if (currentAction.IsFinished)
+            if (Mode == StepNodeMode.Parallel)
             {
-                currentAction.Exit();
-                m_CurrentActionIndex += 1;
-                isActionChanged = true;
-                if (m_CurrentActionIndex < m_Actions.Count)
+                bool allFinished = true;
+                for (int i = 0; i < m_Actions.Count; i++)
                 {
-                    m_Actions[m_CurrentActionIndex].Enter();
+                    BaseStepAction action = m_Actions[i];
+                    if (!action.IsFinished)
+                    {
+                        action.Update();
+                    }
+                    if (action.IsFinished)
+                    {
+                        if (m_ActionExitStates != null && !m_ActionExitStates[i])
+                        {
+                            action.Exit();
+                            m_ActionExitStates[i] = true;
+                            isActionChanged = true;
+                        }
+                    }
+                    else
+                    {
+                        allFinished = false;
+                    }
                 }
+                if (allFinished)
+                {
+                    m_CurrentActionIndex = m_Actions.Count;
+                }
+                return allFinished;
             }
-            return m_CurrentActionIndex >= m_Actions.Count;
+            else
+            {
+                BaseStepAction currentAction = m_Actions[m_CurrentActionIndex];
+                currentAction.Update();
+                if (currentAction.IsFinished)
+                {
+                    currentAction.Exit();
+                    if (m_ActionExitStates != null && m_CurrentActionIndex < m_ActionExitStates.Length)
+                    {
+                        m_ActionExitStates[m_CurrentActionIndex] = true;
+                    }
+                    m_CurrentActionIndex += 1;
+                    isActionChanged = true;
+                    if (m_CurrentActionIndex < m_Actions.Count)
+                    {
+                        m_Actions[m_CurrentActionIndex].Enter();
+                    }
+                }
+                return m_CurrentActionIndex >= m_Actions.Count;
+            }
         }
 
         /// <summary>
@@ -96,6 +159,13 @@ namespace LWStep
             }
             m_CurrentActionIndex = m_Actions.Count;
             m_IsEntered = true;
+            if (m_ActionExitStates != null)
+            {
+                for (int i = 0; i < m_ActionExitStates.Length; i++)
+                {
+                    m_ActionExitStates[i] = true;
+                }
+            }
         }
 
         /// <summary>
@@ -104,13 +174,35 @@ namespace LWStep
         public void ApplyRemaining(StepContext context)
         {
             BindContext(context);
-            for (int i = m_CurrentActionIndex; i < m_Actions.Count; i++)
+            if (Mode == StepNodeMode.Parallel)
             {
-                BaseStepAction action = m_Actions[i];
-                action.Reset();
-                action.Apply();
+                for (int i = 0; i < m_Actions.Count; i++)
+                {
+                    BaseStepAction action = m_Actions[i];
+                    if (action.IsFinished)
+                    {
+                        continue;
+                    }
+                    action.Reset();
+                    action.Apply();
+                    if (m_ActionExitStates != null)
+                    {
+                        m_ActionExitStates[i] = true;
+                    }
+                }
+                m_CurrentActionIndex = m_Actions.Count;
             }
-            m_CurrentActionIndex = m_Actions.Count;
+            else
+            {
+                for (int i = m_CurrentActionIndex; i < m_Actions.Count; i++)
+                {
+                    BaseStepAction action = m_Actions[i];
+                    action.Reset();
+                    action.Apply();
+                }
+                m_CurrentActionIndex = m_Actions.Count;
+            }
+
         }
 
         /// <summary>
@@ -118,9 +210,31 @@ namespace LWStep
         /// </summary>
         public void Leave()
         {
-            if (m_CurrentActionIndex >= 0 && m_CurrentActionIndex < m_Actions.Count)
+            if (Mode == StepNodeMode.Parallel)
             {
-                m_Actions[m_CurrentActionIndex].Exit();
+                for (int i = 0; i < m_Actions.Count; i++)
+                {
+                    if (m_ActionExitStates != null && m_ActionExitStates[i])
+                    {
+                        continue;
+                    }
+                    m_Actions[i].Exit();
+                    if (m_ActionExitStates != null)
+                    {
+                        m_ActionExitStates[i] = true;
+                    }
+                }
+            }
+            else
+            {
+                if (m_CurrentActionIndex >= 0 && m_CurrentActionIndex < m_Actions.Count)
+                {
+                    m_Actions[m_CurrentActionIndex].Exit();
+                    if (m_ActionExitStates != null && m_CurrentActionIndex < m_ActionExitStates.Length)
+                    {
+                        m_ActionExitStates[m_CurrentActionIndex] = true;
+                    }
+                }
             }
             m_IsEntered = false;
         }
@@ -130,10 +244,24 @@ namespace LWStep
         /// </summary>
         public string GetCurrentActionName()
         {
-            if (m_CurrentActionIndex >= 0 && m_CurrentActionIndex < m_Actions.Count)
+            if (Mode == StepNodeMode.Parallel)
             {
-                return m_Actions[m_CurrentActionIndex].GetType().Name;
+                for (int i = 0; i < m_Actions.Count; i++)
+                {
+                    if (!m_Actions[i].IsFinished)
+                    {
+                        return m_Actions[i].GetType().Name;
+                    }
+                }
             }
+            else
+            {
+                if (m_CurrentActionIndex >= 0 && m_CurrentActionIndex < m_Actions.Count)
+                {
+                    return m_Actions[m_CurrentActionIndex].GetType().Name;
+                }
+            }
+
             return string.Empty;
         }
 
@@ -160,6 +288,7 @@ namespace LWStep
                 m_Actions[i].Reset();
             }
             m_CurrentActionIndex = 0;
+            m_ActionExitStates = new bool[m_Actions.Count];
         }
     }
 }

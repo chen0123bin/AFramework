@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.IO;
 using System.Xml;
+using LWStep;
+using UnityEditor;
 
 namespace LWStep.Editor
 {
@@ -27,6 +29,10 @@ namespace LWStep.Editor
                 nodeElement.SetAttribute("name", node.Name ?? string.Empty);
                 nodeElement.SetAttribute("x", node.Position.x.ToString("F2", CultureInfo.InvariantCulture));
                 nodeElement.SetAttribute("y", node.Position.y.ToString("F2", CultureInfo.InvariantCulture));
+                if (node.Mode == StepNodeMode.Parallel)
+                {
+                    nodeElement.SetAttribute("mode", "parallel");
+                }
 
                 XmlElement actionsElement = doc.CreateElement("actions");
                 nodeElement.AppendChild(actionsElement);
@@ -82,6 +88,7 @@ namespace LWStep.Editor
                 doc.Save(writer);
                 return writer.ToString();
             }
+
         }
 
         /// <summary>

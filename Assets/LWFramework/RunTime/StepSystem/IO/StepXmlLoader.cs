@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Xml;
 using LWCore;
@@ -60,7 +61,13 @@ namespace LWStep
                     }
                     string nodeId = GetAttr(nodeElement, "id");
                     string nodeName = GetAttr(nodeElement, "name");
-                    StepNode stepNode = new StepNode(nodeId, nodeName);
+                    string modeValue = GetAttr(nodeElement, "mode");
+                    StepNodeMode nodeMode = StepNodeMode.Serial;
+                    if (!string.IsNullOrEmpty(modeValue) && string.Equals(modeValue, "parallel", StringComparison.OrdinalIgnoreCase))
+                    {
+                        nodeMode = StepNodeMode.Parallel;
+                    }
+                    StepNode stepNode = new StepNode(nodeId, nodeName, nodeMode);
 
                     XmlNode actionsNode = nodeElement.SelectSingleNode("actions");
                     if (actionsNode != null)

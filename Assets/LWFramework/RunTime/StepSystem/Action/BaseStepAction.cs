@@ -179,7 +179,7 @@ namespace LWStep
         /// <summary>
         /// 进入动作
         /// </summary>
-        public void Enter()
+        public virtual void Enter()
         {
             if (m_HasEntered)
             {

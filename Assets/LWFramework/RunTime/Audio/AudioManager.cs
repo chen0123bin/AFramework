@@ -189,6 +189,11 @@ namespace LWAudio
         /// <returns></returns>
         public AudioChannel Play(AudioClip clip, Transform emitter, bool loop = false, float fadeInSeconds = 0f, float volume = -1, Audio3DSettings? settings = null)
         {
+            // 如果没有指定发射器，默认播放为 2D 音效
+            if (emitter == null)
+            {
+                return Play(clip, loop, fadeInSeconds, volume);
+            }
             AudioChannel channel = CreateChannel();
             if (channel == null)
             {

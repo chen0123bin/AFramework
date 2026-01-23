@@ -156,3 +156,100 @@ stepManager.Start("step_stage4_demo");
 - 跳转补齐阶段统一执行 Apply：交互类动作不会阻塞跳转（这是当前设计决策）。
 - 运行时预览依赖 EditorPrefs 与 DemoRunner 读取逻辑，建议在团队内统一约定流程入口场景。
 
+## 8. Node/Action 执行逻辑与扩展规范
+
+### 8.1 Node 执行流程（串行/并行）
+
+StepNode 现支持两种执行模式：
+- 串行模式（Serial）：按 Action 列表顺序逐个执行
+- 并行模式（Parallel）：所有 Action 同时 Enter、并行 Update，全部完成后结束
+
+模式来源与配置：
+- XML：在 node 上配置 `mode="parallel"` 即并行；不写为串行默认
+- 编辑器：节点属性面板“执行模式”下拉
+
+执行时序规则：
+- Enter：绑定上下文 → Reset 所有 Action
+  - Serial：只 Enter 第一个 Action
+  - Parallel：对全部 Action 依次 Enter
+- Update：
+  - Serial：仅 Update 当前 Action，完成后 Exit 并切下一个
+  - Parallel：对所有未完成 Action Update，完成后立即 Exit
+- 完成判定：
+  - Serial：当前索引 >= Actions.Count
+  - Parallel：所有 Action IsFinished
+- Leave：
+  - Serial：仅 Exit 当前 Action
+  - Parallel：Exit 所有未退出的 Action
+- Apply：对所有 Action 执行 Apply 并标记完成
+- ApplyRemaining：
+  - Serial：从当前索引到末尾 Apply
+  - Parallel：对未完成的 Action Apply
+
+### 8.2 Action 生命周期约束
+
+Action 需遵守 BaseStepAction 生命周期：
+- OnEnter：初始化与启动
+- OnUpdate：推进逻辑，满足条件后调用 Finish
+- OnExit：释放或收尾
+- OnApply：用于跳转补齐，必须无阻塞并快速完成
+
+并行模式的关键要求：
+- OnUpdate 必须可多帧执行，不要依赖只调用一次
+- OnApply 必须保证不会阻塞，否则 Jump/Forward 会卡死
+- OnExit 应避免重复副作用（Exit 可能在并行节点中被多动作触发）
+
+### 8.3 现有 Action 适配结论
+
+ - StepLogAction：一次性输出日志，Enter 即完成，适配良好
+ - StepMoveObjectAction：多帧位移（DoTween），等待完成，适配良好
+- StepToggleObjectAction：一次性显隐，Enter 即完成，适配良好
+- StepWaitMouseLeftClickAction：多帧等待输入，适配良好
+- StepPlayAudioAction：默认即播即完成，已支持可选等待播放结束
+
+StepPlayAudioAction 新增参数：
+- `waitForFinish`（bool，默认 false）
+  - false：保持旧行为，Enter 后立即完成
+  - true：当 `isLoop=false` 时等待音频播放结束再完成
+  - 若 `isLoop=true`，强制转为非阻塞，避免永久等待
+
+### 8.4 新增 Action 设计清单
+
+新增 Action 建议遵循以下清单：
+- 明确是否为“瞬时动作”或“多帧动作”
+- OnEnter 仅做启动，真正的完成判定放在 OnUpdate
+- OnApply 必须不阻塞，并能快速写入必要状态
+- 若涉及外部资源（音频/特效/对象池），Exit 中应考虑资源回收或停播策略
+- 如需在并行模式下阻塞节点，必须在 OnUpdate 内决定 Finish 时机
+
+### 8.5 对象类 Action 基类：BaseTargeStepAction
+
+- 作用：统一“目标对象”查找与持有，供所有“控制对象的 Action”继承使用。
+- 参数：`target`（string）对象名；进入时会查找并缓存到 `m_Target`。
+- 生命周期：重载 Enter，先执行目标查找，再调用基类 Enter，确保后续逻辑拿到有效对象。
+- 查找行为：未配置或找不到目标对象时输出警告，不抛异常，动作可选择提前完成。
+- 代码参考：[BaseTargeStepAction.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/RunTime/StepSystem/Action/BaseTargeStepAction.cs#L1-L42)
+
+### 8.6 StepMoveObjectAction（DoTween 动画移动）
+
+- 继承：BaseTargeStepAction，具备统一目标查找与缓存。
+- 参数：`x/y/z` 目标坐标、`isLocal` 是否使用局部坐标、`moveTime` 动画时长（秒）。
+- 行为：
+  - Enter：计算目标位置并调用 DoTween 启动移动（`DOMove`/`DOLocalMove`）。
+  - Update：无需额外推进，等待 DoTween `OnComplete` 回调触发 `Finish`。
+  - Exit：调用 `transform.DOKill()` 终止未完成的 Tween，避免残留与泄漏。
+  - Apply：直接写入 transform 最终位置，保证跳转补齐快速收敛。
+- 并行模式：作为“多帧动作”，可与其他动作并行执行；节点完成以 `Finish` 为准。
+- 依赖：DG.Tweening（DoTween）；需在工程内已导入该库。
+- 代码参考：[StepMoveObjectAction.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/RunTime/StepSystem/Action/StepMoveObjectAction.cs#L76-L143)
+
+### 8.7 StepPlayAudioAction 行为说明（并行友好）
+
+- 参数：`clip` 路径、`target` 可选跟随对象、`volume` 音量、`isLoop` 是否循环、`fadeInSeconds` 淡入时长、`waitForFinish` 是否等待播放结束。
+- 行为：
+  - Enter：执行播放；若 `waitForFinish=false` 或 `isLoop=true`，立即 `Finish`；否则等待频道停止后完成。
+  - Update：在等待模式下检测频道播放状态，结束时 `Finish`。
+  - Exit：不强制停止音频（避免并行节点重复副作用）；如需停止可在具体场景侧控制。
+  - Apply：执行一次播放，用于跳转补齐的即时反馈。
+- 基线：支持捕获/恢复上次频道与 Clip，用于回退一致性处理。
+- 代码参考：[StepPlayAudioAction.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/RunTime/StepSystem/Action/StepPlayAudioAction.cs#L82-L144)
