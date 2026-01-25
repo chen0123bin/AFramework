@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Xml;
 using LWCore;
 
@@ -20,20 +21,20 @@ namespace LWStep
                 LWDebug.LogError("步骤XML路径为空");
                 return null;
             }
-
+            string graphName = Path.GetFileNameWithoutExtension(xmlAssetPath);
             string xmlText = ManagerUtility.AssetsMgr.LoadRawFileText(xmlAssetPath);
             if (string.IsNullOrEmpty(xmlText))
             {
                 LWDebug.LogError("步骤XML内容为空: " + xmlAssetPath);
                 return null;
             }
-            return LoadFromText(xmlText, factory);
+            return LoadFromText(xmlText, factory, graphName);
         }
 
         /// <summary>
         /// 从XML文本加载步骤图
         /// </summary>
-        public StepGraph LoadFromText(string xmlText, StepActionFactory factory)
+        public StepGraph LoadFromText(string xmlText, StepActionFactory factory, string graphName)
         {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xmlText);
@@ -46,7 +47,7 @@ namespace LWStep
             }
 
             string startNodeId = GetAttr(graphElement, "start");
-            StepGraph graph = new StepGraph(startNodeId);
+            StepGraph graph = new StepGraph(startNodeId, graphName);
 
             XmlNode nodesNode = graphElement.SelectSingleNode("nodes");
             if (nodesNode != null)

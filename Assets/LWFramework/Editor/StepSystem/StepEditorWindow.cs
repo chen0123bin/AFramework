@@ -1254,7 +1254,7 @@ namespace LWStep.Editor
                 }
             }
 
-            StepGraph graph = new StepGraph(m_Data.StartNodeId);
+            StepGraph graph = new StepGraph(m_Data.StartNodeId, "");
             for (int i = 0; i < m_Data.Nodes.Count; i++)
             {
                 StepEditorNodeData node = m_Data.Nodes[i];

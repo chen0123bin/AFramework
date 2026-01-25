@@ -36,66 +36,6 @@
     },
     "children"      : [
       {
-        "name" : "ImgBackground",
-        "active" : true,
-        "rectTransform" : {
-          "anchorMin" : [
-            0.0,
-            0.0
-          ],
-          "anchorMax" : [
-            1.0,
-            1.0
-          ],
-          "pivot"     : [
-            0.5,
-            0.5
-          ],
-          "anchoredPosition" : [
-            0.0,
-            0.0
-          ],
-          "sizeDelta"        : [
-            0.0,
-            0.0
-          ],
-          "rotation"         : [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "scale"            : [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        "components"    : [
-          {
-            "type" : "Image",
-            "data" : {
-              "sprite" : "Assets/Arts/BaseUI/\u767D\u8272\u80CC\u666F.png",
-              "color"  : [
-                1.0,
-                1.0,
-                1.0,
-                0.391999989748001
-              ],
-              "material" : "Default UI Material",
-              "raycastTarget" : true,
-              "imageType"     : "Simple",
-              "fillCenter"    : true,
-              "pixelsPerUnitMultiplier" : 1.0,
-              "preserveAspect"          : false,
-              "fillMethod"              : "Radial360",
-              "fillAmount"              : 1.0,
-              "fillClockwise"           : true,
-              "fillOrigin"              : 0
-            }
-          }
-        ]
-      },
-      {
         "name" : "PnlLayout",
         "active" : true,
         "rectTransform" : {
@@ -220,7 +160,7 @@
                         0.396226406097412,
                         0.396226406097412,
                         0.396226406097412,
-                        1.0
+                        0.278431385755539
                       ],
                       "material" : "Default UI Material",
                       "raycastTarget" : true,
