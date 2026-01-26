@@ -32,3 +32,6 @@ Setter: Set + 属性名 (如 SetName(name))。
 接口名:
 推荐 (C#/TypeScript): 使用 帕斯卡命名法 (PascalCase)，并以 I 为前缀（如 IUserRepository）。
 命名风格: 采用 名词或名词短语，代表一个对象或概念。
+
+规则:
+Unity项目不需要运行lint与typecheck验证,严格禁止这种操作。
