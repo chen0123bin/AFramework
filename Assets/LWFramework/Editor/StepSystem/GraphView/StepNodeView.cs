@@ -1,4 +1,5 @@
 using System;
+using LWStep;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -156,7 +157,7 @@ namespace LWStep.Editor
         /// <summary>
         /// 更新节点标题与运行时高亮
         /// </summary>
-        public void UpdateTitle(string startNodeId, string runtimeNodeId)
+        public void UpdateTitle(string startNodeId, string runtimeNodeId, StepNodeStatus status)
         {
             if (m_Data == null)
             {
@@ -165,26 +166,28 @@ namespace LWStep.Editor
             // Debug.Log("UpdateTitle: " + m_Data.Id + " startNodeId=" + startNodeId + " runtimeNodeId=" + runtimeNodeId);
             bool isStart = !string.IsNullOrEmpty(startNodeId) && m_Data.Id == startNodeId;
             bool isRuntime = !string.IsNullOrEmpty(runtimeNodeId) && m_Data.Id == runtimeNodeId;
+            StepNodeStatus displayStatus = isRuntime ? StepNodeStatus.Running : status;
+
+
             string suffix = string.Empty;
-            if (isStart && isRuntime)
+            if (isStart && displayStatus == StepNodeStatus.Running)
             {
                 suffix = " (Start, 运行中)";
             }
-            else if (isStart)
-            {
-                suffix = " (Start)";
-            }
-            else if (isRuntime)
-            {
-                suffix = " (运行中)";
-            }
+
             title = m_Data.Id + suffix;
 
-            if (isRuntime)
+            if (displayStatus == StepNodeStatus.Running)
             {
                 mainContainer.style.borderLeftWidth = 4;
                 mainContainer.style.borderLeftColor = new Color(1f, 0.8f, 0.2f, 1f);
                 mainContainer.style.backgroundColor = new Color(1f, 0.9f, 0.2f, 0.08f);
+            }
+            else if (displayStatus == StepNodeStatus.Completed)
+            {
+                mainContainer.style.borderLeftWidth = 4;
+                mainContainer.style.borderLeftColor = new Color(0.2f, 0.8f, 0.4f, 1f);
+                mainContainer.style.backgroundColor = new Color(0.2f, 0.8f, 0.4f, 0.08f);
             }
             else
             {

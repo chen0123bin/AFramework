@@ -77,6 +77,7 @@ namespace LWCore
         /// </summary>
         /// <returns>当前图所有节点ID集合</returns>
         List<StepNode> GetAllNodes(string graphName = null);
+        StepNodeStatus GetNodeStatus(string nodeId);
         /// <summary>
         /// 获取当前节点的可前进目标集合
         /// </summary>

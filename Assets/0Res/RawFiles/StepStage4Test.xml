@@ -24,6 +24,7 @@
           <param key="isBlocking" value="false" />
           <param key="message" value="阶段4测试：进入模式A" />
         </action>
+        <action type="LWStep.StepWaitMouseLeftClickAction" />
         <action type="LWStep.StepPlayAudioAction">
           <param key="phase" value="1" />
           <param key="isBlocking" value="false" />

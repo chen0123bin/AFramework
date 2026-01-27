@@ -8,6 +8,13 @@ namespace LWStep
         Parallel = 1
     }
 
+    public enum StepNodeStatus
+    {
+        Unfinished = 0,
+        Running = 1,
+        Completed = 2
+    }
+
     /// <summary>
     /// 步骤节点
     /// </summary>
@@ -16,11 +23,13 @@ namespace LWStep
         public string Id { get; private set; }
         public string Name { get; private set; }
         public StepNodeMode Mode { get; private set; }
+        public StepNodeStatus Status { get { return m_Status; } }
 
         private List<BaseStepAction> m_Actions;
         private int m_CurrentActionIndex;
         private bool m_IsEntered;
         private bool[] m_ActionExitStates;
+        private StepNodeStatus m_Status;
 
         /// <summary>
         /// 创建节点
@@ -39,6 +48,12 @@ namespace LWStep
             m_CurrentActionIndex = 0;
             m_IsEntered = false;
             m_ActionExitStates = null;
+            m_Status = StepNodeStatus.Unfinished;
+        }
+
+        public void ResetStatus()
+        {
+            m_Status = StepNodeStatus.Unfinished;
         }
 
         /// <summary>
@@ -61,8 +76,10 @@ namespace LWStep
             BindContext(context);
             ResetActions();
             m_IsEntered = true;
+            m_Status = StepNodeStatus.Running;
             if (m_Actions.Count == 0)
             {
+                m_Status = StepNodeStatus.Completed;
                 return;
             }
             if (Mode == StepNodeMode.Parallel)
@@ -90,6 +107,7 @@ namespace LWStep
             }
             if (m_CurrentActionIndex >= m_Actions.Count)
             {
+                m_Status = StepNodeStatus.Completed;
                 return true;
             }
 
@@ -120,6 +138,7 @@ namespace LWStep
                 if (allFinished)
                 {
                     m_CurrentActionIndex = m_Actions.Count;
+                    m_Status = StepNodeStatus.Completed;
                 }
                 return allFinished;
             }
@@ -141,7 +160,12 @@ namespace LWStep
                         m_Actions[m_CurrentActionIndex].Enter();
                     }
                 }
-                return m_CurrentActionIndex >= m_Actions.Count;
+                bool isCompleted = m_CurrentActionIndex >= m_Actions.Count;
+                if (isCompleted)
+                {
+                    m_Status = StepNodeStatus.Completed;
+                }
+                return isCompleted;
             }
         }
 
@@ -159,6 +183,7 @@ namespace LWStep
             }
             m_CurrentActionIndex = m_Actions.Count;
             m_IsEntered = true;
+            m_Status = StepNodeStatus.Completed;
             if (m_ActionExitStates != null)
             {
                 for (int i = 0; i < m_ActionExitStates.Length; i++)
@@ -191,6 +216,7 @@ namespace LWStep
                     }
                 }
                 m_CurrentActionIndex = m_Actions.Count;
+                m_Status = StepNodeStatus.Completed;
             }
             else
             {
@@ -201,6 +227,7 @@ namespace LWStep
                     action.Apply();
                 }
                 m_CurrentActionIndex = m_Actions.Count;
+                m_Status = StepNodeStatus.Completed;
             }
 
         }

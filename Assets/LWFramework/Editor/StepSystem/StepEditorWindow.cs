@@ -375,6 +375,7 @@ namespace LWStep.Editor
                     m_RuntimeNodeId = string.Empty;
                     m_GraphView.SetRuntimeNodeId(string.Empty);
                 }
+                m_GraphView.SetRuntimeNodeStatuses(null);
                 return;
             }
             IStepManager stepManager = ManagerUtility.StepMgr;
@@ -385,15 +386,31 @@ namespace LWStep.Editor
                     m_RuntimeNodeId = string.Empty;
                     m_GraphView.SetRuntimeNodeId(string.Empty);
                 }
+                m_GraphView.SetRuntimeNodeStatuses(null);
                 return;
             }
             string currentNodeId = stepManager.CurrentNodeId;
-            if (m_RuntimeNodeId == currentNodeId)
+            if (m_RuntimeNodeId != currentNodeId)
             {
-                return;
+                m_RuntimeNodeId = currentNodeId;
+                m_GraphView.SetRuntimeNodeId(m_RuntimeNodeId);
             }
-            m_RuntimeNodeId = currentNodeId;
-            m_GraphView.SetRuntimeNodeId(m_RuntimeNodeId);
+
+            Dictionary<string, StepNodeStatus> nodeStatuses = new Dictionary<string, StepNodeStatus>();
+            if (m_Data != null && m_Data.Nodes != null)
+            {
+                for (int i = 0; i < m_Data.Nodes.Count; i++)
+                {
+                    StepEditorNodeData nodeData = m_Data.Nodes[i];
+                    if (nodeData == null)
+                    {
+                        continue;
+                    }
+                    StepNodeStatus status = stepManager.GetNodeStatus(nodeData.Id);
+                    nodeStatuses[nodeData.Id] = status;
+                }
+            }
+            m_GraphView.SetRuntimeNodeStatuses(nodeStatuses);
         }
 
         /// <summary>

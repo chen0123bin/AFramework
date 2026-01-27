@@ -120,6 +120,7 @@ namespace LWStep
 
             m_CurrentGraph = graph;
             m_CurrentGraphName = graphName;
+            m_CurrentGraph.ResetNodeStatuses();
             m_CurrentNode = node;
             m_History.Clear();
             m_History.Add(node.Id);
@@ -321,6 +322,19 @@ namespace LWStep
             }
             return new List<StepNode>();
         }
+        public StepNodeStatus GetNodeStatus(string nodeId)
+        {
+            if (m_CurrentGraph == null || string.IsNullOrEmpty(nodeId))
+            {
+                return StepNodeStatus.Unfinished;
+            }
+            StepNode node = m_CurrentGraph.GetNode(nodeId);
+            if (node == null)
+            {
+                return StepNodeStatus.Unfinished;
+            }
+            return node.Status;
+        }
         /// <summary>
         /// 获取当前节点的可前进目标集合
         /// </summary>
@@ -492,6 +506,8 @@ namespace LWStep
             }
 
             EnsureBaselineSnapshotsCaptured();
+
+            m_CurrentGraph.ResetNodeStatuses();
 
             if (historyIndex <= 0)
             {

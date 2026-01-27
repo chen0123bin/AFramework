@@ -40,6 +40,14 @@ namespace LWStep
             return nodes;
         }
 
+        public void ResetNodeStatuses()
+        {
+            foreach (KeyValuePair<string, StepNode> kvp in m_Nodes)
+            {
+                kvp.Value.ResetStatus();
+            }
+        }
+
         /// <summary>
         /// 添加节点
         /// </summary>

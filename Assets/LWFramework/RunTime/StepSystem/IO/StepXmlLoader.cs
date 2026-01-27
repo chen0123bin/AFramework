@@ -21,20 +21,21 @@ namespace LWStep
                 LWDebug.LogError("步骤XML路径为空");
                 return null;
             }
-            string graphName = Path.GetFileNameWithoutExtension(xmlAssetPath);
+
             string xmlText = ManagerUtility.AssetsMgr.LoadRawFileText(xmlAssetPath);
             if (string.IsNullOrEmpty(xmlText))
             {
                 LWDebug.LogError("步骤XML内容为空: " + xmlAssetPath);
                 return null;
             }
-            return LoadFromText(xmlText, factory, graphName);
+            string graphName = Path.GetFileNameWithoutExtension(xmlAssetPath);
+            return LoadFromText(xmlText, graphName, factory);
         }
 
         /// <summary>
         /// 从XML文本加载步骤图
         /// </summary>
-        public StepGraph LoadFromText(string xmlText, StepActionFactory factory, string graphName)
+        public StepGraph LoadFromText(string xmlText, string graphName, StepActionFactory factory)
         {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xmlText);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using LWStep;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,6 +17,7 @@ namespace LWStep.Editor
         private Port m_PendingOutputPort;
         private Vector2 m_LastMouseWorldPosition;
         private string m_RuntimeNodeId;
+        private Dictionary<string, StepNodeStatus> m_RuntimeNodeStatuses;
 
         /// <summary>
         /// 创建步骤图视图并绑定编辑器数据
@@ -116,6 +118,12 @@ namespace LWStep.Editor
                 return;
             }
             m_RuntimeNodeId = nodeId;
+            UpdateAllNodeTitles();
+        }
+
+        public void SetRuntimeNodeStatuses(Dictionary<string, StepNodeStatus> nodeStatuses)
+        {
+            m_RuntimeNodeStatuses = nodeStatuses;
             UpdateAllNodeTitles();
         }
 
@@ -357,7 +365,12 @@ namespace LWStep.Editor
         {
             foreach (KeyValuePair<string, StepNodeView> kvp in m_NodeViews)
             {
-                kvp.Value.UpdateTitle(m_Data.StartNodeId, m_RuntimeNodeId);
+                StepNodeStatus status = StepNodeStatus.Unfinished;
+                if (m_RuntimeNodeStatuses != null)
+                {
+                    m_RuntimeNodeStatuses.TryGetValue(kvp.Key, out status);
+                }
+                kvp.Value.UpdateTitle(m_Data.StartNodeId, m_RuntimeNodeId, status);
             }
         }
 
