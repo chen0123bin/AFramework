@@ -73,7 +73,7 @@ public class EditorMenuItems
         GUIUtility.systemCopyBuffer = path;
         Debug.Log(string.Format("systemCopyBuffer: {0}", path));
     }
-    [MenuItem("GameObject/UIFramework/创建脚本/View", false, -100)]
+    [MenuItem("GameObject/UIFramework/创建脚本/View", false, -20)]
     static void CreateScriptBtn()
     {
         Object[] array = Selection.objects;
@@ -89,7 +89,81 @@ public class EditorMenuItems
         CreateView(viewName, savePath, gameObject, chooseGameObjectList);
 
     }
-    [MenuItem("GameObject/UIFramework/创建脚本/CopyComponet", false, -100)]
+    [MenuItem("GameObject/UIFramework/创建脚本/Item", false, -19)]
+    static void CreateItemScriptBtn()
+    {
+        Object[] array = Selection.objects;
+        if (!CheckItem(array[0]))
+        {
+            return;
+        }
+        List<GameObject> chooseGameObjectList;
+        GameObject gameObject;
+        GetGameObject(array, out gameObject, out chooseGameObjectList);
+
+        string savePath = GetSavePath();
+        string behaviourName = gameObject.name;
+        string generateFilePath = savePath + "/" + behaviourName + ".cs";
+        var sw = new StreamWriter(generateFilePath, false, Encoding.UTF8);
+        var strBuilder = new StringBuilder();
+
+        strBuilder.AppendLine("using LWUI;");
+        strBuilder.AppendLine("using UnityEngine.UI;");
+        strBuilder.AppendLine("using UnityEngine;");
+        strBuilder.AppendLine();
+        strBuilder.AppendFormat("public class {0} : BaseUIItem ", behaviourName);
+        strBuilder.AppendLine();
+        strBuilder.AppendLine("{");
+        //获取view上的组建
+        foreach (var item in chooseGameObjectList)
+        {
+            string childName = item.name;
+            string componentName = GetComponetName(item);
+            strBuilder.AppendFormat("\t[UIElement(\"{0}\")]", GetParentPath(gameObject, item, ""));
+            strBuilder.AppendLine();
+            strBuilder.AppendFormat("\tprivate {0} {1};", componentName, ConvertName(childName));
+            strBuilder.AppendLine();
+        }
+        strBuilder.AppendLine("\tpublic override  void Create(GameObject gameObject)");
+        strBuilder.AppendLine("\t{");
+        strBuilder.AppendLine("\t\tbase.Create(gameObject);");
+        List<string> buttons = new List<string>();
+        //获取ui控件
+        foreach (var item in chooseGameObjectList)
+        {
+            string childName = item.name;
+            string componentName = GetComponetName(item);
+
+            //添加按钮点击事件监听
+            if (componentName == "Button")
+            {
+                strBuilder.AppendFormat("\t\t{0}.onClick.AddListener(() => ", ConvertName(childName));
+                strBuilder.AppendLine("\t\t{");
+                strBuilder.AppendLine();
+                strBuilder.AppendLine("\t\t});");
+                strBuilder.AppendLine();
+                buttons.Add(childName);
+            }
+        }
+
+        strBuilder.AppendLine("\t}");
+        strBuilder.AppendLine("\tpublic override void OnUnSpawn()");
+        strBuilder.AppendLine("\t{");
+        strBuilder.AppendLine("\t\tbase.OnUnSpawn();");
+        strBuilder.AppendLine("\t}");
+        strBuilder.AppendLine("\tpublic override void OnRelease()");
+        strBuilder.AppendLine("\t{");
+        strBuilder.AppendLine("\t\tbase.OnRelease();");
+        strBuilder.AppendLine("\t}");
+
+        strBuilder.AppendLine("}");
+        sw.Write(strBuilder);
+        sw.Flush();
+        sw.Close();
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
+    [MenuItem("GameObject/UIFramework/创建脚本/CopyComponet", false, -18)]
     static void CopyComponet()
     {
         Object[] array = Selection.objects;
@@ -109,6 +183,16 @@ public class EditorMenuItems
         }
         GUIUtility.systemCopyBuffer = strBuilder.ToString();
         Debug.Log(strBuilder.ToString());
+    }
+    static bool CheckItem(Object obj)
+    {
+        bool ret = true;
+        if (!obj.name.Contains("Item"))
+        {
+            Debug.LogError($"{obj} 名称中必须包含Item 否则不能创建为Item");
+            ret = false;
+        }
+        return ret;
     }
     static bool CheckView(Object obj)
     {

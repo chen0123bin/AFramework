@@ -45,7 +45,8 @@ namespace LWCore
         /// <typeparam name="T">View的类型（转换成使用typeOf转换）</typeparam>
         /// <param name="isLastSibling">是否进入最上层</param>
         /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
-        T OpenView<T>(bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
+        /// <param name="data">传递的数据</param>
+        T OpenView<T>(object data = null, bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
 
         /// <summary>
         /// 打开View
@@ -54,7 +55,8 @@ namespace LWCore
         /// <param name="uiGameObject">View的实体对象</param>
         /// <param name="isLastSibling">是否进入最上层</param>
         /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
-        BaseUIView OpenView(string viewType, GameObject uiGameObject = null, bool isLastSibling = false, bool enterStack = false);
+        /// <param name="data">传递的数据</param>
+        BaseUIView OpenView(string viewType, object data = null, GameObject uiGameObject = null, bool isLastSibling = false, bool enterStack = false);
 
         /// <summary>
         /// 使用异步的方式打开UI
@@ -62,7 +64,8 @@ namespace LWCore
         /// <typeparam name="T"></typeparam>
         /// <param name="isLastSibling">是否进入最上层</param>
         /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
-        UniTask<T> OpenViewAsync<T>(bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
+        /// <param name="data">传递的数据</param>
+        UniTask<T> OpenViewAsync<T>(object data = null, bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
         /// <summary>
         /// 返回上一个页面
         /// </summary>

@@ -39,6 +39,34 @@ namespace LWStep
             }
             return nodes;
         }
+        /// <summary>
+        /// 获取图内所有显示节点（排除隐藏节点）
+        /// </summary>
+        public List<StepNode> GetAllDisplayNodes()
+        {
+            List<StepNode> nodes = new List<StepNode>();
+            //获取第一个node，并递归获取后面所有的node
+            if (m_Nodes.TryGetValue(StartNodeId, out StepNode startNode))
+            {
+                AddDisplayNode(startNode.Id, nodes);
+            }
+            return nodes;
+        }
+        private void AddDisplayNode(string nodeId, List<StepNode> nodes)
+        {
+            List<string> nextNodeIds = GetNextNodeIds(nodeId);
+            if (nextNodeIds.Count == 0)
+            {
+                return;
+            }
+            string nextNodeId = nextNodeIds[0];
+            StepNode node = GetNode(nextNodeId);
+            if (node != null)
+            {
+                nodes.Add(node);
+                AddDisplayNode(node.Id, nodes);
+            }
+        }
 
         public void ResetNodeStatuses()
         {
@@ -127,7 +155,13 @@ namespace LWStep
             }
             return result;
         }
-
+        /// <summary>
+        /// 获取可前进节点集合（按优先级排序），并根据上下文和标签筛选有效节点
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="context"></param>
+        /// <param name="requiredTag"></param>
+        /// <returns></returns>
         public List<string> GetNextNodeIds(string nodeId, StepContext context, string requiredTag = null)
         {
             List<string> result = new List<string>();
@@ -161,14 +195,14 @@ namespace LWStep
         }
 
         /// <summary>
-        /// 查找从起点到终点的最短路径
+        /// 查找从起点到终点的最短路径（考虑上下文和标签）
         /// </summary>
-        public List<string> FindPath(string fromId, string toId)
-        {
-            return FindPath(fromId, toId, null, null);
-        }
-
-        public List<string> FindPath(string fromId, string toId, StepContext context, string requiredTag = null)
+        /// <param name="fromId"></param>
+        /// <param name="toId"></param>
+        /// <param name="context"></param>
+        /// <param name="requiredTag"></param>
+        /// <returns></returns>
+        public List<string> FindPath(string fromId, string toId, StepContext context = null, string requiredTag = null)
         {
             Queue<string> queue = new Queue<string>();
             Dictionary<string, string> prev = new Dictionary<string, string>();

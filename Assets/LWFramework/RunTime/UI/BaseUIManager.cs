@@ -83,7 +83,7 @@ namespace LWUI
         /// <typeparam name="T">view的控制类</typeparam>
         /// <param name="isLastSibling">是否放置在最前面</param>
         /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
-        public abstract T OpenView<T>(bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
+        public abstract T OpenView<T>(object data = null, bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
         /// <summary>
         /// 打开View
         /// </summary>
@@ -92,14 +92,16 @@ namespace LWUI
         /// <param name="uiGameObject">view的对象，提前创建，优先级高于自己创建</param>
         /// <param name="isLastSibling">是否放置在最前面</param>
         /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
-        public abstract BaseUIView OpenView(string viewType, GameObject uiGameObject = null, bool isLastSibling = false, bool enterStack = false);
+        /// <param name="data">传递的数据</param>
+        public abstract BaseUIView OpenView(string viewType, object data = null, GameObject uiGameObject = null, bool isLastSibling = false, bool enterStack = false);
         /// <summary>
         ///异步打开View
         /// </summary>
         /// <typeparam name="T">view的控制类</typeparam>
         /// <param name="isLastSibling">是否放置在最前面</param>
         /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
-        public abstract UniTask<T> OpenViewAsync<T>(bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
+        /// <param name="data">传递的数据</param>
+        public abstract UniTask<T> OpenViewAsync<T>(object data = null, bool isLastSibling = false, bool enterStack = false) where T : BaseUIView;
 
         /// <summary>
         /// 打开弹窗

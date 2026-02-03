@@ -12,6 +12,7 @@ public class MenuView : BaseUIView
     public const string EVENT_OPEN_UI_DEMO = "MenuView.OpenUIDemo";
     public const string EVENT_OPEN_PROCEDURE_DEMO = "MenuView.OpenProcedureDemo";
     public const string EVENT_OPEN_AUDIO_DEMO = "MenuView.OpenAudioDemo";
+    public const string EVENT_OPEN_STEP_DEMO = "MenuView.OpenStepDemo";
 
     [UIElement("PnlTop/BtnClose")]
     private Button m_BtnClose;
@@ -23,6 +24,9 @@ public class MenuView : BaseUIView
     private Button m_BtnProcedureDemo;
     [UIElement("PnlCard/ScrMenu/Viewport/Content/BtnAudioDemo")]
     private Button m_BtnAudioDemo;
+    [UIElement("PnlCard/ScrMenu/Viewport/Content/BtnStepDemo")]
+    private Button m_BtnStepDemo;
+
 
     /// <summary>
     /// 创建并初始化菜单界面：将按钮点击转为事件派发。
@@ -55,6 +59,9 @@ public class MenuView : BaseUIView
         {
             ManagerUtility.EventMgr.DispatchEvent(EVENT_OPEN_AUDIO_DEMO);
         });
-
+        m_BtnStepDemo.onClick.AddListener(() =>
+        {
+            ManagerUtility.EventMgr.DispatchEvent(EVENT_OPEN_STEP_DEMO);
+        });
     }
 }

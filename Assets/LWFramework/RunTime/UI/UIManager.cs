@@ -74,7 +74,9 @@ namespace LWUI
         /// </summary>
         /// <typeparam name="T">view的控制类</typeparam>
         /// <param name="isLastSibling">是否放置在最前面</param>
-        public override T OpenView<T>(bool isLastSibling = false, bool enterStack = false)
+        /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
+        /// <param name="data">传递的数据</param>
+        public override T OpenView<T>(object data = null, bool isLastSibling = false, bool enterStack = false)
         {
             BaseUIView uiViewBase = null;
             if (!m_UIViewDic.TryGetValue(typeof(T).ToString(), out uiViewBase))
@@ -83,7 +85,7 @@ namespace LWUI
                 m_UIViewDic.Add(typeof(T).ToString(), uiViewBase);
                 m_UIViewList.Add(uiViewBase);
             }
-            uiViewBase.OpenView();
+            uiViewBase.OpenView(data);
 
             uiViewBase.SetViewLastSibling(isLastSibling);
             if (enterStack)
@@ -96,11 +98,14 @@ namespace LWUI
         /// <summary>
         /// 打开View
         /// </summary>
+        /// <param name="data">传递的数据</param>
         /// <typeparam name="T">view的控制类</typeparam>
         /// <param name="viewType">view的名字，用于一个多个页面共用一个类</param>
         /// <param name="uiGameObject">view的对象，提前创建，优先级高于自己创建</param>
         /// <param name="isLastSibling">是否放置在最前面</param>
-        public override BaseUIView OpenView(string viewType, GameObject uiGameObject = null, bool isLastSibling = false, bool enterStack = false)
+        /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
+        /// <param name="data">传递的数据</param>
+        public override BaseUIView OpenView(string viewType, object data = null, GameObject uiGameObject = null, bool isLastSibling = false, bool enterStack = false)
         {
             BaseUIView uiViewBase;
             if (!m_UIViewDic.TryGetValue(viewType, out uiViewBase))
@@ -116,7 +121,7 @@ namespace LWUI
                 m_UIViewDic.Add(viewType, uiViewBase);
                 m_UIViewList.Add(uiViewBase);
             }
-            uiViewBase.OpenView();
+            uiViewBase.OpenView(data);
             uiViewBase.SetViewLastSibling(isLastSibling);
             if (enterStack)
             {
@@ -127,7 +132,14 @@ namespace LWUI
 
 
 
-        public override async UniTask<T> OpenViewAsync<T>(bool isLastSibling = false, bool enterStack = false)
+        /// <summary>
+        /// 打开View异步
+        /// </summary>
+        /// <typeparam name="T">view的控制类</typeparam>
+        /// <param name="isLastSibling">是否放置在最前面</param>
+        /// <param name="enterStack">是否放进栈种，进栈的VIEW才能直接返回</param>
+        /// <param name="data">传递的数据</param>
+        public override async UniTask<T> OpenViewAsync<T>(object data = null, bool isLastSibling = false, bool enterStack = false)
         {
             BaseUIView uiViewBase = null;
             if (!m_UIViewDic.TryGetValue(typeof(T).ToString(), out uiViewBase))
@@ -146,7 +158,7 @@ namespace LWUI
             }
             await UniTask.WaitUntil(() => uiViewBase != null);
             if (!uiViewBase.IsOpen)
-                uiViewBase.OpenView();
+                uiViewBase.OpenView(data);
             uiViewBase.SetViewLastSibling(isLastSibling);
             if (enterStack)
             {

@@ -322,6 +322,23 @@ namespace LWStep
             }
             return new List<StepNode>();
         }
+        /// <summary>
+        /// 获取指定图内所有显示节点（排除隐藏节点）
+        /// </summary>
+        /// <param name="graphName"></param>
+        /// <returns></returns>
+        public List<StepNode> GetAllDisplayNodes(string graphName = null)
+        {
+            if (string.IsNullOrEmpty(graphName))
+            {
+                return m_CurrentGraph?.GetAllDisplayNodes();
+            }
+            if (m_Graphs.TryGetValue(graphName, out StepGraph graph))
+            {
+                return graph.GetAllDisplayNodes();
+            }
+            return new List<StepNode>();
+        }
         public StepNodeStatus GetNodeStatus(string nodeId)
         {
             if (m_CurrentGraph == null || string.IsNullOrEmpty(nodeId))

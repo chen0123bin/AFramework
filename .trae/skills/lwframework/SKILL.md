@@ -30,6 +30,7 @@ description: LWFramework 管理器用法速查（ManagerUtility.*Mgr）。适用
 - IAssetsManager：初始化/预热/加载/实例化/释放、原始文件读取、场景加载、批量加载、下载更新
 - IEventManager：多参数监听/移除/派发/清理
 - IUIManager：打开/关闭/回退/预加载/风格
+- UI 多条目/多元素：View + Item + GameObjectPool
 - IHotfixManager：加载热更/类型与特性/实例化与调用
 - IAudioManager：播放/停止/暂停/全局音量
 - GameObjectPool：创建/借出/归还/清理

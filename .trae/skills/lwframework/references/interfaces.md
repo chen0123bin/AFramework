@@ -33,7 +33,10 @@
 - 作用：UIView 管理、打开/关闭/回退、预加载、UI 风格切换
 - 关键属性：IUIUtility、UICanvas、UICamera
 - 查询：GetView<T>()、GetView(string)、GetAllView()
-- 打开：OpenView<T>()、OpenView(string)、OpenViewAsync<T>()
+- 打开：
+  - OpenView<T>(object data = null, bool isLastSibling = false, bool enterStack = false)
+  - OpenView(string viewType, object data = null, GameObject uiGameObject = null, bool isLastSibling = false, bool enterStack = false)
+  - OpenViewAsync<T>(object data = null, bool isLastSibling = false, bool enterStack = false)
 - 回退：BackView、BackTwiceView、BackUntilLastView
 - 预加载：PreloadViewAsync(string / T)、PreLoadDefaultUI
 - 关闭：CloseOtherView、CloseView（多形态）、CloseAllView

@@ -387,6 +387,15 @@ public class UIManagerExamples
     }
 
     /// <summary>
+    /// 打开/关闭 View 并传递数据（同步）
+    /// </summary>
+    public void OpenAndCloseWithData<T>(object data) where T : BaseUIView
+    {
+        T view = ManagerUtility.UIMgr.OpenView<T>(data: data, isLastSibling: true, enterStack: true);
+        ManagerUtility.UIMgr.CloseView<T>(enterStack: true);
+    }
+
+    /// <summary>
     /// 异步打开 View（依赖资源异步实例化）
     /// </summary>
     public async UniTask<T> OpenAsync<T>() where T : BaseUIView
@@ -410,6 +419,127 @@ public class UIManagerExamples
     public void CloseOther<T>() where T : BaseUIView
     {
         ManagerUtility.UIMgr.CloseOtherView<T>();
+    }
+}
+```
+
+## UI 多条目/多元素：View + Item + GameObjectPool
+
+```csharp
+using LWUI;
+using LWCore;
+using UnityEngine;
+using UnityEngine.UI;
+using System;
+using System.Collections.Generic;
+
+/// <summary>
+/// 视图：通过 OpenView(data) 接收列表，使用对象池批量生成条目
+/// </summary>
+[UIViewData("Assets/0Res/Prefabs/UI/StepView.prefab", (int)FindType.Name, "LWFramework/Canvas/Normal")]
+public class StepView : BaseUIView
+{
+    internal static readonly string EVENT_CLOSE = "StepView_Close";
+
+    [UIElement("PnlLeft/PnlStepList/Viewport/Content/PnlStepItem")]
+    private Transform m_PnlStepItem;
+    [UIElement("BtnPrev")]
+    private Button m_BtnPrev;
+    [UIElement("BtnNext")]
+    private Button m_BtnNext;
+    [UIElement("BtnBack")]
+    private Button m_BtnBack;
+
+    private GameObjectPool<PnlStepItem> m_PnlStepItemPool;
+
+    /// <summary>
+    /// 创建视图：绑定按钮事件并初始化对象池
+    /// </summary>
+    public override void CreateView(GameObject gameObject)
+    {
+        base.CreateView(gameObject);
+
+        m_BtnPrev.onClick.AddListener(() => { });
+        m_BtnNext.onClick.AddListener(() => { });
+        m_BtnBack.onClick.AddListener(() => { ManagerUtility.EventMgr.DispatchEvent(EVENT_CLOSE); });
+
+        m_PnlStepItemPool = new GameObjectPool<PnlStepItem>(poolMaxSize: 5, template: m_PnlStepItem.gameObject);
+    }
+
+    /// <summary>
+    /// 打开视图：用 List<string> 作为数据源，批量借出条目并绑定回调
+    /// </summary>
+    public override void OpenView(object data = null)
+    {
+        base.OpenView(data);
+
+        List<string> stepList = data as List<string>;
+        if (stepList == null || stepList.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < stepList.Count; i++)
+        {
+            int index = i;
+            PnlStepItem pnlStepItem = m_PnlStepItemPool.Spawn();
+            pnlStepItem.StepIndex = (i + 1).ToString();
+            pnlStepItem.StepTitle = stepList[i];
+            pnlStepItem.OnClickStep = () => { LWDebug.Log($"点击了第{index + 1}个步骤"); };
+        }
+    }
+}
+
+/// <summary>
+/// 条目：继承 BaseUIItem，暴露 Action 给 View 绑定点击
+/// </summary>
+public class PnlStepItem : BaseUIItem
+{
+    [UIElement("TxtStepIndex")]
+    private Text m_TxtStepIndex;
+    [UIElement("TxtStepTitle")]
+    private Text m_TxtStepTitle;
+
+    private Button m_BtnStep;
+
+    public string StepIndex
+    {
+        get { return m_TxtStepIndex.text; }
+        set { m_TxtStepIndex.text = value; }
+    }
+
+    public string StepTitle
+    {
+        get { return m_TxtStepTitle.text; }
+        set { m_TxtStepTitle.text = value; }
+    }
+
+    public Action OnClickStep;
+
+    /// <summary>
+    /// 创建条目：绑定点击回调
+    /// </summary>
+    public override void Create(GameObject gameObject)
+    {
+        base.Create(gameObject);
+        m_BtnStep = gameObject.GetComponent<Button>();
+        m_BtnStep.onClick.AddListener(() => { OnClickStep?.Invoke(); });
+    }
+
+    /// <summary>
+    /// 归还到池：按需做清理
+    /// </summary>
+    public override void OnUnSpawn()
+    {
+        base.OnUnSpawn();
+    }
+
+    /// <summary>
+    /// 释放条目：按需做资源释放
+    /// </summary>
+    public override void OnRelease()
+    {
+        base.OnRelease();
     }
 }
 ```

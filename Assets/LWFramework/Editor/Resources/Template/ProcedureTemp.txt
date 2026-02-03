@@ -1,9 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using LWFramework.FMS;
-using LWFramework.UI;
-using LWFramework.Core;
+using LWCore;
+using LWFMS;
 
 [FSMTypeAttribute("Procedure",false)]
 public class #SCRIPTNAME# : BaseFSMState

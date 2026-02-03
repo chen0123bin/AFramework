@@ -1,8 +1,14 @@
 # StepSystem 总结与使用说明
 
-本文基于现有 StepSystem（运行时 + 编辑器）代码与项目内计划/进度记录整理：
-- 计划： [task_plan.md](file:///d:/UnityProject/AFramework/task_plan.md)
-- 会话进度： [progress.md](file:///d:/UnityProject/AFramework/progress.md)
+本文基于现有 StepSystem（运行时 + 编辑器）代码整理，并补充当前工程内的用法示例。
+
+## 0. 计划与进度摘要
+
+- 目标：在 LWFramework 中提供一套面向“虚拟仿真教学”的步骤系统（XML 数据驱动 + DAG + 前进/后退/跳转与过程补齐），并提供 Editor 图编辑器。
+- 架构约束：沿用 Manager 体系手动注册与每帧 Update 驱动；StepManager 与 LWFMS（Procedure/FSM）互相独立、可并存。
+- 关键能力：StepContext 作为过程状态与结果容器；JumpTo 时对路径中间节点执行 Apply 进行补齐；边支持条件/标签/优先级选路。
+- 计划调整：跳转补齐阶段统一 Apply，不再允许交互动作阻塞跳转（相关策略类已清理）。
+- 近期增强：Node 状态细化为 未完成/运行中/已完成，并同步到编辑器节点视图（用于联调预览时的多态标记）。
 
 ## 1. 系统定位
 
@@ -20,14 +26,14 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
 
 位置：`Assets/LWFramework/Editor/StepSystem/`
 
-- 主窗口： [StepEditorWindow.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/Editor/StepSystem/StepEditorWindow.cs)
+- 主窗口： [StepEditorWindow.cs](StepEditorWindow.cs)
 - GraphView 视图层：
-  - [StepGraphView.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/Editor/StepSystem/GraphView/StepGraphView.cs)
-  - [StepNodeView.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/Editor/StepSystem/GraphView/StepNodeView.cs)
-- 编辑器数据结构（可 JsonUtility 序列化）： [StepEditorGraphData.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/Editor/StepSystem/StepEditorGraphData.cs)
+-  - [StepGraphView.cs](GraphView/StepGraphView.cs)
+  - [StepNodeView.cs](GraphView/StepNodeView.cs)
+- 编辑器数据结构（可 JsonUtility 序列化）： [StepEditorGraphData.cs](StepEditorGraphData.cs)
 - XML 导入/导出：
-  - [StepXmlImporter.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/Editor/StepSystem/StepXmlImporter.cs)
-  - [StepXmlExporter.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/Editor/StepSystem/StepXmlExporter.cs)
+  - [StepXmlImporter.cs](StepXmlImporter.cs)
+  - [StepXmlExporter.cs](StepXmlExporter.cs)
 
 ### 2.2 运行时（加载、执行、上下文）
 
@@ -137,8 +143,33 @@ stepManager.Start("step_stage4_demo");
 
 ### 5.4 上下文保存/恢复
 
-- 保存：`string json = stepManager.SaveContextToJson();`
+- 保存：`string json = stepManager.GetContextToJson();`
 - 恢复：`stepManager.LoadContextFromJson(json);`
+
+### 5.5 工程示例（StepProcedure）
+
+工程内提供了一个基于 Procedure/FSM 的接入示例：
+- 示例脚本：`../../../Scripts/Procedure/StepProcedure.cs`
+
+核心流程（简化描述）：
+1) 在 Procedure 进入时订阅 UI 事件与 StepMgr 事件。
+2) 加载 XML 并启动图。
+3) 收集节点列表，打开 StepView，并把运行时节点状态同步到列表项。
+
+关键调用点（与示例一致）：
+- 加载图：`ManagerUtility.StepMgr.LoadGraph(m_XmlPath);`
+- 图名：`Path.GetFileNameWithoutExtension(m_XmlPath)`
+- 启动：`ManagerUtility.StepMgr.Start(graphName);`
+- 收集节点：
+  - 若需要“显示链路节点”（按起点递归的一条主线）：`GetAllDisplayNodes()`
+  - 若需要“图内全部节点”：`GetAllNodes()`
+- 打开界面：`ManagerUtility.UIMgr.OpenView<StepView>(nodeList);`
+- 同步状态：循环 `nodeList`，调用 `stepView.UpdateNodeStatus(node.Id, node.Status);`
+
+交互事件（与示例一致）：
+- 上一条：`ManagerUtility.StepMgr.Backward();`
+- 下一条：`ManagerUtility.StepMgr.Forward(requiredTag);`（可选标签过滤）
+- 跳转：`ManagerUtility.StepMgr.JumpTo(nodeId, requiredTag);`（可选标签过滤）
 
 ## 6. 计划进度摘要（对照）
 
@@ -148,6 +179,18 @@ stepManager.Start("step_stage4_demo");
 - 阶段 3（体验增强）：已完成（StepContext、事件观测、稳定事件顺序）；并按调整移除了策略跳转（补齐阶段统一 Apply）。
 - 阶段 4（条件/标签/优先级/持久化）：已完成验证样例（Stage4Test + DemoRunner）。
 - 阶段 5（Editor 对齐增强）：已实现条件/标签/优先级编辑；运行时预览联调能力可用。
+
+## 6.1 节点状态（运行时与编辑器联动）
+
+StepNode 运行时状态定义为三态：
+- 未完成（Unfinished）：尚未进入或已被重置（例如后退重建时统一归为未完成）
+- 运行中（Running）：当前正在执行的节点
+- 已完成（Completed）：节点动作已全部完成或已在补齐阶段 Apply 完成
+
+编辑器联调预览时：
+- 运行中节点：黄色高亮
+- 已完成节点：绿色高亮
+- 未完成节点：不高亮
 
 ## 7. 已知约束与建议
 
@@ -228,7 +271,7 @@ StepPlayAudioAction 新增参数：
 - 参数：`target`（string）对象名；进入时会查找并缓存到 `m_Target`。
 - 生命周期：重载 Enter，先执行目标查找，再调用基类 Enter，确保后续逻辑拿到有效对象。
 - 查找行为：未配置或找不到目标对象时输出警告，不抛异常，动作可选择提前完成。
-- 代码参考：[BaseTargeStepAction.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/RunTime/StepSystem/Action/BaseTargeStepAction.cs#L1-L42)
+- 代码参考：[BaseTargeStepAction.cs](../../RunTime/StepSystem/Action/BaseTargeStepAction.cs#L1-L42)
 
 ### 8.6 StepMoveObjectAction（DoTween 动画移动）
 
@@ -241,7 +284,7 @@ StepPlayAudioAction 新增参数：
   - Apply：直接写入 transform 最终位置，保证跳转补齐快速收敛。
 - 并行模式：作为“多帧动作”，可与其他动作并行执行；节点完成以 `Finish` 为准。
 - 依赖：DG.Tweening（DoTween）；需在工程内已导入该库。
-- 代码参考：[StepMoveObjectAction.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/RunTime/StepSystem/Action/StepMoveObjectAction.cs#L76-L143)
+- 代码参考：[StepMoveObjectAction.cs](../../RunTime/StepSystem/Action/StepMoveObjectAction.cs#L76-L143)
 
 ### 8.7 StepPlayAudioAction 行为说明（并行友好）
 
@@ -252,4 +295,4 @@ StepPlayAudioAction 新增参数：
   - Exit：不强制停止音频（避免并行节点重复副作用）；如需停止可在具体场景侧控制。
   - Apply：执行一次播放，用于跳转补齐的即时反馈。
 - 基线：支持捕获/恢复上次频道与 Clip，用于回退一致性处理。
-- 代码参考：[StepPlayAudioAction.cs](file:///d:/UnityProject/AFramework/Assets/LWFramework/RunTime/StepSystem/Action/StepPlayAudioAction.cs#L82-L144)
+- 代码参考：[StepPlayAudioAction.cs](../../RunTime/StepSystem/Action/StepPlayAudioAction.cs#L82-L144)

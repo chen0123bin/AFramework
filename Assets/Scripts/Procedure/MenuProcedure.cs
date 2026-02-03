@@ -27,6 +27,7 @@ public class MenuProcedure : BaseFSMState
         ManagerUtility.EventMgr.AddListener(MenuView.EVENT_OPEN_UI_DEMO, OnOpenUIDemo);
         ManagerUtility.EventMgr.AddListener(MenuView.EVENT_OPEN_PROCEDURE_DEMO, OnOpenProcedureDemo);
         ManagerUtility.EventMgr.AddListener(MenuView.EVENT_OPEN_AUDIO_DEMO, OnOpenAudioDemo);
+        ManagerUtility.EventMgr.AddListener(MenuView.EVENT_OPEN_STEP_DEMO, OnOpenStepDemo);
 
         ManagerUtility.UIMgr.OpenView<MenuView>();
 
@@ -43,6 +44,7 @@ public class MenuProcedure : BaseFSMState
         ManagerUtility.EventMgr.RemoveListener(MenuView.EVENT_OPEN_UI_DEMO, OnOpenUIDemo);
         ManagerUtility.EventMgr.RemoveListener(MenuView.EVENT_OPEN_PROCEDURE_DEMO, OnOpenProcedureDemo);
         ManagerUtility.EventMgr.RemoveListener(MenuView.EVENT_OPEN_AUDIO_DEMO, OnOpenAudioDemo);
+        ManagerUtility.EventMgr.RemoveListener(MenuView.EVENT_OPEN_STEP_DEMO, OnOpenStepDemo);
 
         ManagerUtility.UIMgr.CloseView<MenuView>();
     }
@@ -103,5 +105,11 @@ public class MenuProcedure : BaseFSMState
         ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<AudioDemoProcedure>();
     }
 
-
+    /// <summary>
+    /// 进入步骤演示流程。
+    /// </summary>
+    private void OnOpenStepDemo()
+    {
+        ManagerUtility.FSMMgr.GetFSMProcedure().SwitchState<StepProcedure>();
+    }
 }
