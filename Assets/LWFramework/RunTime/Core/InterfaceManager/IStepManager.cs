@@ -59,7 +59,7 @@ namespace LWCore
         /// <summary>
         /// 前进到下一个节点（优先级最高的出边）
         /// </summary>
-        void Forward(string requiredTag = null);
+        void Forward();
 
         /// <summary>
         /// 后退到上一个节点（不回滚结果，MVP策略）
@@ -70,8 +70,7 @@ namespace LWCore
         /// 跳转到目标节点（中间节点执行快速应用Apply）
         /// </summary>
         /// <param name="targetNodeId">目标节点ID</param>
-        /// <param name="requiredTag"></param>
-        void JumpTo(string targetNodeId, string requiredTag = null);
+        void JumpTo(string targetNodeId);
         /// <summary>
         /// 获取当前图所有节点
         /// </summary>
@@ -88,12 +87,6 @@ namespace LWCore
         /// </summary>
         /// <returns>可前进的节点ID集合</returns>
         List<string> GetAvailableNextNodes();
-        /// <summary>
-        /// 获取当前节点的可前进目标集合（指定标签）
-        /// </summary>
-        /// <param name="requiredTag">要求的标签</param>
-        /// <returns>可前进的节点ID集合</returns>
-        List<string> GetAvailableNextNodes(string requiredTag);
         /// <summary>
         /// 获取当前StepContext
         /// </summary>

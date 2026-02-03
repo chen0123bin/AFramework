@@ -19,6 +19,11 @@ namespace LWStep.Editor
         private string m_RuntimeNodeId;
         private Dictionary<string, StepNodeStatus> m_RuntimeNodeStatuses;
 
+        private bool m_IsRectangleSelecting;
+        private bool m_IsRectangleSelectAdditive;
+        private Vector2 m_RectangleSelectStartPos;
+        private VisualElement m_RectangleSelectBox;
+
         /// <summary>
         /// 创建步骤图视图并绑定编辑器数据
         /// </summary>
@@ -254,7 +259,6 @@ namespace LWStep.Editor
                     edgeData.ToId = toView.Data.Id;
                     edgeData.Priority = 0;
                     edgeData.Condition = string.Empty;
-                    edgeData.Tag = string.Empty;
                     m_Data.Edges.Add(edgeData);
                     ConfigureEdgeView(edge, edgeData);
                     NotifyGraphChanged();
@@ -380,6 +384,13 @@ namespace LWStep.Editor
         /// </summary>
         private void OnMouseUp(MouseUpEvent evt)
         {
+            if (m_IsRectangleSelecting && evt.button == 0)
+            {
+                EndRectangleSelection();
+                DispatchSelectionChanged();
+                evt.StopPropagation();
+                return;
+            }
             DispatchSelectionChanged();
         }
 
@@ -394,7 +405,9 @@ namespace LWStep.Editor
                 VisualElement target = evt.target as VisualElement;
                 if (IsClickOnEmpty(target))
                 {
-                    ClearSelection();
+                    BeginRectangleSelection(evt);
+                    evt.StopPropagation();
+                    return;
                 }
                 schedule.Execute(DispatchSelectionChanged);
             }
@@ -413,6 +426,12 @@ namespace LWStep.Editor
         private void OnMouseMove(MouseMoveEvent evt)
         {
             m_LastMouseWorldPosition = this.LocalToWorld(evt.mousePosition);
+            if (m_IsRectangleSelecting)
+            {
+                UpdateRectangleSelection(evt);
+                evt.StopPropagation();
+                return;
+            }
             if (!m_IsPanning)
             {
                 return;
@@ -423,6 +442,139 @@ namespace LWStep.Editor
             position += new Vector3(delta.x, delta.y, 0.0f);
             contentViewContainer.transform.position = position;
             evt.StopPropagation();
+        }
+
+        /// <summary>
+        /// 开始框选：记录起点并显示框选矩形
+        /// </summary>
+        private void BeginRectangleSelection(MouseDownEvent evt)
+        {
+            m_IsRectangleSelecting = true;
+            m_IsRectangleSelectAdditive = evt.shiftKey;
+            m_RectangleSelectStartPos = GetContentLocalMousePosition(evt.mousePosition);
+
+            EnsureRectangleSelectBox();
+            UpdateRectangleSelectBox(m_RectangleSelectStartPos, m_RectangleSelectStartPos);
+
+            if (!m_IsRectangleSelectAdditive)
+            {
+                ClearSelection();
+            }
+        }
+
+        /// <summary>
+        /// 更新框选：刷新矩形与命中节点集合
+        /// </summary>
+        private void UpdateRectangleSelection(MouseMoveEvent evt)
+        {
+            Vector2 currentPos = GetContentLocalMousePosition(evt.mousePosition);
+            UpdateRectangleSelectBox(m_RectangleSelectStartPos, currentPos);
+
+            Rect selectionRect = GetMinMaxRect(m_RectangleSelectStartPos, currentPos);
+            UpdateSelectionByRect(selectionRect, m_IsRectangleSelectAdditive);
+        }
+
+        /// <summary>
+        /// 结束框选：隐藏框选矩形
+        /// </summary>
+        private void EndRectangleSelection()
+        {
+            m_IsRectangleSelecting = false;
+            if (m_RectangleSelectBox != null)
+            {
+                m_RectangleSelectBox.style.display = DisplayStyle.None;
+            }
+        }
+
+        /// <summary>
+        /// 确保框选矩形节点存在
+        /// </summary>
+        private void EnsureRectangleSelectBox()
+        {
+            if (m_RectangleSelectBox != null)
+            {
+                m_RectangleSelectBox.style.display = DisplayStyle.Flex;
+                return;
+            }
+
+            m_RectangleSelectBox = new VisualElement();
+            m_RectangleSelectBox.pickingMode = PickingMode.Ignore;
+            m_RectangleSelectBox.style.position = Position.Absolute;
+            m_RectangleSelectBox.style.borderLeftWidth = 1;
+            m_RectangleSelectBox.style.borderRightWidth = 1;
+            m_RectangleSelectBox.style.borderTopWidth = 1;
+            m_RectangleSelectBox.style.borderBottomWidth = 1;
+            m_RectangleSelectBox.style.borderLeftColor = new Color(0.2f, 0.6f, 1.0f, 1.0f);
+            m_RectangleSelectBox.style.borderRightColor = new Color(0.2f, 0.6f, 1.0f, 1.0f);
+            m_RectangleSelectBox.style.borderTopColor = new Color(0.2f, 0.6f, 1.0f, 1.0f);
+            m_RectangleSelectBox.style.borderBottomColor = new Color(0.2f, 0.6f, 1.0f, 1.0f);
+            m_RectangleSelectBox.style.backgroundColor = new Color(0.2f, 0.6f, 1.0f, 0.08f);
+
+            contentViewContainer.Add(m_RectangleSelectBox);
+        }
+
+        /// <summary>
+        /// 更新框选矩形的显示范围
+        /// </summary>
+        private void UpdateRectangleSelectBox(Vector2 fromPos, Vector2 toPos)
+        {
+            if (m_RectangleSelectBox == null)
+            {
+                return;
+            }
+            Rect rect = GetMinMaxRect(fromPos, toPos);
+            m_RectangleSelectBox.style.left = rect.xMin;
+            m_RectangleSelectBox.style.top = rect.yMin;
+            m_RectangleSelectBox.style.width = rect.width;
+            m_RectangleSelectBox.style.height = rect.height;
+            m_RectangleSelectBox.style.display = DisplayStyle.Flex;
+        }
+
+        /// <summary>
+        /// 根据矩形范围更新选中节点集合
+        /// </summary>
+        private void UpdateSelectionByRect(Rect rect, bool isAdditive)
+        {
+            if (!isAdditive)
+            {
+                ClearSelection();
+            }
+
+            foreach (KeyValuePair<string, StepNodeView> kvp in m_NodeViews)
+            {
+                StepNodeView nodeView = kvp.Value;
+                if (nodeView == null)
+                {
+                    continue;
+                }
+                Rect nodeRect = nodeView.GetPosition();
+                if (!nodeRect.Overlaps(rect))
+                {
+                    continue;
+                }
+                AddToSelection(nodeView);
+            }
+        }
+
+        /// <summary>
+        /// 获取事件鼠标位置对应的 contentViewContainer 本地坐标
+        /// </summary>
+        private Vector2 GetContentLocalMousePosition(Vector2 graphViewLocalMousePosition)
+        {
+            Vector2 worldPos = this.LocalToWorld(graphViewLocalMousePosition);
+            return contentViewContainer.WorldToLocal(worldPos);
+        }
+
+        /// <summary>
+        /// 计算两点形成的最小包围矩形
+        /// </summary>
+        private Rect GetMinMaxRect(Vector2 a, Vector2 b)
+        {
+            float xMin = Mathf.Min(a.x, b.x);
+            float yMin = Mathf.Min(a.y, b.y);
+            float xMax = Mathf.Max(a.x, b.x);
+            float yMax = Mathf.Max(a.y, b.y);
+            return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
         }
 
         /// <summary>
@@ -545,7 +697,6 @@ namespace LWStep.Editor
             edgeData.ToId = toView.Data.Id;
             edgeData.Priority = 0;
             edgeData.Condition = string.Empty;
-            edgeData.Tag = string.Empty;
             m_Data.Edges.Add(edgeData);
 
             Edge edge = new Edge();

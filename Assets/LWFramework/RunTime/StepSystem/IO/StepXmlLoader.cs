@@ -116,9 +116,8 @@ namespace LWStep
                     string fromId = GetAttr(edgeElement, "from");
                     string toId = GetAttr(edgeElement, "to");
                     string condition = GetAttr(edgeElement, "condition");
-                    string tag = GetAttr(edgeElement, "tag");
                     int priority = GetAttrInt(edgeElement, "priority", 0);
-                    StepEdge edge = new StepEdge(fromId, toId, priority, condition, tag);
+                    StepEdge edge = new StepEdge(fromId, toId, priority, condition);
                     graph.AddEdge(edge);
                 }
             }

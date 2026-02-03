@@ -15,8 +15,6 @@ public class StepProcedure : BaseFSMState
 
     private string m_XmlPath = "Assets/0Res/RawFiles/StepStage4Test.xml";
     private string m_JumpTargetNodeId = "step_priority_gate";
-    private string m_JumpRequiredTag = "normal";
-    private string m_ForwardRequiredTag;
     private bool m_ApplyPresetContextOnStart = true;
     private string m_PresetMode = "A";
     private int m_PresetScore = 5;
@@ -101,14 +99,7 @@ public class StepProcedure : BaseFSMState
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (string.IsNullOrEmpty(m_JumpRequiredTag))
-            {
-                ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId);
-            }
-            else
-            {
-                ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId, m_JumpRequiredTag);
-            }
+            //ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId);
         }
 
         if (Input.GetKeyDown(KeyCode.S))
@@ -228,14 +219,7 @@ public class StepProcedure : BaseFSMState
     /// </summary>
     private void OnNext()
     {
-        if (string.IsNullOrEmpty(m_ForwardRequiredTag))
-        {
-            ManagerUtility.StepMgr.Forward();
-        }
-        else
-        {
-            ManagerUtility.StepMgr.Forward(m_ForwardRequiredTag);
-        }
+        ManagerUtility.StepMgr.Forward();
     }
 
     /// <summary>

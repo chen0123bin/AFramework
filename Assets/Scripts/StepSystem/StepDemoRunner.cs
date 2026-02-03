@@ -14,8 +14,6 @@ public class StepDemoRunner : MonoBehaviour
 
     [SerializeField] private string m_XmlPath = "Assets/0Res/RawFiles/StepStage4Test.xml";
     [SerializeField] private string m_JumpTargetNodeId = "step_priority_gate";
-    [SerializeField] private string m_JumpRequiredTag = "normal";
-    [SerializeField] private string m_ForwardRequiredTag = "vip";
     [SerializeField] private bool m_ApplyPresetContextOnStart = true;
     [SerializeField] private string m_PresetMode = "A";
     [SerializeField] private int m_PresetScore = 5;
@@ -24,7 +22,6 @@ public class StepDemoRunner : MonoBehaviour
     private List<string> m_EventLogs;
     private string m_SavedContextJson;
     private string m_PreviewJumpNodeId;
-    private string m_PreviewRequiredTag;
     private string m_PreviewStartNodeId;
     private bool m_UsePreviewConfig;
 
@@ -75,14 +72,7 @@ public class StepDemoRunner : MonoBehaviour
 
         if (m_UsePreviewConfig && !string.IsNullOrEmpty(m_PreviewJumpNodeId))
         {
-            if (string.IsNullOrEmpty(m_PreviewRequiredTag))
-            {
-                stepManager.JumpTo(m_PreviewJumpNodeId);
-            }
-            else
-            {
-                stepManager.JumpTo(m_PreviewJumpNodeId, m_PreviewRequiredTag);
-            }
+            stepManager.JumpTo(m_PreviewJumpNodeId);
         }
 
     }
@@ -165,14 +155,7 @@ public class StepDemoRunner : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (string.IsNullOrEmpty(m_JumpRequiredTag))
-            {
-                ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId);
-            }
-            else
-            {
-                ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId, m_JumpRequiredTag);
-            }
+            ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId);
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
@@ -180,14 +163,7 @@ public class StepDemoRunner : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if (string.IsNullOrEmpty(m_ForwardRequiredTag))
-            {
-                ManagerUtility.StepMgr.Forward();
-            }
-            else
-            {
-                ManagerUtility.StepMgr.Forward(m_ForwardRequiredTag);
-            }
+            ManagerUtility.StepMgr.Forward();
         }
         if (Input.GetKeyDown(KeyCode.S))
         {

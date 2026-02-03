@@ -121,7 +121,6 @@ namespace LWStep.Editor
                     edgeData.FromId = GetAttr(edgeElement, "from");
                     edgeData.ToId = GetAttr(edgeElement, "to");
                     edgeData.Condition = GetAttr(edgeElement, "condition");
-                    edgeData.Tag = GetAttr(edgeElement, "tag");
                     edgeData.Priority = GetAttrInt(edgeElement, "priority", 0);
                     data.Edges.Add(edgeData);
                 }

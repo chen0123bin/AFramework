@@ -129,9 +129,58 @@ namespace LWStep.Editor
             }
             Vector2 delta = evt.mousePosition - m_LastMousePosition;
             m_LastMousePosition = evt.mousePosition;
-            Rect rect = GetPosition();
-            rect.position += delta;
-            SetPosition(rect);
+            ApplyDeltaToDraggingTargets(delta);
+        }
+
+        /// <summary>
+        /// 将拖拽增量应用到目标节点（支持多选节点整体移动）
+        /// </summary>
+        private void ApplyDeltaToDraggingTargets(Vector2 delta)
+        {
+            StepGraphView graphView = GetFirstAncestorOfType<StepGraphView>();
+            if (graphView == null)
+            {
+                Rect rect = GetPosition();
+                rect.position += delta;
+                SetPosition(rect);
+                return;
+            }
+
+            int selectedNodeCount = 0;
+            bool isThisNodeSelected = false;
+            for (int i = 0; i < graphView.selection.Count; i++)
+            {
+                StepNodeView selectedNodeView = graphView.selection[i] as StepNodeView;
+                if (selectedNodeView == null)
+                {
+                    continue;
+                }
+                selectedNodeCount += 1;
+                if (ReferenceEquals(selectedNodeView, this))
+                {
+                    isThisNodeSelected = true;
+                }
+            }
+
+            if (selectedNodeCount > 1 && isThisNodeSelected)
+            {
+                for (int i = 0; i < graphView.selection.Count; i++)
+                {
+                    StepNodeView selectedNodeView = graphView.selection[i] as StepNodeView;
+                    if (selectedNodeView == null)
+                    {
+                        continue;
+                    }
+                    Rect rect = selectedNodeView.GetPosition();
+                    rect.position += delta;
+                    selectedNodeView.SetPosition(rect);
+                }
+                return;
+            }
+
+            Rect selfRect = GetPosition();
+            selfRect.position += delta;
+            SetPosition(selfRect);
         }
 
         /// <summary>

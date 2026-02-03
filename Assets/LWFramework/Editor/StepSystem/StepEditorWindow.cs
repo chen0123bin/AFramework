@@ -330,6 +330,8 @@ namespace LWStep.Editor
             m_GraphView.GraphChanged += OnGraphChanged;
             m_GraphView.style.flexGrow = 1;
             m_GraphContainer.Add(m_GraphView);
+
+
         }
 
         /// <summary>
@@ -866,7 +868,6 @@ namespace LWStep.Editor
             EditorGUI.BeginChangeCheck();
             m_SelectedEdge.Priority = EditorGUILayout.IntField("优先级", m_SelectedEdge.Priority);
             m_SelectedEdge.Condition = EditorGUILayout.TextField("条件", m_SelectedEdge.Condition);
-            m_SelectedEdge.Tag = EditorGUILayout.TextField("标签", m_SelectedEdge.Tag);
             if (EditorGUI.EndChangeCheck())
             {
                 if (m_SelectedEdgeView != null)
@@ -880,11 +881,6 @@ namespace LWStep.Editor
             if (!string.IsNullOrEmpty(conditionError))
             {
                 EditorGUILayout.HelpBox(conditionError, MessageType.Warning);
-            }
-            string tagError = GetEdgeTagError(m_SelectedEdge.Tag);
-            if (!string.IsNullOrEmpty(tagError))
-            {
-                EditorGUILayout.HelpBox(tagError, MessageType.Warning);
             }
 
             if (GUILayout.Button("删除连线"))
@@ -1264,11 +1260,6 @@ namespace LWStep.Editor
                 {
                     errors.Add("连线条件非法: " + edge.FromId + " -> " + edge.ToId + "，" + conditionError);
                 }
-                string tagError = GetEdgeTagError(edge.Tag);
-                if (!string.IsNullOrEmpty(tagError))
-                {
-                    errors.Add("连线标签非法: " + edge.FromId + " -> " + edge.ToId + "，" + tagError);
-                }
             }
 
             StepGraph graph = new StepGraph(m_Data.StartNodeId, "");
@@ -1281,7 +1272,7 @@ namespace LWStep.Editor
             for (int i = 0; i < m_Data.Edges.Count; i++)
             {
                 StepEditorEdgeData edge = m_Data.Edges[i];
-                StepEdge stepEdge = new StepEdge(edge.FromId, edge.ToId, edge.Priority, edge.Condition, edge.Tag);
+                StepEdge stepEdge = new StepEdge(edge.FromId, edge.ToId, edge.Priority, edge.Condition);
                 graph.AddEdge(stepEdge);
             }
             graph.BuildIndex();
@@ -1344,27 +1335,6 @@ namespace LWStep.Editor
                     return "条件格式需要包含左右值";
                 }
                 return string.Empty;
-            }
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// 校验连线标签格式（非空且无前后空格）
-        /// </summary>
-        private string GetEdgeTagError(string tag)
-        {
-            if (string.IsNullOrEmpty(tag))
-            {
-                return string.Empty;
-            }
-            string trimmed = tag.Trim();
-            if (string.IsNullOrEmpty(trimmed))
-            {
-                return "标签不能为空";
-            }
-            if (!string.Equals(trimmed, tag, StringComparison.Ordinal))
-            {
-                return "标签存在前后空格";
             }
             return string.Empty;
         }

@@ -96,6 +96,7 @@ namespace LWStep
                 return;
             }
             m_Graphs[graph.Name] = graph;
+
         }
 
         /// <summary>
@@ -177,7 +178,7 @@ namespace LWStep
             m_Context.Clear();
         }
 
-        public void Forward(string requiredTag = null)
+        public void Forward()
         {
             if (!IsRunning || m_CurrentGraph == null || m_CurrentNode == null)
             {
@@ -196,7 +197,7 @@ namespace LWStep
             }
 
             m_ForwardHistory.Clear();
-            List<string> nextNodes = m_CurrentGraph.GetNextNodeIds(m_CurrentNode.Id, m_Context, requiredTag);
+            List<string> nextNodes = m_CurrentGraph.GetNextNodeIds(m_CurrentNode.Id, m_Context);
             if (nextNodes.Count == 0)
             {
                 LWDebug.LogWarning("当前节点没有可前进目标: " + m_CurrentNode.Id);
@@ -231,7 +232,7 @@ namespace LWStep
             SwitchToNodeWithRebuild(targetNodeId, m_History.Count - 1);
         }
 
-        public void JumpTo(string targetNodeId, string requiredTag)
+        public void JumpTo(string targetNodeId)
         {
             if (!IsRunning || m_CurrentGraph == null || m_CurrentNode == null)
             {
@@ -277,7 +278,7 @@ namespace LWStep
 
             m_ForwardHistory.Clear();
 
-            List<string> path = m_CurrentGraph.FindPath(m_CurrentNode.Id, targetNodeId, m_Context, requiredTag);
+            List<string> path = m_CurrentGraph.FindPath(m_CurrentNode.Id, targetNodeId, m_Context);
             bool hasPath = path != null && path.Count > 0;
 
             m_CurrentNode.ApplyRemaining(m_Context);
@@ -362,15 +363,6 @@ namespace LWStep
                 return new List<string>();
             }
             return m_CurrentGraph.GetNextNodeIds(m_CurrentNode.Id, m_Context);
-        }
-
-        public List<string> GetAvailableNextNodes(string requiredTag)
-        {
-            if (m_CurrentGraph == null || m_CurrentNode == null)
-            {
-                return new List<string>();
-            }
-            return m_CurrentGraph.GetNextNodeIds(m_CurrentNode.Id, m_Context, requiredTag);
         }
         public StepContext GetStepContext()
         {

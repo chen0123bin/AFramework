@@ -48,6 +48,7 @@ namespace LWStep
             //获取第一个node，并递归获取后面所有的node
             if (m_Nodes.TryGetValue(StartNodeId, out StepNode startNode))
             {
+                nodes.Add(startNode);
                 AddDisplayNode(startNode.Id, nodes);
             }
             return nodes;
@@ -160,9 +161,8 @@ namespace LWStep
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="context"></param>
-        /// <param name="requiredTag"></param>
         /// <returns></returns>
-        public List<string> GetNextNodeIds(string nodeId, StepContext context, string requiredTag = null)
+        public List<string> GetNextNodeIds(string nodeId, StepContext context)
         {
             List<string> result = new List<string>();
             List<StepEdge> list;
@@ -175,11 +175,7 @@ namespace LWStep
             for (int i = 0; i < list.Count; i++)
             {
                 StepEdge edge = list[i];
-                if (!IsTagMatched(edge, requiredTag))
-                {
-                    continue;
-                }
-                if (!IsConditionMatched(edge.Condition, context))
+                if (!edge.IsConditionMatched(context))
                 {
                     continue;
                 }
@@ -200,9 +196,8 @@ namespace LWStep
         /// <param name="fromId"></param>
         /// <param name="toId"></param>
         /// <param name="context"></param>
-        /// <param name="requiredTag"></param>
         /// <returns></returns>
-        public List<string> FindPath(string fromId, string toId, StepContext context = null, string requiredTag = null)
+        public List<string> FindPath(string fromId, string toId, StepContext context = null)
         {
             Queue<string> queue = new Queue<string>();
             Dictionary<string, string> prev = new Dictionary<string, string>();
@@ -216,7 +211,7 @@ namespace LWStep
                 {
                     break;
                 }
-                List<string> nextNodes = GetNextNodeIds(current, context, requiredTag);
+                List<string> nextNodes = GetNextNodeIds(current, context);
                 for (int i = 0; i < nextNodes.Count; i++)
                 {
                     string next = nextNodes[i];
@@ -244,147 +239,6 @@ namespace LWStep
             }
             path.Reverse();
             return path;
-        }
-
-        private bool IsConditionMatched(string condition, StepContext context)
-        {
-            if (string.IsNullOrEmpty(condition))
-            {
-                return true;
-            }
-            if (context == null)
-            {
-                return false;
-            }
-            string trimmed = condition.Trim();
-
-            int notEqualIndex = trimmed.IndexOf("!=", StringComparison.Ordinal);
-            if (notEqualIndex >= 0)
-            {
-                string key = trimmed.Substring(0, notEqualIndex).Trim();
-                string expected = trimmed.Substring(notEqualIndex + 2).Trim();
-                object actual;
-                if (!context.TryGetRawValue(key, out actual))
-                {
-                    return false;
-                }
-                return !IsValueMatched(actual, expected);
-            }
-
-            int equalIndex = trimmed.IndexOf("==", StringComparison.Ordinal);
-            if (equalIndex >= 0)
-            {
-                string key = trimmed.Substring(0, equalIndex).Trim();
-                string expected = trimmed.Substring(equalIndex + 2).Trim();
-                object actual;
-                if (!context.TryGetRawValue(key, out actual))
-                {
-                    return false;
-                }
-                return IsValueMatched(actual, expected);
-            }
-
-            object rawValue;
-            if (!context.TryGetRawValue(trimmed, out rawValue))
-            {
-                return false;
-            }
-            return IsTruthy(rawValue);
-        }
-
-        private bool IsTagMatched(StepEdge edge, string requiredTag)
-        {
-            if (string.IsNullOrEmpty(requiredTag))
-            {
-                return true;
-            }
-            if (edge == null)
-            {
-                return false;
-            }
-            if (string.IsNullOrEmpty(edge.Tag))
-            {
-                return false;
-            }
-            return string.Equals(edge.Tag, requiredTag, StringComparison.Ordinal);
-        }
-        /// <summary>
-        /// 检查值是否匹配
-        /// </summary>
-        /// <param name="actual">实际值</param>
-        /// <param name="expected">预期值连线中设置的值</param>
-        /// <returns></returns>
-        private bool IsValueMatched(object actual, string expected)
-        {
-            if (actual == null)
-            {
-                return string.IsNullOrEmpty(expected) || string.Equals(expected, "null", StringComparison.OrdinalIgnoreCase);
-            }
-
-            bool expectedBool;
-            if (bool.TryParse(expected, out expectedBool))
-            {
-                return string.Equals(actual.ToString(), expected, StringComparison.OrdinalIgnoreCase);
-            }
-
-            double actualNumber;
-            double expectedNumber;
-            if (TryGetNumber(actual, out actualNumber) && double.TryParse(expected, out expectedNumber))
-            {
-                return Math.Abs(actualNumber - expectedNumber) < 0.0001d;
-            }
-
-            return string.Equals(actual.ToString(), expected, StringComparison.Ordinal);
-        }
-
-        private bool TryGetNumber(object value, out double number)
-        {
-            number = 0d;
-            if (value is int)
-            {
-                number = (int)value;
-                return true;
-            }
-            if (value is long)
-            {
-                number = (long)value;
-                return true;
-            }
-            if (value is float)
-            {
-                number = (float)value;
-                return true;
-            }
-            if (value is double)
-            {
-                number = (double)value;
-                return true;
-            }
-            if (value is decimal)
-            {
-                number = (double)(decimal)value;
-                return true;
-            }
-            return false;
-        }
-
-        private bool IsTruthy(object value)
-        {
-            if (value == null)
-            {
-                return false;
-            }
-            if (value is bool)
-            {
-                return (bool)value;
-            }
-            double number;
-            if (TryGetNumber(value, out number))
-            {
-                return Math.Abs(number) > 0.0001d;
-            }
-            string text = value.ToString();
-            return !string.IsNullOrEmpty(text);
         }
 
         /// <summary>

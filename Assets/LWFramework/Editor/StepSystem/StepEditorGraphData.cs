@@ -83,7 +83,6 @@ namespace LWStep.Editor
         public string ToId;
         public int Priority;
         public string Condition;
-        public string Tag;
 
         /// <summary>
         /// 创建连线数据
@@ -94,7 +93,6 @@ namespace LWStep.Editor
             ToId = string.Empty;
             Priority = 0;
             Condition = string.Empty;
-            Tag = string.Empty;
         }
     }
 

@@ -6,7 +6,7 @@
 
 - 目标：在 LWFramework 中提供一套面向“虚拟仿真教学”的步骤系统（XML 数据驱动 + DAG + 前进/后退/跳转与过程补齐），并提供 Editor 图编辑器。
 - 架构约束：沿用 Manager 体系手动注册与每帧 Update 驱动；StepManager 与 LWFMS（Procedure/FSM）互相独立、可并存。
-- 关键能力：StepContext 作为过程状态与结果容器；JumpTo 时对路径中间节点执行 Apply 进行补齐；边支持条件/标签/优先级选路。
+- 关键能力：StepContext 作为过程状态与结果容器；JumpTo 时对路径中间节点执行 Apply 进行补齐；边支持条件/优先级选路。
 - 计划调整：跳转补齐阶段统一 Apply，不再允许交互动作阻塞跳转（相关策略类已清理）。
 - 近期增强：Node 状态细化为 未完成/运行中/已完成，并同步到编辑器节点视图（用于联调预览时的多态标记）。
 
@@ -58,7 +58,7 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
 
 2) **连线**
 - 鼠标点击节点输出端口（Out）→ 再点击目标节点输入端口（In）创建连线。
-- 选中连线后，可在右侧属性面板编辑：优先级、条件、标签。
+- 选中连线后，可在右侧属性面板编辑：优先级、条件。
 
 3) **设置开始节点**
 - 选中节点后，右侧点击“设为开始节点”。
@@ -72,13 +72,13 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
 - 顶部工具栏：导入XML / 导出XML。
 
 6) **校验**
-- 顶部工具栏“校验”会检查：图 ID、节点 ID 重复/为空、开始节点合法性、连线条件/标签格式、DAG 无环、不可达节点、孤立节点。
+- 顶部工具栏“校验”会检查：图 ID、节点 ID 重复/为空、开始节点合法性、连线条件格式、DAG 无环、不可达节点、孤立节点。
 
 ### 3.3 运行时联调预览
 
 右侧“运行时预览”区域：
 - 选择一个 XML 作为预览输入
-- 配置图 ID / 开始节点 / 定位节点 / 定位标签
+- 配置图 ID / 开始节点 / 定位节点
 - 点击“进入PlayMode预览”后：
   - PlayMode 中的示例驱动脚本会读取 EditorPrefs 并按配置启动
   - 编辑器窗口会高亮当前运行节点（标题带“运行中”标识）
@@ -100,7 +100,7 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
     </node>
   </nodes>
   <edges>
-    <edge from="a" to="b" priority="10" condition="mode == A" tag="vip" />
+    <edge from="a" to="b" priority="10" condition="mode == A" />
   </edges>
 </graph>
 ```
@@ -110,7 +110,6 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
 - `graph.start`：开始节点 ID（可为空，但运行时 Start 通常需要可用起点）
 - `node.x/y`：编辑器布局位置（导入导出会保留）
 - `edge.priority`：出边候选排序依据（越大优先级越高）
-- `edge.tag`：标签选路过滤（Forward/JumpTo 可指定 requiredTag）
 - `edge.condition`：条件表达式（基于 StepContext 的简单判断）
 
 条件表达式支持（当前实现）：
@@ -137,9 +136,9 @@ stepManager.Start("step_stage4_demo");
 
 ### 5.3 导航
 
-- 前进：`stepManager.Forward()` 或 `stepManager.Forward(requiredTag)`
+- 前进：`stepManager.Forward()`
 - 后退：`stepManager.Backward()`
-- 跳转：`stepManager.JumpTo(targetNodeId)` 或 `stepManager.JumpTo(targetNodeId, requiredTag)`
+- 跳转：`stepManager.JumpTo(targetNodeId)`
 
 ### 5.4 上下文保存/恢复
 
@@ -168,8 +167,8 @@ stepManager.Start("step_stage4_demo");
 
 交互事件（与示例一致）：
 - 上一条：`ManagerUtility.StepMgr.Backward();`
-- 下一条：`ManagerUtility.StepMgr.Forward(requiredTag);`（可选标签过滤）
-- 跳转：`ManagerUtility.StepMgr.JumpTo(nodeId, requiredTag);`（可选标签过滤）
+- 下一条：`ManagerUtility.StepMgr.Forward();`
+- 跳转：`ManagerUtility.StepMgr.JumpTo(nodeId);`
 
 ## 6. 计划进度摘要（对照）
 
@@ -195,7 +194,6 @@ StepNode 运行时状态定义为三态：
 ## 7. 已知约束与建议
 
 - 条件表达式是“轻量解析”，建议保持表达式简单、避免复杂嵌套。
-- 标签要求无前后空格；否则校验会提示。
 - 跳转补齐阶段统一执行 Apply：交互类动作不会阻塞跳转（这是当前设计决策）。
 - 运行时预览依赖 EditorPrefs 与 DemoRunner 读取逻辑，建议在团队内统一约定流程入口场景。
 

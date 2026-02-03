@@ -76,10 +76,6 @@ namespace LWStep.Editor
                 {
                     edgeElement.SetAttribute("condition", edge.Condition);
                 }
-                if (!string.IsNullOrEmpty(edge.Tag))
-                {
-                    edgeElement.SetAttribute("tag", edge.Tag);
-                }
                 edgesElement.AppendChild(edgeElement);
             }
 
