@@ -101,11 +101,26 @@ public class StepProcedure : BaseFSMState
         {
             //ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId);
         }
-
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", -0.2f);
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftArrow))
+        {
+            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0);
+        }
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0.2f);
+        }
+        else if (Input.GetKeyUp(KeyCode.RightArrow))
+        {
+            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0);
+        }
         if (Input.GetKeyDown(KeyCode.S))
         {
             m_SavedContextJson = ManagerUtility.StepMgr.GetContextToJson();
-            LWDebug.Log("步骤流程：已保存上下文");
+            LWDebug.Log("步骤流程：获取当前上下文");
         }
         if (Input.GetKeyDown(KeyCode.L))
         {

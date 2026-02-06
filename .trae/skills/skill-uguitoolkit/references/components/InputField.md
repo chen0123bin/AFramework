@@ -48,7 +48,9 @@ InputField 是 Unity 内置的输入框组件，用于接收用户文本输入�
 - IpfUserName（挂 Image + InputField）
   - TxtPlaceholder（挂 Text，raycastTarget=false）
   - TxtText（挂 Text，raycastTarget=false）
-
+  - 输入框底：Surface / SurfaceAlt
+  - Placeholder：TextPrimary + 降低 alpha
+  - Text：TextPrimary
 ## 重要属性（常用）
 
 ### 引用字段（最容易写错）
@@ -75,3 +77,4 @@ InputField 是 Unity 内置的输入框组件，用于接收用户文本输入�
 - 输入框能显示占位，但输入文字不显示：textComponent 没有指向带 Text 的节点（或节点名/路径写错）。
 - 点击输入框没反应：背景 Image 的 raycastTarget=false，或被上层控件拦截。
 - Placeholder 变成普通文字不消失：placeholder 未正确绑定到占位节点。
+

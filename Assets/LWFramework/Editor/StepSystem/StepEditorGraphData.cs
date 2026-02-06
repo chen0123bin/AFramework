@@ -82,7 +82,9 @@ namespace LWStep.Editor
         public string FromId;
         public string ToId;
         public int Priority;
-        public string Condition;
+        public string ConditionKey;
+        public ComparisonType ConditionComparisonType;
+        public string ConditionValue;
 
         /// <summary>
         /// 创建连线数据
@@ -92,7 +94,9 @@ namespace LWStep.Editor
             FromId = string.Empty;
             ToId = string.Empty;
             Priority = 0;
-            Condition = string.Empty;
+            ConditionKey = string.Empty;
+            ConditionComparisonType = ComparisonType.EqualTo;
+            ConditionValue = string.Empty;
         }
     }
 

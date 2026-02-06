@@ -48,6 +48,7 @@ namespace LWStep.Editor
             graphViewChanged = OnGraphViewChanged;
 
             RebuildView();
+
         }
 
         /// <summary>
@@ -258,7 +259,9 @@ namespace LWStep.Editor
                     edgeData.FromId = fromView.Data.Id;
                     edgeData.ToId = toView.Data.Id;
                     edgeData.Priority = 0;
-                    edgeData.Condition = string.Empty;
+                    edgeData.ConditionKey = string.Empty;
+                    edgeData.ConditionComparisonType = ComparisonType.EqualTo;
+                    edgeData.ConditionValue = string.Empty;
                     m_Data.Edges.Add(edgeData);
                     ConfigureEdgeView(edge, edgeData);
                     NotifyGraphChanged();
@@ -425,6 +428,7 @@ namespace LWStep.Editor
         /// </summary>
         private void OnMouseMove(MouseMoveEvent evt)
         {
+
             m_LastMouseWorldPosition = this.LocalToWorld(evt.mousePosition);
             if (m_IsRectangleSelecting)
             {
@@ -559,10 +563,13 @@ namespace LWStep.Editor
         /// <summary>
         /// 获取事件鼠标位置对应的 contentViewContainer 本地坐标
         /// </summary>
-        private Vector2 GetContentLocalMousePosition(Vector2 graphViewLocalMousePosition)
+        public Vector2 GetContentLocalMousePosition(Vector2 graphViewLocalMousePosition)
         {
-            Vector2 worldPos = this.LocalToWorld(graphViewLocalMousePosition);
-            return contentViewContainer.WorldToLocal(worldPos);
+            //Vector2 worldPos = this.LocalToWorld(graphViewLocalMousePosition);
+            // return contentViewContainer.WorldToLocal(worldPos);
+            Vector2 ret = contentViewContainer.WorldToLocal(graphViewLocalMousePosition);
+            //Debug.Log($"GetContentLocalMousePosition: {graphViewLocalMousePosition} -> {ret}");
+            return ret;
         }
 
         /// <summary>
@@ -612,7 +619,7 @@ namespace LWStep.Editor
             {
                 return;
             }
-            System.Collections.Generic.List<ISelectable> list = new System.Collections.Generic.List<ISelectable>();
+            List<ISelectable> list = new List<ISelectable>();
             foreach (ISelectable s in selection)
             {
                 list.Add(s);
@@ -696,7 +703,9 @@ namespace LWStep.Editor
             edgeData.FromId = fromView.Data.Id;
             edgeData.ToId = toView.Data.Id;
             edgeData.Priority = 0;
-            edgeData.Condition = string.Empty;
+            edgeData.ConditionKey = string.Empty;
+            edgeData.ConditionComparisonType = ComparisonType.EqualTo;
+            edgeData.ConditionValue = string.Empty;
             m_Data.Edges.Add(edgeData);
 
             Edge edge = new Edge();

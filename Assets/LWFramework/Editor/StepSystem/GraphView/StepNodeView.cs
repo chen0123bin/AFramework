@@ -8,6 +8,7 @@ namespace LWStep.Editor
 {
     public class StepNodeView : Node
     {
+        private StepGraphView m_GraphView;
         private StepEditorNodeData m_Data;
         private Port m_InputPort;
         private Port m_OutputPort;
@@ -35,6 +36,7 @@ namespace LWStep.Editor
         /// </summary>
         public StepNodeView(StepEditorNodeData data)
         {
+            m_GraphView = GetFirstAncestorOfType<StepGraphView>();
             m_Data = data;
             title = data.Id;
             viewDataKey = data.Id;
@@ -129,7 +131,13 @@ namespace LWStep.Editor
             }
             Vector2 delta = evt.mousePosition - m_LastMousePosition;
             m_LastMousePosition = evt.mousePosition;
-            ApplyDeltaToDraggingTargets(delta);
+            float scale = 1;
+            if (m_GraphView != null)
+            {
+                scale = m_GraphView.scale;
+            }
+            ApplyDeltaToDraggingTargets(delta / scale);
+            //Debug.Log(delta + " " + m_GraphView.scale);
         }
 
         /// <summary>
@@ -137,9 +145,9 @@ namespace LWStep.Editor
         /// </summary>
         private void ApplyDeltaToDraggingTargets(Vector2 delta)
         {
-            StepGraphView graphView = GetFirstAncestorOfType<StepGraphView>();
-            if (graphView == null)
+            if (m_GraphView == null)
             {
+                m_GraphView = GetFirstAncestorOfType<StepGraphView>();
                 Rect rect = GetPosition();
                 rect.position += delta;
                 SetPosition(rect);
@@ -148,9 +156,9 @@ namespace LWStep.Editor
 
             int selectedNodeCount = 0;
             bool isThisNodeSelected = false;
-            for (int i = 0; i < graphView.selection.Count; i++)
+            for (int i = 0; i < m_GraphView.selection.Count; i++)
             {
-                StepNodeView selectedNodeView = graphView.selection[i] as StepNodeView;
+                StepNodeView selectedNodeView = m_GraphView.selection[i] as StepNodeView;
                 if (selectedNodeView == null)
                 {
                     continue;
@@ -164,9 +172,9 @@ namespace LWStep.Editor
 
             if (selectedNodeCount > 1 && isThisNodeSelected)
             {
-                for (int i = 0; i < graphView.selection.Count; i++)
+                for (int i = 0; i < m_GraphView.selection.Count; i++)
                 {
-                    StepNodeView selectedNodeView = graphView.selection[i] as StepNodeView;
+                    StepNodeView selectedNodeView = m_GraphView.selection[i] as StepNodeView;
                     if (selectedNodeView == null)
                     {
                         continue;

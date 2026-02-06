@@ -72,9 +72,15 @@ namespace LWStep.Editor
                 edgeElement.SetAttribute("from", edge.FromId ?? string.Empty);
                 edgeElement.SetAttribute("to", edge.ToId ?? string.Empty);
                 edgeElement.SetAttribute("priority", edge.Priority.ToString(CultureInfo.InvariantCulture));
-                if (!string.IsNullOrEmpty(edge.Condition))
+
+                if (!string.IsNullOrEmpty(edge.ConditionKey))
                 {
-                    edgeElement.SetAttribute("condition", edge.Condition);
+                    edgeElement.SetAttribute("conditionKey", edge.ConditionKey);
+                    edgeElement.SetAttribute("comparisonType", edge.ConditionComparisonType.ToString());
+                    if (!string.IsNullOrEmpty(edge.ConditionValue))
+                    {
+                        edgeElement.SetAttribute("conditionValue", edge.ConditionValue);
+                    }
                 }
                 edgesElement.AppendChild(edgeElement);
             }

@@ -115,9 +115,17 @@ namespace LWStep
                     }
                     string fromId = GetAttr(edgeElement, "from");
                     string toId = GetAttr(edgeElement, "to");
-                    string condition = GetAttr(edgeElement, "condition");
+                    string conditionKey = GetAttr(edgeElement, "conditionKey");
+                    string comparisonTypeText = GetAttr(edgeElement, "comparisonType");
+                    string conditionValue = GetAttr(edgeElement, "conditionValue");
                     int priority = GetAttrInt(edgeElement, "priority", 0);
-                    StepEdge edge = new StepEdge(fromId, toId, priority, condition);
+
+                    ComparisonType comparisonType = ComparisonType.EqualTo;
+                    if (!string.IsNullOrEmpty(comparisonTypeText))
+                    {
+                        Enum.TryParse(comparisonTypeText, true, out comparisonType);
+                    }
+                    StepEdge edge = new StepEdge(fromId, toId, priority, conditionKey, comparisonType, conditionValue);
                     graph.AddEdge(edge);
                 }
             }

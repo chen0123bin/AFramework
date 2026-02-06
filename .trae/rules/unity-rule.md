@@ -1,37 +1,47 @@
 ---
 alwaysApply: true
 ---
-使用Debug输出日志时，使用中文描述
+## 日志与注释
 
-生成代码时必须添加函数级中文注释
+- 使用 Debug 输出日志时，使用中文描述。
+- 生成代码时必须添加函数级中文注释。
 
-变量类型
-规则:
-不使用var关键字，而是使用具体的类型。
+## 代码风格
 
-变量命名 (Variable Naming)
-规则:
-成员变量: 使用 驼峰命名法 (camelCase)，不过首字母加上m_,例如m_Name。
-通用变量: 使用 驼峰命名法 (camelCase)。
-常量: 使用 全大写蛇形命名法 (UPPER_SNAKE_CASE)。
-布尔值: 前缀应使用 is, has, can, should 等，使其语义清晰。
-集合 / 数组: 使用复数形式。
+- 避免过度防御式编程：不要为了“更健壮”而新增大量冗余判空/判状态/判边界。
+- 以工程既有调用约定为前提：能保证不为 null/不越界的路径，不重复加“层层 if”。
+- 只在高风险边界加必要校验：外部输入、网络/文件 IO、序列化/反序列化、反射、跨线程回调、资源加载、平台差异等。
+- 当需要保护时，优先少量前置条件 + 清晰失败策略（早返回/抛异常/断言其一），避免散落的重复判断。
 
-函数 / 方法命名 (Function / Method Naming)
-规则:
-通用函数 / 方法: 使用 驼峰命名法 (CamelCase)。
-命名风格: 采用 动词或动宾短语，清晰地表达其执行的操作。
-Getter/Setter:
-Getter: Get + 属性名 (如 GetName())。
-Setter: Set + 属性名 (如 SetName(name))。
-布尔属性的 Getter: Is + 属性名 (如 IsEnabled())。
+## 变量类型
 
-类 / 接口命名 (Class / Interface Naming)
-规则:
-类名: 使用 帕斯卡命名法 (PascalCase)。
-接口名:
-推荐 (C#/TypeScript): 使用 帕斯卡命名法 (PascalCase)，并以 I 为前缀（如 IUserRepository）。
-命名风格: 采用 名词或名词短语，代表一个对象或概念。
+- 不使用 var 关键字，使用具体类型。
 
-规则:
-Unity项目不需要运行lint与typecheck验证,严格禁止这种操作。
+## 命名规范
+
+### 变量命名
+
+- 成员变量：驼峰命名法（camelCase），首字母加 m_，例如 m_Name。
+- 静态变量：驼峰命名法（camelCase），首字母加 s_，例如 s_Name。
+- 通用变量：驼峰命名法（camelCase）。
+- 常量：全大写蛇形命名法（UPPER_SNAKE_CASE）。
+- 布尔值：前缀使用 is/has/can/should 等，使语义清晰。
+- 集合/数组：使用复数形式。
+
+### 函数/方法命名
+
+- 通用函数/方法：帕斯卡命名法（PascalCase）。
+- 命名风格：动词或动宾短语，清晰表达执行操作。
+- Getter/Setter：
+  - Getter：Get + 属性名（如 GetName()）。
+  - Setter：Set + 属性名（如 SetName(name)）。
+  - 布尔属性 Getter：Is + 属性名（如 IsEnabled()）。
+
+### 类/接口命名
+
+- 类名：帕斯卡命名法（PascalCase）。
+- 接口名：帕斯卡命名法（PascalCase），并以 I 为前缀（如 IUserRepository）。
+
+## 工程验证
+
+- Unity 项目不需要运行 lint 与 typecheck 验证，严格禁止这种操作。

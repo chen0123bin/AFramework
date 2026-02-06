@@ -1,7 +1,21 @@
 using System;
+using System.Globalization;
 
 namespace LWStep
 {
+    /// <summary>
+    /// 比较类型（支持多种阈值判断）
+    /// </summary>
+    public enum ComparisonType
+    {
+        EqualTo,
+        NotEqualTo,
+        GreaterThan,
+        GreaterThanOrEqual,
+        LessThan,
+        LessThanOrEqual
+    }
+
     /// <summary>
     /// 步骤连线（有向边）
     /// </summary>
@@ -10,22 +24,30 @@ namespace LWStep
         public string FromId { get; private set; }
         public string ToId { get; private set; }
         public int Priority { get; private set; }
-        public string Condition { get; private set; }
+
+        public string ConditionKey { get; private set; }
+        public ComparisonType ConditionComparisonType { get; private set; }
+        public string ConditionValue { get; private set; }
 
         /// <summary>
-        /// 创建连线
+        /// 创建连线（结构化条件：Key + 比较类型 + Value）
         /// </summary>
-        public StepEdge(string fromId, string toId, int priority, string condition)
+        public StepEdge(string fromId, string toId, int priority, string conditionKey, ComparisonType comparisonType, string conditionValue)
         {
             FromId = fromId;
             ToId = toId;
             Priority = priority;
-            Condition = condition;
+            ConditionKey = conditionKey ?? string.Empty;
+            ConditionComparisonType = comparisonType;
+            ConditionValue = conditionValue ?? string.Empty;
         }
 
+        /// <summary>
+        /// 判断连线条件是否满足
+        /// </summary>
         public bool IsConditionMatched(StepContext context)
         {
-            if (string.IsNullOrEmpty(Condition))
+            if (string.IsNullOrEmpty(ConditionKey))
             {
                 return true;
             }
@@ -33,46 +55,57 @@ namespace LWStep
             {
                 return false;
             }
-            string trimmed = Condition.Trim();
-
-            int notEqualIndex = trimmed.IndexOf("!=", StringComparison.Ordinal);
-            if (notEqualIndex >= 0)
-            {
-                string key = trimmed.Substring(0, notEqualIndex).Trim();
-                string expected = trimmed.Substring(notEqualIndex + 2).Trim();
-                object actual;
-                if (!context.TryGetRawValue(key, out actual))
-                {
-                    return false;
-                }
-                return !IsValueMatched(actual, expected);
-            }
-
-            int equalIndex = trimmed.IndexOf("==", StringComparison.Ordinal);
-            if (equalIndex >= 0)
-            {
-                string key = trimmed.Substring(0, equalIndex).Trim();
-                string expected = trimmed.Substring(equalIndex + 2).Trim();
-                object actual;
-                if (!context.TryGetRawValue(key, out actual))
-                {
-                    return false;
-                }
-                return IsValueMatched(actual, expected);
-            }
-
+            //获取原始数据
             object rawValue;
-            if (!context.TryGetRawValue(trimmed, out rawValue))
+            if (!context.TryGetRawValue(ConditionKey, out rawValue))
             {
                 return false;
             }
-            return IsTruthy(rawValue);
+
+
+            if (ConditionComparisonType == ComparisonType.EqualTo)
+            {
+                return IsValueMatched(rawValue, ConditionValue);
+            }
+            if (ConditionComparisonType == ComparisonType.NotEqualTo)
+            {
+                return !IsValueMatched(rawValue, ConditionValue);
+            }
+
+            double actualNumber;
+            if (!TryGetNumber(rawValue, out actualNumber))
+            {
+                return false;
+            }
+            double expectedNumber;
+            if (!double.TryParse(ConditionValue, NumberStyles.Float, CultureInfo.InvariantCulture, out expectedNumber))
+            {
+                return false;
+            }
+
+            if (ConditionComparisonType == ComparisonType.GreaterThan)
+            {
+                return actualNumber > expectedNumber;
+            }
+            if (ConditionComparisonType == ComparisonType.GreaterThanOrEqual)
+            {
+                return actualNumber >= expectedNumber;
+            }
+            if (ConditionComparisonType == ComparisonType.LessThan)
+            {
+                return actualNumber < expectedNumber;
+            }
+            if (ConditionComparisonType == ComparisonType.LessThanOrEqual)
+            {
+                return actualNumber <= expectedNumber;
+            }
+            return false;
         }
 
         /// <summary>
         /// 检查值是否匹配
         /// </summary>
-        /// <param name="actual">实际值</param>
+        /// <param name="actual">上下文中实际值</param>
         /// <param name="expected">预期值连线中设置的值</param>
         /// <returns></returns>
         private bool IsValueMatched(object actual, string expected)
@@ -90,7 +123,7 @@ namespace LWStep
 
             double actualNumber;
             double expectedNumber;
-            if (TryGetNumber(actual, out actualNumber) && double.TryParse(expected, out expectedNumber))
+            if (TryGetNumber(actual, out actualNumber) && double.TryParse(expected, NumberStyles.Float, CultureInfo.InvariantCulture, out expectedNumber))
             {
                 return Math.Abs(actualNumber - expectedNumber) < 0.0001d;
             }
@@ -129,24 +162,6 @@ namespace LWStep
             return false;
         }
 
-        private bool IsTruthy(object value)
-        {
-            if (value == null)
-            {
-                return false;
-            }
-            if (value is bool)
-            {
-                return (bool)value;
-            }
-            double number;
-            if (TryGetNumber(value, out number))
-            {
-                return Math.Abs(number) > 0.0001d;
-            }
-            string text = value.ToString();
-            return !string.IsNullOrEmpty(text);
-        }
 
     }
 }

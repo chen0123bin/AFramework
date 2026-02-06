@@ -88,7 +88,7 @@
         </action>
       </actions>
     </node>
-    <node id="step_vip_true" name="条件为真-动画" x="994.40" y="122.40">
+    <node id="step_vip_true" name="条件为真-动画" x="996.80" y="121.60">
       <actions>
         <action type="LWStep.StepAnimationAction">
           <param key="state" value="Test1" />
@@ -100,6 +100,8 @@
           <param key="target" value="Animation" />
           <param key="reverse" value="True" />
           <param key="manualControl" value="True" />
+          <param key="manualSpeed" value="0" />
+          <param key="manualSpeedKey" value="Ani1" />
         </action>
         <action type="LWStep.StepToggleObjectAction">
           <param key="isActive" value="False" />
@@ -166,21 +168,21 @@
   </nodes>
   <edges>
     <edge from="step_start" to="step_mode_gate" priority="0" />
-    <edge from="step_mode_gate" to="step_mode_a" priority="20" condition="mode == A" />
-    <edge from="step_mode_gate" to="step_mode_other" priority="10" condition="mode != A" />
+    <edge from="step_mode_gate" to="step_mode_a" priority="20" conditionKey="mode" comparisonType="EqualTo" conditionValue="A" condition="mode EqualTo A" />
+    <edge from="step_mode_gate" to="step_mode_other" priority="10" conditionKey="mode" comparisonType="NotEqualTo" conditionValue="A" condition="mode NotEqualTo A" />
     <edge from="step_mode_a" to="step_condition_gate" priority="0" />
     <edge from="step_mode_other" to="step_condition_gate" priority="0" />
     <edge from="step_vip_true" to="step_score_gate" priority="0" />
     <edge from="step_vip_false" to="step_score_gate" priority="0" />
-    <edge from="step_score_gate" to="step_score_good" priority="10" condition="score == 5" />
-    <edge from="step_score_gate" to="step_score_other" priority="5" condition="score != 5" />
+    <edge from="step_score_gate" to="step_score_good" priority="10" conditionKey="score" comparisonType="EqualTo" conditionValue="5" condition="score EqualTo 5" />
+    <edge from="step_score_gate" to="step_score_other" priority="5" conditionKey="score" comparisonType="NotEqualTo" conditionValue="5" condition="score NotEqualTo 5" />
     <edge from="step_score_good" to="step_priority_gate" priority="0" />
     <edge from="step_score_other" to="step_priority_gate" priority="0" />
     <edge from="step_priority_gate" to="step_priority_high" priority="20" />
     <edge from="step_priority_gate" to="step_priority_low" priority="10" />
     <edge from="step_priority_high" to="step_end" priority="0" />
     <edge from="step_priority_low" to="step_end" priority="0" />
-    <edge from="step_condition_gate" to="step_vip_false" priority="0" condition="isVip == False" />
-    <edge from="step_condition_gate" to="step_vip_true" priority="10" condition="isVip == True" />
+    <edge from="step_condition_gate" to="step_vip_false" priority="0" conditionKey="isVip" comparisonType="EqualTo" conditionValue="False" condition="isVip EqualTo False" />
+    <edge from="step_condition_gate" to="step_vip_true" priority="10" conditionKey="isVip" comparisonType="EqualTo" conditionValue="True" condition="isVip EqualTo True" />
   </edges>
 </graph>

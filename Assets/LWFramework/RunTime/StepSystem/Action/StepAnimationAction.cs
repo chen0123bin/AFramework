@@ -10,18 +10,11 @@ namespace LWStep
         [StepParam("state")]
         private string m_StateName;
 
-        [StepParam("waitForComplete")]
-        private bool m_WaitForComplete = true;
-
-        [StepParam("applyToEndPose")]
-        private bool m_ApplyToEndPose = true;
-
         [StepParam("reverse")]
         private bool m_IsReverse;
 
-        [StepParam("manualControl")]
-        private bool m_IsManualControl;
-
+        [StepParam("manualSpeedKey")]
+        private string m_ManualSpeedKey;
         private Animator m_Animator;
         private int m_PlayStateHash;
 
@@ -49,7 +42,6 @@ namespace LWStep
                 m_HasBaseline = false;
                 return;
             }
-
             AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(m_BaselineLayer);
             m_BaselineStateHash = stateInfo.fullPathHash;
             m_BaselineNormalizedTime = stateInfo.normalizedTime;
@@ -66,18 +58,12 @@ namespace LWStep
             {
                 return;
             }
-
             GameObject target = null;
             if (!string.IsNullOrEmpty(m_BaselineTargetName))
             {
                 target = GameObject.Find(m_BaselineTargetName);
             }
             Animator animator = FindAnimator(target);
-            if (animator == null)
-            {
-                return;
-            }
-
             if (m_BaselineStateHash == 0)
             {
                 return;
@@ -116,16 +102,16 @@ namespace LWStep
             float startNormalizedTime = m_IsReverse ? 1f : 0f;
 
             m_Animator.Play(m_PlayStateHash, 0, startNormalizedTime);
-            SetAnimatorPlaybackSpeed();
+            SetAnimatorPlaybackSpeed(IsManualControl());
 
             LWDebug.Log("步骤动作-动画播放：播放状态 " + m_StateName);
 
-            if (!m_WaitForComplete && !m_IsManualControl)
-            {
-                Finish();
-            }
-        }
 
+        }
+        private bool IsManualControl()
+        {
+            return !m_ManualSpeedKey.IsEmpty();
+        }
         /// <summary>
         /// 更新动作：等待动画播放完成
         /// </summary>
@@ -135,38 +121,22 @@ namespace LWStep
             {
                 return;
             }
-            if (!m_WaitForComplete)
+            if (IsManualControl())
             {
-                if (!m_IsManualControl)
-                {
-                    Finish();
-                    return;
-                }
-            }
-
-
-            if (m_IsManualControl)
-            {
-                bool isPressed = Input.GetKey(KeyCode.Space);
-                SetAnimatorPlaybackSpeed(isPressed);
-                if (!isPressed)
-                {
-                    return;
-                }
+                float manualSpeed = GetContext().GetValue<float>(m_ManualSpeedKey);
+                m_Animator.SetFloat("Speed", manualSpeed);
             }
 
             if (m_Animator.IsInTransition(0))
             {
                 return;
             }
-
             AnimatorStateInfo stateInfo = m_Animator.GetCurrentAnimatorStateInfo(0);
             bool isSameState = stateInfo.shortNameHash == m_PlayStateHash || stateInfo.fullPathHash == m_PlayStateHash;
             if (!isSameState)
             {
                 return;
             }
-            Debug.Log(stateInfo.normalizedTime + "  " + m_Animator.speed);
             if (!m_IsReverse)
             {
                 if (stateInfo.normalizedTime >= (1f - NORMALIZED_TIME_EPSILON))
@@ -214,15 +184,8 @@ namespace LWStep
             }
 
             int stateHash = Animator.StringToHash(m_StateName);
-            float normalizedTime;
-            if (!m_IsReverse)
-            {
-                normalizedTime = m_ApplyToEndPose ? 1f : 0f;
-            }
-            else
-            {
-                normalizedTime = m_ApplyToEndPose ? 0f : 1f;
-            }
+
+            float normalizedTime = !m_IsReverse ? 1 : 0;
             m_Animator.Play(stateHash, 0, normalizedTime);
             m_Animator.Update(0f);
         }
@@ -230,21 +193,8 @@ namespace LWStep
         /// <summary>
         /// 设置Animator播放速度：支持倒播与手动控制（按住空格播放，松开停止）
         /// </summary>
-        private void SetAnimatorPlaybackSpeed()
-        {
-            SetAnimatorPlaybackSpeed(!m_IsManualControl);
-        }
-
-        /// <summary>
-        /// 设置Animator播放速度：支持倒播与手动控制（按住空格播放，松开停止）
-        /// </summary>
         private void SetAnimatorPlaybackSpeed(bool isShouldPlay)
         {
-            if (m_Animator == null)
-            {
-                return;
-            }
-
             float absSpeed = Mathf.Abs(m_OriginalAnimatorSpeed);
             if (absSpeed < NORMALIZED_TIME_EPSILON)
             {

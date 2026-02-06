@@ -10,6 +10,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using LWStep;
+using System.Threading.Tasks;
 
 namespace LWStep.Editor
 {
@@ -330,8 +331,13 @@ namespace LWStep.Editor
             m_GraphView.GraphChanged += OnGraphChanged;
             m_GraphView.style.flexGrow = 1;
             m_GraphContainer.Add(m_GraphView);
-
-
+            //增加延迟刷新，防止在图数据更新时立即刷新导致的异常
+            System.Func<Task> RefreshGraph = async () =>
+            {
+                await Task.Delay(System.TimeSpan.FromSeconds(0.2f));
+                OnFrameAll();
+            };
+            RefreshGraph();
         }
 
         /// <summary>
@@ -867,7 +873,9 @@ namespace LWStep.Editor
             EditorGUILayout.LabelField("终点", m_SelectedEdge.ToId);
             EditorGUI.BeginChangeCheck();
             m_SelectedEdge.Priority = EditorGUILayout.IntField("优先级", m_SelectedEdge.Priority);
-            m_SelectedEdge.Condition = EditorGUILayout.TextField("条件", m_SelectedEdge.Condition);
+            m_SelectedEdge.ConditionKey = EditorGUILayout.TextField("条件Key", m_SelectedEdge.ConditionKey);
+            m_SelectedEdge.ConditionComparisonType = (ComparisonType)EditorGUILayout.EnumPopup("比较类型", m_SelectedEdge.ConditionComparisonType);
+            m_SelectedEdge.ConditionValue = EditorGUILayout.TextField("条件Value", m_SelectedEdge.ConditionValue);
             if (EditorGUI.EndChangeCheck())
             {
                 if (m_SelectedEdgeView != null)
@@ -877,7 +885,7 @@ namespace LWStep.Editor
                 SaveUndoSnapshot("编辑连线");
             }
 
-            string conditionError = GetEdgeConditionError(m_SelectedEdge.Condition);
+            string conditionError = GetEdgeConditionError(m_SelectedEdge);
             if (!string.IsNullOrEmpty(conditionError))
             {
                 EditorGUILayout.HelpBox(conditionError, MessageType.Warning);
@@ -1255,7 +1263,7 @@ namespace LWStep.Editor
             for (int i = 0; i < m_Data.Edges.Count; i++)
             {
                 StepEditorEdgeData edge = m_Data.Edges[i];
-                string conditionError = GetEdgeConditionError(edge.Condition);
+                string conditionError = GetEdgeConditionError(edge);
                 if (!string.IsNullOrEmpty(conditionError))
                 {
                     errors.Add("连线条件非法: " + edge.FromId + " -> " + edge.ToId + "，" + conditionError);
@@ -1272,7 +1280,8 @@ namespace LWStep.Editor
             for (int i = 0; i < m_Data.Edges.Count; i++)
             {
                 StepEditorEdgeData edge = m_Data.Edges[i];
-                StepEdge stepEdge = new StepEdge(edge.FromId, edge.ToId, edge.Priority, edge.Condition);
+                StepEdge stepEdge;
+                stepEdge = new StepEdge(edge.FromId, edge.ToId, edge.Priority, edge.ConditionKey, edge.ConditionComparisonType, edge.ConditionValue);
                 graph.AddEdge(stepEdge);
             }
             graph.BuildIndex();
@@ -1289,54 +1298,67 @@ namespace LWStep.Editor
         /// <summary>
         /// 校验连线条件表达式格式
         /// </summary>
-        private string GetEdgeConditionError(string condition)
+        private string GetEdgeConditionError(StepEditorEdgeData edge)
         {
-            if (string.IsNullOrEmpty(condition))
+            if (edge == null)
             {
                 return string.Empty;
             }
-            string trimmed = condition.Trim();
-            if (string.IsNullOrEmpty(trimmed))
+
+            string conditionKey = edge.ConditionKey;
+            string conditionValue = edge.ConditionValue;
+            ComparisonType conditionComparisonType = edge.ConditionComparisonType;
+
+            if (string.IsNullOrEmpty(conditionKey))
             {
-                return string.Empty;
+                if (string.IsNullOrEmpty(conditionValue))
+                {
+                    return string.Empty;
+                }
+                return "条件Key不能为空";
             }
-            int notEqualIndex = trimmed.IndexOf("!=", StringComparison.Ordinal);
-            int equalIndex = trimmed.IndexOf("==", StringComparison.Ordinal);
-            bool hasNotEqual = notEqualIndex >= 0;
-            bool hasEqual = equalIndex >= 0;
-            if (hasEqual && hasNotEqual)
+
+            if (HasWhitespace(conditionKey))
             {
-                return "条件格式不支持同时包含==和!=";
+                return "条件Key不允许包含空格";
             }
-            if (hasEqual)
+
+            if (string.IsNullOrEmpty(conditionValue))
             {
-                if (trimmed.IndexOf("==", equalIndex + 2, StringComparison.Ordinal) >= 0)
-                {
-                    return "条件格式仅支持单个==";
-                }
-                string left = trimmed.Substring(0, equalIndex).Trim();
-                string right = trimmed.Substring(equalIndex + 2).Trim();
-                if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right))
-                {
-                    return "条件格式需要包含左右值";
-                }
-                return string.Empty;
+                return "条件Value为空，将按真值判断";
             }
-            if (hasNotEqual)
+
+            if (conditionComparisonType == ComparisonType.GreaterThan
+                || conditionComparisonType == ComparisonType.GreaterThanOrEqual
+                || conditionComparisonType == ComparisonType.LessThan
+                || conditionComparisonType == ComparisonType.LessThanOrEqual)
             {
-                if (trimmed.IndexOf("!=", notEqualIndex + 2, StringComparison.Ordinal) >= 0)
+                double number;
+                if (!double.TryParse(conditionValue, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out number))
                 {
-                    return "条件格式仅支持单个!=";
+                    return "阈值比较需要数字类型的条件Value";
                 }
-                string left = trimmed.Substring(0, notEqualIndex).Trim();
-                string right = trimmed.Substring(notEqualIndex + 2).Trim();
-                if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right))
-                {
-                    return "条件格式需要包含左右值";
-                }
-                return string.Empty;
             }
             return string.Empty;
+        }
+
+        /// <summary>
+        /// 判断字符串是否包含空白字符
+        /// </summary>
+        private bool HasWhitespace(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (char.IsWhiteSpace(text[i]))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

@@ -120,8 +120,17 @@ namespace LWStep.Editor
                     StepEditorEdgeData edgeData = new StepEditorEdgeData();
                     edgeData.FromId = GetAttr(edgeElement, "from");
                     edgeData.ToId = GetAttr(edgeElement, "to");
-                    edgeData.Condition = GetAttr(edgeElement, "condition");
+                    edgeData.ConditionKey = GetAttr(edgeElement, "conditionKey");
+                    string comparisonTypeText = GetAttr(edgeElement, "comparisonType");
+                    edgeData.ConditionValue = GetAttr(edgeElement, "conditionValue");
                     edgeData.Priority = GetAttrInt(edgeElement, "priority", 0);
+
+                    ComparisonType comparisonType = ComparisonType.EqualTo;
+                    if (!string.IsNullOrEmpty(comparisonTypeText))
+                    {
+                        Enum.TryParse(comparisonTypeText, true, out comparisonType);
+                    }
+                    edgeData.ConditionComparisonType = comparisonType;
                     data.Edges.Add(edgeData);
                 }
             }
