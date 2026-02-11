@@ -13,7 +13,8 @@ namespace LWStep.Editor
         private Port m_InputPort;
         private Port m_OutputPort;
         private bool m_IsDragging;
-        private Vector2 m_LastMousePosition;
+        private Vector2 m_DownNodePosition;
+        private Vector2 m_Offset;
         public Action<StepNodeView> DragEnded;
 
         public StepEditorNodeData Data
@@ -117,9 +118,32 @@ namespace LWStep.Editor
                 return;
             }
             m_IsDragging = true;
-            m_LastMousePosition = evt.mousePosition;
+            Vector2 downMousePosition = GetStepGraphView().GetContentLocalMousePosition(evt.mousePosition);
+            RecordOffset(downMousePosition);
+            for (int i = 0; i < m_GraphView.selection.Count; i++)
+            {
+                StepNodeView selectedNodeView = m_GraphView.selection[i] as StepNodeView;
+                if (selectedNodeView == null)
+                {
+                    continue;
+                }
+                if (!ReferenceEquals(selectedNodeView, this))
+                {
+                    selectedNodeView.RecordOffset(downMousePosition);
+                }
+            }
         }
-
+        //记录偏移量
+        public void RecordOffset(Vector2 downMousePosition)
+        {
+            m_DownNodePosition = GetPosition().position;
+            m_Offset = downMousePosition - m_DownNodePosition;
+        }
+        public void ResetOffset()
+        {
+            m_Offset = Vector2.zero;
+            m_IsDragging = false;
+        }
         /// <summary>
         /// 处理鼠标移动事件
         /// </summary>
@@ -129,31 +153,7 @@ namespace LWStep.Editor
             {
                 return;
             }
-            Vector2 delta = evt.mousePosition - m_LastMousePosition;
-            m_LastMousePosition = evt.mousePosition;
-            float scale = 1;
-            if (m_GraphView != null)
-            {
-                scale = m_GraphView.scale;
-            }
-            ApplyDeltaToDraggingTargets(delta / scale);
-            //Debug.Log(delta + " " + m_GraphView.scale);
-        }
-
-        /// <summary>
-        /// 将拖拽增量应用到目标节点（支持多选节点整体移动）
-        /// </summary>
-        private void ApplyDeltaToDraggingTargets(Vector2 delta)
-        {
-            if (m_GraphView == null)
-            {
-                m_GraphView = GetFirstAncestorOfType<StepGraphView>();
-                Rect rect = GetPosition();
-                rect.position += delta;
-                SetPosition(rect);
-                return;
-            }
-
+            Vector2 graphMousePosition = GetStepGraphView().GetContentLocalMousePosition(evt.mousePosition);
             int selectedNodeCount = 0;
             bool isThisNodeSelected = false;
             for (int i = 0; i < m_GraphView.selection.Count; i++)
@@ -163,13 +163,14 @@ namespace LWStep.Editor
                 {
                     continue;
                 }
+
                 selectedNodeCount += 1;
                 if (ReferenceEquals(selectedNodeView, this))
                 {
                     isThisNodeSelected = true;
                 }
             }
-
+            //框选处理
             if (selectedNodeCount > 1 && isThisNodeSelected)
             {
                 for (int i = 0; i < m_GraphView.selection.Count; i++)
@@ -179,16 +180,28 @@ namespace LWStep.Editor
                     {
                         continue;
                     }
-                    Rect rect = selectedNodeView.GetPosition();
-                    rect.position += delta;
-                    selectedNodeView.SetPosition(rect);
+                    selectedNodeView.ApplyTargets(graphMousePosition);
                 }
-                return;
             }
-
+            else
+            {
+                ApplyTargets(graphMousePosition);
+            }
+        }
+        //根据当前鼠标点以及偏移量计算最新的坐标位置
+        public void ApplyTargets(Vector2 mousePosition)
+        {
             Rect selfRect = GetPosition();
-            selfRect.position += delta;
+            selfRect.position = mousePosition - m_Offset;
             SetPosition(selfRect);
+        }
+        private StepGraphView GetStepGraphView()
+        {
+            if (m_GraphView == null)
+            {
+                m_GraphView = GetFirstAncestorOfType<StepGraphView>();
+            }
+            return m_GraphView;
         }
 
         /// <summary>
@@ -196,15 +209,6 @@ namespace LWStep.Editor
         /// </summary>
         private void OnMouseUp(MouseUpEvent evt)
         {
-            if (!m_IsDragging)
-            {
-                return;
-            }
-            if (evt.button != 0)
-            {
-                return;
-            }
-            m_IsDragging = false;
             if (DragEnded != null)
             {
                 DragEnded(this);

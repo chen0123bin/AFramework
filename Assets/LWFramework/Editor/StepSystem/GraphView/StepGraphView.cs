@@ -392,9 +392,21 @@ namespace LWStep.Editor
                 EndRectangleSelection();
                 DispatchSelectionChanged();
                 evt.StopPropagation();
-                return;
+
             }
-            DispatchSelectionChanged();
+            else
+            {
+                DispatchSelectionChanged();
+            }
+            for (int i = 0; i < selection.Count; i++)
+            {
+                StepNodeView selectedNodeView = selection[i] as StepNodeView;
+                if (selectedNodeView == null)
+                {
+                    continue;
+                }
+                selectedNodeView.ResetOffset();
+            }
         }
 
         /// <summary>
@@ -455,6 +467,7 @@ namespace LWStep.Editor
         {
             m_IsRectangleSelecting = true;
             m_IsRectangleSelectAdditive = evt.shiftKey;
+            // evt.mousePosition 在 GraphView 的 MouseDownEvent 中是相对于 GraphView 的
             m_RectangleSelectStartPos = GetContentLocalMousePosition(evt.mousePosition);
 
             EnsureRectangleSelectBox();
@@ -565,12 +578,10 @@ namespace LWStep.Editor
         /// </summary>
         public Vector2 GetContentLocalMousePosition(Vector2 graphViewLocalMousePosition)
         {
-            //Vector2 worldPos = this.LocalToWorld(graphViewLocalMousePosition);
-            // return contentViewContainer.WorldToLocal(worldPos);
             Vector2 ret = contentViewContainer.WorldToLocal(graphViewLocalMousePosition);
-            //Debug.Log($"GetContentLocalMousePosition: {graphViewLocalMousePosition} -> {ret}");
             return ret;
         }
+
 
         /// <summary>
         /// 计算两点形成的最小包围矩形
