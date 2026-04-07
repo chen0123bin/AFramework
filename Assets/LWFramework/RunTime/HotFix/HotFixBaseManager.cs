@@ -14,8 +14,8 @@ namespace LWHotfix
     /// </summary>
     public abstract class HotFixBaseManager : IManager, IHotfixManager
     {
-        private bool isLoaded = false;
-        public bool Loaded { get => isLoaded; }
+        private bool m_IsLoaded = false;
+        public bool Loaded { get => m_IsLoaded; }
 
         protected List<Assembly> m_AssemblyList = new List<Assembly>();
         protected List<string> m_HotfixDllNameList = new List<string>();
@@ -23,6 +23,8 @@ namespace LWHotfix
         protected List<Type> m_TypeHotfixList = new List<Type>();
         //管理热更中的所有的Type
         protected Dictionary<string, List<TypeAttr>> m_TypeAttrHotfixListDic = new Dictionary<string, List<TypeAttr>>();
+        protected Dictionary<string, Assembly> m_AssemblyDic = new Dictionary<string, Assembly>(StringComparer.Ordinal);
+        protected Dictionary<string, Type> m_TypeDic = new Dictionary<string, Type>(StringComparer.Ordinal);
 
 
         public abstract void Init();
@@ -39,6 +41,10 @@ namespace LWHotfix
         /// <param name="p_TypeArray"></param>
         public void AddHotfixTypeAttr(List<Type> p_TypeArray)
         {
+            if (p_TypeArray == null || p_TypeArray.Count <= 0)
+            {
+                return;
+            }
             if (m_TypeAttrHotfixListDic == null)
             {
                 m_TypeAttrHotfixListDic = new Dictionary<string, List<TypeAttr>>();
@@ -47,27 +53,52 @@ namespace LWHotfix
             {
                 m_TypeHotfixList = new List<Type>();
             }
-            this.m_TypeHotfixList.AddRange(p_TypeArray);
+
             //将所有带有特性的类进行字典管理
-            foreach (var item in p_TypeArray)
+            for (int i = 0; i < p_TypeArray.Count; i++)
             {
+                Type item = p_TypeArray[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                string fullTypeName = item.FullName;
+                if (!string.IsNullOrEmpty(fullTypeName))
+                {
+                    m_TypeDic[fullTypeName] = item;
+                }
+
+                if (!m_TypeHotfixList.Contains(item))
+                {
+                    m_TypeHotfixList.Add(item);
+                }
+
                 if (item.IsClass)
                 {
-                    var attrs = item.GetCustomAttributes(false);
-                    foreach (var attr in attrs)
+                    object[] attrs = item.GetCustomAttributes(false);
+                    for (int j = 0; j < attrs.Length; j++)
                     {
+                        object attr = attrs[j];
                         if (attr == null)
                         {
                             continue;
                         }
-                        if (!m_TypeAttrHotfixListDic.ContainsKey(attr.ToString()))
-                        {
-                            m_TypeAttrHotfixListDic[attr.ToString()] = new List<TypeAttr>();
-                        }
-                        TypeAttr classData = new TypeAttr { attr = (Attribute)attr, type = item };
-                        m_TypeAttrHotfixListDic[attr.ToString()].Add(classData);
-                    }
 
+                        string attrKey = attr.GetType().FullName;
+                        if (string.IsNullOrEmpty(attrKey))
+                        {
+                            continue;
+                        }
+
+                        if (!m_TypeAttrHotfixListDic.ContainsKey(attrKey))
+                        {
+                            m_TypeAttrHotfixListDic[attrKey] = new List<TypeAttr>();
+                        }
+
+                        TypeAttr classData = new TypeAttr { attr = (Attribute)attr, type = item };
+                        m_TypeAttrHotfixListDic[attrKey].Add(classData);
+                    }
                 }
             }
         }
@@ -79,16 +110,21 @@ namespace LWHotfix
         /// <returns></returns>
         public List<TypeAttr> GetAttrTypeDataList<T>()
         {
-            if (m_TypeAttrHotfixListDic == null || !m_TypeAttrHotfixListDic.ContainsKey(typeof(T).FullName))
+            string attrTypeName = typeof(T).FullName;
+            if (string.IsNullOrEmpty(attrTypeName))
             {
-                LWDebug.LogWarning("当前域下找不到这个包含这个特性的类" + typeof(T).FullName);
                 return null;
             }
-            else
+
+            if (m_TypeAttrHotfixListDic == null || !m_TypeAttrHotfixListDic.ContainsKey(attrTypeName))
             {
-                return m_TypeAttrHotfixListDic[typeof(T).FullName];
+                LWDebug.LogWarning("当前域下找不到这个包含这个特性的类" + attrTypeName);
+                return null;
             }
+
+            return m_TypeAttrHotfixListDic[attrTypeName];
         }
+
         /// <summary>
         /// 根据typeName去获取类的特性  反射 IL都可用
         /// </summary>
@@ -97,63 +133,235 @@ namespace LWHotfix
         public T FindAttr<T>(string typeName)
         {
             List<TypeAttr> list = GetAttrTypeDataList<T>();
-            TypeAttr attributeType = list.Find((_f) =>
+            if (list == null || list.Count <= 0 || string.IsNullOrEmpty(typeName))
             {
-                return _f.type.Name == typeName;
-            });
-            return (T)attributeType.type.GetCustomAttributes(typeof(T), true).FirstOrDefault();
+                return default;
+            }
+
+            TypeAttr attributeType = list.Find((_f) => _f != null && _f.type != null && _f.type.Name == typeName);
+            if (attributeType == null || attributeType.type == null)
+            {
+                LWDebug.LogWarning($"当前没有找到类型 {typeName} 对应的特性 {typeof(T).FullName}");
+                return default;
+            }
+
+            object attr = attributeType.type.GetCustomAttributes(typeof(T), true).FirstOrDefault();
+            if (attr == null)
+            {
+                return default;
+            }
+
+            return (T)attr;
         }
+
         public Assembly FindDomainByTypeName(string typeName)
         {
-            foreach (var item in m_AssemblyList)
+            if (string.IsNullOrEmpty(typeName))
             {
-                if (item.GetType(typeName, false) != null)
-                {
-                    return item;
-                }
+                return null;
             }
-            LWDebug.LogError($"在热更域中没有找到这个类型{typeName}");
+
+            Type type = GetTypeByName(typeName);
+            if (type == null)
+            {
+                LWDebug.LogError($"在热更域中没有找到这个类型 {typeName}");
+                return null;
+            }
+
+            Assembly assembly = type.Assembly;
+            if (assembly == null)
+            {
+                LWDebug.LogError($"类型 {typeName} 没有可用程序集");
+                return null;
+            }
+
+            return assembly;
+        }
+
+        protected bool HasLoadedAssembly(string hotfixDllName)
+        {
+            if (string.IsNullOrEmpty(hotfixDllName))
+            {
+                return false;
+            }
+
+            return m_AssemblyDic != null && m_AssemblyDic.ContainsKey(hotfixDllName);
+        }
+
+        protected Assembly GetLoadedAssembly(string hotfixDllName)
+        {
+            if (string.IsNullOrEmpty(hotfixDllName) || m_AssemblyDic == null)
+            {
+                return null;
+            }
+
+            Assembly assembly;
+            if (m_AssemblyDic.TryGetValue(hotfixDllName, out assembly))
+            {
+                return assembly;
+            }
+
             return null;
         }
+
+        protected bool RegisterAssembly(Assembly assembly)
+        {
+            if (assembly == null)
+            {
+                return false;
+            }
+
+            string assemblyName = assembly.GetName().Name;
+            if (string.IsNullOrEmpty(assemblyName))
+            {
+                LWDebug.LogError("尝试注册无名称程序集");
+                return false;
+            }
+
+            if (m_AssemblyDic.ContainsKey(assemblyName))
+            {
+                return false;
+            }
+
+            m_AssemblyDic[assemblyName] = assembly;
+            m_HotfixDllNameList.Add(assemblyName);
+            m_AssemblyList.Add(assembly);
+            AddHotfixTypeAttr(GetAssemblyTypesSafely(assembly));
+            m_IsLoaded = true;
+            LWDebug.Log("Dll加载完成" + assemblyName);
+            return true;
+        }
+
+        protected List<Type> GetAssemblyTypesSafely(Assembly assembly)
+        {
+            if (assembly == null)
+            {
+                return new List<Type>();
+            }
+
+            try
+            {
+                return assembly.GetTypes().ToList();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                List<Type> loadedTypes = new List<Type>();
+                Type[] types = ex.Types;
+                for (int i = 0; i < types.Length; i++)
+                {
+                    Type type = types[i];
+                    if (type != null)
+                    {
+                        loadedTypes.Add(type);
+                    }
+                }
+
+                LWDebug.LogError($"程序集 {assembly.GetName().Name} 存在部分类型加载失败，将继续注册已成功加载的类型。");
+                return loadedTypes;
+            }
+        }
+
         public virtual T Instantiate<T>(string typeName, object[] args = null)
         {
-
-            //Type type = GetTypeByName(typeName);
-            // object ret;
             Assembly assembly = FindDomainByTypeName(typeName);
+            if (assembly == null)
+            {
+                return default;
+            }
+
             object ret = assembly.CreateInstance(typeName, false, BindingFlags.Default, null, args, null, null);
+            if (ret == null)
+            {
+                LWDebug.LogError($"通过反射实例化失败: {typeName}");
+                return default;
+            }
+
+            if (!(ret is T))
+            {
+                LWDebug.LogError($"反射实例类型不匹配: {typeName}, 期望 {typeof(T).FullName}, 实际 {ret.GetType().FullName}");
+                return default;
+            }
+
             return (T)ret;
         }
 
 
         public virtual Type GetTypeByName(string typeName)
         {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return null;
+            }
 
-            return FindDomainByTypeName(typeName).GetType(typeName); ;
+            if (m_TypeDic != null)
+            {
+                Type cachedType;
+                if (m_TypeDic.TryGetValue(typeName, out cachedType))
+                {
+                    return cachedType;
+                }
+            }
+
+            for (int i = 0; i < m_AssemblyList.Count; i++)
+            {
+                Assembly assembly = m_AssemblyList[i];
+                if (assembly == null)
+                {
+                    continue;
+                }
+
+                Type type = assembly.GetType(typeName, false);
+                if (type != null)
+                {
+                    m_TypeDic[typeName] = type;
+                    return type;
+                }
+            }
+
+            return null;
         }
+
         public virtual void Invoke(string type, string method, object instance, params object[] p)
         {
-            MethodInfo methodInfo = GetTypeByName(type).GetMethod(method);
+            Type invokeType = GetTypeByName(type);
+            if (invokeType == null)
+            {
+                LWDebug.LogError($"调用失败，找不到类型: {type}");
+                return;
+            }
+
+            MethodInfo methodInfo = invokeType.GetMethod(method);
+            if (methodInfo == null)
+            {
+                LWDebug.LogError($"调用失败，找不到方法: {type}.{method}");
+                return;
+            }
+
             methodInfo.Invoke(instance, p);
         }
+
         protected void OnHotFixLoaded(Assembly assembly)
         {
-            isLoaded = true;
-            if (assembly != null)
+            if (assembly == null)
             {
-                LWDebug.Log("Dll加载完成" + assembly.GetName().Name);
-                m_HotfixDllNameList.Add(assembly.GetName().Name);
-                m_AssemblyList.Add(assembly);
-                AddHotfixTypeAttr(assembly.GetTypes().ToList());
+                return;
+            }
+
+            if (!RegisterAssembly(assembly))
+            {
+                LWDebug.LogWarning("内存中已经加载了" + assembly.GetName().Name);
             }
         }
 
         public virtual void Destroy()
         {
+            m_IsLoaded = false;
+            m_AssemblyList.Clear();
+            m_HotfixDllNameList.Clear();
             m_TypeHotfixList.Clear();
             m_TypeAttrHotfixListDic.Clear();
-            m_TypeHotfixList = null;
-            m_TypeAttrHotfixListDic = null;
+            m_AssemblyDic.Clear();
+            m_TypeDic.Clear();
         }
 
     }

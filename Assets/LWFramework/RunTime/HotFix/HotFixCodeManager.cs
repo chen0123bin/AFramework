@@ -14,13 +14,9 @@ namespace LWHotfix
     /// </summary>
     public class HotFixCodeManager : HotFixBaseManager, IManager
     {
-
-
-
         public override void Init()
         {
             Assembly assembly = Assembly.Load("Assembly-CSharp");
-            m_AssemblyList.Add(assembly);
             OnHotFixLoaded(assembly);
         }
 
@@ -35,26 +31,36 @@ namespace LWHotfix
         }
         public override async UniTask LoadScriptAsync(string hotfixDllName, string dir = "Hotfix/")
         {
-            if (m_HotfixDllNameList.Contains(hotfixDllName))
+            if (string.IsNullOrEmpty(hotfixDllName))
+            {
+                LWDebug.LogError("热更程序集名称为空，无法加载。");
+                return;
+            }
+
+            if (HasLoadedAssembly(hotfixDllName))
             {
                 Debug.LogWarning("内存中已经加载了" + hotfixDllName);
                 return;
             }
+
             await UniTask.DelayFrame(1);
 
             LWDebug.Log("Code模式");
 
-            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().First(assembly => assembly.GetName().Name == hotfixDllName);
+            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(findAssembly => findAssembly != null && findAssembly.GetName().Name == hotfixDllName);
+            if (assembly == null)
+            {
+                LWDebug.LogError("当前域中没有找到热更程序集 " + hotfixDllName);
+                return;
+            }
+
             OnHotFixLoaded(assembly);
-
         }
-
 
         public override void Destroy()
         {
             base.Destroy();
         }
-
-
     }
 }

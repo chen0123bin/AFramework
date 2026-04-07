@@ -29,12 +29,13 @@ namespace LWCore
         /// 是否加载完成
         /// </summary>
         bool Loaded { get; }
+
         /// <summary>
         /// 使用异步加载新版本热更脚本
         /// </summary>
         /// <param name="hotfixName">dll的名称，包含.dll</param>
         /// <param name="dir">目录 Hotfix/|Hotfix/Test2/ 以/为结尾</param>
-        UniTask LoadScriptAsync(string hotfixDllName,string dir = "Hotfix/");
+        UniTask LoadScriptAsync(string hotfixDllName, string dir = "Hotfix/");
 
 
 
@@ -45,7 +46,6 @@ namespace LWCore
         /// <param name="hotfixName">dll的名称</param>
         /// <returns></returns>
         Type GetTypeByName(string typeName);
-      
 
         /// <summary>
         /// 通过反射实例化对象
@@ -77,6 +77,7 @@ namespace LWCore
         /// <typeparam name="T">特性</typeparam>
         /// <returns></returns>
         List<TypeAttr> GetAttrTypeDataList<T>();
+
         /// 根据typeName去获取类的特性  反射 IL都可用
         /// </summary>
         /// <typeparam name="T">特性</typeparam>
