@@ -250,7 +250,7 @@ namespace LWAssets
 
             // 其次从StreamingAssets加载
             string streamingPath = Path.Combine(m_Config.GetStreamingAssetsPath(), bundleInfo.GetFileName());
-            if (File.Exists(cachePath))
+            if (File.Exists(streamingPath))
             {
                 return streamingPath;
             }

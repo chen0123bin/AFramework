@@ -2,9 +2,9 @@ using UnityEditor;
 
 public static class LWFrameworkCSharpProjectQuickOpenerMenuGenerated
 {
-    [MenuItem("Assets/LWFramework/C#工程/快速打开(默认：槽位1 - Trae)", false, 2000)]
+    [MenuItem("Assets/LWFramework/C#工程/快速打开(默认：槽位4 - Code)", false, 2000)]
     private static void QuickOpenDefault() { LWFrameworkCSharpProjectQuickOpener.QuickOpenDefaultSlot(); }
-    [MenuItem("Assets/LWFramework/C#工程/快速打开(默认：槽位1 - Trae)", true)]
+    [MenuItem("Assets/LWFramework/C#工程/快速打开(默认：槽位4 - Code)", true)]
     private static bool QuickOpenDefaultValidate() { return !EditorApplication.isCompiling; }
 
     [MenuItem("Assets/LWFramework/C#工程/用槽位打开/槽位1 - Trae", false, 2001)]

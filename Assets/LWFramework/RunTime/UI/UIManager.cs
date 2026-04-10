@@ -187,8 +187,7 @@ namespace LWUI
         /// <param name="isShowClose"></param>
         public override void OpenDialog(string title, string content, Action<bool> ResultCallback, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true)
         {
-
-            DialogView dialogView = OpenView<DialogView>(isLastSibling, false);
+            DialogView dialogView = OpenView<DialogView>(null, isLastSibling, false);
             dialogView.ShowAsync(title, content, isShowCancel, isShowClose).ContinueWith((bool result) =>
             {
                 ResultCallback?.Invoke(result);
@@ -206,7 +205,7 @@ namespace LWUI
         /// <returns></returns>
         public override async UniTask<bool> OpenDialogAsync(string title, string content, bool isShowCancel = true, bool isShowClose = true, bool isLastSibling = true)
         {
-            DialogView dialogView = OpenView<DialogView>(isLastSibling, false);
+            DialogView dialogView = OpenView<DialogView>(null, isLastSibling, false);
             if (dialogView == null)
             {
                 return false;
@@ -226,7 +225,7 @@ namespace LWUI
             LoadingBarView loadingBarView = GetView<LoadingBarView>();
             if (loadingBarView == null)
             {
-                loadingBarView = OpenView<LoadingBarView>(isLastSibling, false);
+                loadingBarView = OpenView<LoadingBarView>(null, isLastSibling, false);
             }
             else
             {

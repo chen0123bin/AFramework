@@ -376,7 +376,7 @@ namespace LWAssets
                     result.Status = UpdateStatus.OptionalUpdate;
                 }
 
-                result.LocalVersion = m_LocalVersion.Version;
+                result.LocalVersion = m_LocalVersion != null ? m_LocalVersion.Version : 0;
                 result.RemoteVersion = m_RemoteVersion.Version;
 
                 // 加载远程清单计算下载大小

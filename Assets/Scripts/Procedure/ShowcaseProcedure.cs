@@ -34,7 +34,7 @@ public class ShowcaseProcedure : BaseFSMState
         m_CancellationTokenSource?.Dispose();
         m_CancellationTokenSource = new CancellationTokenSource();
 
-        m_FunctionShowcaseView = ManagerUtility.UIMgr.OpenView<ShowcaseView>(true, false);
+        m_FunctionShowcaseView = ManagerUtility.UIMgr.OpenView<ShowcaseView>(null, true, false);
         if (m_FunctionShowcaseView != null)
         {
             m_FunctionShowcaseView.ClearLog();

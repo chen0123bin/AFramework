@@ -69,6 +69,12 @@ namespace LWHotfix
                     m_TypeDic[fullTypeName] = item;
                 }
 
+                string typeName = item.Name;
+                if (!string.IsNullOrEmpty(typeName) && !m_TypeDic.ContainsKey(typeName))
+                {
+                    m_TypeDic[typeName] = item;
+                }
+
                 if (!m_TypeHotfixList.Contains(item))
                 {
                     m_TypeHotfixList.Add(item);
@@ -132,20 +138,19 @@ namespace LWHotfix
         /// <returns></returns>
         public T FindAttr<T>(string typeName)
         {
-            List<TypeAttr> list = GetAttrTypeDataList<T>();
-            if (list == null || list.Count <= 0 || string.IsNullOrEmpty(typeName))
+            if (string.IsNullOrEmpty(typeName))
             {
                 return default;
             }
 
-            TypeAttr attributeType = list.Find((_f) => _f != null && _f.type != null && _f.type.Name == typeName);
-            if (attributeType == null || attributeType.type == null)
+            Type targetType = GetTypeByName(typeName);
+            if (targetType == null)
             {
                 LWDebug.LogWarning($"当前没有找到类型 {typeName} 对应的特性 {typeof(T).FullName}");
                 return default;
             }
 
-            object attr = attributeType.type.GetCustomAttributes(typeof(T), true).FirstOrDefault();
+            object attr = targetType.GetCustomAttributes(typeof(T), true).FirstOrDefault();
             if (attr == null)
             {
                 return default;
@@ -263,16 +268,20 @@ namespace LWHotfix
 
         public virtual T Instantiate<T>(string typeName, object[] args = null)
         {
-            Assembly assembly = FindDomainByTypeName(typeName);
-            if (assembly == null)
+            Type targetType = GetTypeByName(typeName);
+            if (targetType == null)
             {
                 return default;
             }
 
-            object ret = assembly.CreateInstance(typeName, false, BindingFlags.Default, null, args, null, null);
-            if (ret == null)
+            object ret;
+            try
             {
-                LWDebug.LogError($"通过反射实例化失败: {typeName}");
+                ret = args != null ? Activator.CreateInstance(targetType, args) : Activator.CreateInstance(targetType);
+            }
+            catch (Exception ex)
+            {
+                LWDebug.LogError($"通过反射实例化失败: {typeName}，原因：{ex.Message}");
                 return default;
             }
 
@@ -315,6 +324,23 @@ namespace LWHotfix
                 {
                     m_TypeDic[typeName] = type;
                     return type;
+                }
+
+                List<Type> types = GetAssemblyTypesSafely(assembly);
+                for (int j = 0; j < types.Count; j++)
+                {
+                    Type searchType = types[j];
+                    if (searchType == null || searchType.Name != typeName)
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(searchType.FullName))
+                    {
+                        m_TypeDic[searchType.FullName] = searchType;
+                    }
+                    m_TypeDic[typeName] = searchType;
+                    return searchType;
                 }
             }
 
