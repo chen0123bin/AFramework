@@ -120,11 +120,11 @@ namespace LWFramework.Tests.Framework.EditMode
         {
             public bool IsInitialized { get; private set; }
 
-            public PlayMode CurrentPlayMode
+            public LWAssets.PlayMode CurrentPlayMode
             {
                 get
                 {
-                    return PlayMode.EditorSimulate;
+                    return LWAssets.PlayMode.EditorSimulate;
                 }
             }
 

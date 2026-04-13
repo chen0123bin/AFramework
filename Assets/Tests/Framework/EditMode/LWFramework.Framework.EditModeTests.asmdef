@@ -3,8 +3,7 @@
   "rootNamespace": "",
   "references": [
     "LWFramework.Runtime",
-    "UnityEngine.TestRunner",
-    "UnityEditor.TestRunner"
+    "UniTask"
   ],
   "includePlatforms": [
     "Editor"
