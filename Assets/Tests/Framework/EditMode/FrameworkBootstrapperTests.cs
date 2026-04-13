@@ -7,6 +7,7 @@ using Cysharp.Threading.Tasks;
 using LWFMS;
 using LWAssets;
 using LWCore;
+using LWHotfix;
 using LWUI;
 using NUnit.Framework;
 using UnityEngine;
@@ -94,6 +95,101 @@ namespace LWFramework.Tests.Framework.EditMode
 
             Assert.AreEqual(1, fakeAssetsManager.InitializeAsyncCallCount);
             Assert.IsTrue(fakeAssetsManager.IsInitialized);
+            Assert.AreSame(host, ReadMainManagerHost());
+        }
+
+        /// <summary>
+        /// 验证默认依赖在 ByHyBridCLR 模式下会兼容回退并成功注册热更管理器。
+        /// </summary>
+        [Test]
+        public void RegisterCoreManagers_ByHybridClrMode_UsesCompatibleFallback()
+        {
+            FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper();
+            FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
+            settings.EnableAssets = false;
+            settings.EnableEvent = false;
+            settings.EnableUI = false;
+            settings.EnableFSM = false;
+            settings.EnableHotfix = true;
+            settings.HotfixMode = HotfixCodeRunMode.ByHyBridCLR;
+
+            Assert.DoesNotThrow(() => bootstrapper.RegisterCoreManagers(settings));
+            Assert.NotNull(ManagerUtility.HotfixMgr);
+            Assert.IsInstanceOf<HotFixRefManager>(ManagerUtility.HotfixMgr);
+        }
+
+        /// <summary>
+        /// 验证同一引导器先注册再初始化时不会重复注册并且资源仅初始化一次。
+        /// </summary>
+        [Test]
+        public async System.Threading.Tasks.Task RegisterThenInitialize_DoesNotReRegisterAndAssetsInitOnce()
+        {
+            int createAssetsManagerCallCount = 0;
+            int createEventManagerCallCount = 0;
+            int createUIManagerCallCount = 0;
+            int createHotfixManagerCallCount = 0;
+            int createFSMManagerCallCount = 0;
+
+            FakeAssetsManager firstAssetsManager = new FakeAssetsManager();
+            FakeAssetsManager secondAssetsManager = new FakeAssetsManager();
+            FrameworkBootstrapperDependencies dependencies = new FrameworkBootstrapperDependencies();
+            dependencies.CreateAssetsManager = () =>
+            {
+                createAssetsManagerCallCount++;
+                if (createAssetsManagerCallCount == 1)
+                {
+                    return firstAssetsManager;
+                }
+
+                return secondAssetsManager;
+            };
+            dependencies.CreateEventManager = () =>
+            {
+                createEventManagerCallCount++;
+                return new LWEventManager();
+            };
+            dependencies.CreateUIManager = () =>
+            {
+                createUIManagerCallCount++;
+                return new FakeUIManager();
+            };
+            dependencies.CreateHotfixManager = (mode) =>
+            {
+                createHotfixManagerCallCount++;
+                return new FakeHotfixManager(mode);
+            };
+            dependencies.CreateFSMManager = () =>
+            {
+                createFSMManagerCallCount++;
+                return new FSMManager();
+            };
+
+            FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper(dependencies);
+            FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
+            m_HostObject = new GameObject("FrameworkBootstrapperTestsHost_Idempotent");
+            TestBootstrapHost host = m_HostObject.AddComponent<TestBootstrapHost>();
+
+            bootstrapper.RegisterCoreManagers(settings);
+            IAssetsManager assetsManagerAfterRegister = ManagerUtility.AssetsMgr;
+            IEventManager eventManagerAfterRegister = ManagerUtility.EventMgr;
+            IUIManager uiManagerAfterRegister = ManagerUtility.UIMgr;
+            IHotfixManager hotfixManagerAfterRegister = ManagerUtility.HotfixMgr;
+            IFSMManager fsmManagerAfterRegister = ManagerUtility.FSMMgr;
+
+            await bootstrapper.InitializeCoreAsync(host, settings);
+
+            Assert.AreEqual(1, createAssetsManagerCallCount);
+            Assert.AreEqual(1, createEventManagerCallCount);
+            Assert.AreEqual(1, createUIManagerCallCount);
+            Assert.AreEqual(1, createHotfixManagerCallCount);
+            Assert.AreEqual(1, createFSMManagerCallCount);
+            Assert.AreEqual(1, firstAssetsManager.InitializeAsyncCallCount);
+            Assert.AreEqual(0, secondAssetsManager.InitializeAsyncCallCount);
+            Assert.AreSame(assetsManagerAfterRegister, ManagerUtility.AssetsMgr);
+            Assert.AreSame(eventManagerAfterRegister, ManagerUtility.EventMgr);
+            Assert.AreSame(uiManagerAfterRegister, ManagerUtility.UIMgr);
+            Assert.AreSame(hotfixManagerAfterRegister, ManagerUtility.HotfixMgr);
+            Assert.AreSame(fsmManagerAfterRegister, ManagerUtility.FSMMgr);
             Assert.AreSame(host, ReadMainManagerHost());
         }
 

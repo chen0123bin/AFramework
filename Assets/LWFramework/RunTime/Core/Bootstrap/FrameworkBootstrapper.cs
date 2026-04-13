@@ -29,9 +29,10 @@ namespace LWCore
                 case HotfixCodeRunMode.ByCode:
                     return new HotFixCodeManager();
                 case HotfixCodeRunMode.ByReflection:
+                case HotfixCodeRunMode.ByHyBridCLR:
                     return new HotFixRefManager();
                 default:
-                    throw new InvalidOperationException("默认核心引导仅支持 ByCode 与 ByReflection 模式。");
+                    throw new InvalidOperationException("默认核心引导遇到未知热更模式，无法创建热更管理器。");
             }
         }
     }
@@ -42,6 +43,7 @@ namespace LWCore
     public sealed class FrameworkBootstrapper
     {
         private readonly FrameworkBootstrapperDependencies m_Dependencies;
+        private bool m_HasRegisteredCoreManagers;
 
         /// <summary>
         /// 创建框架核心引导器，支持注入替代依赖工厂。
@@ -59,6 +61,11 @@ namespace LWCore
             if (settings == null)
             {
                 throw new ArgumentNullException(nameof(settings));
+            }
+
+            if (m_HasRegisteredCoreManagers)
+            {
+                return;
             }
 
             ManagerUtility.MainMgr.Init();
@@ -87,6 +94,8 @@ namespace LWCore
             {
                 RegisterManager<IFSMManager>(m_Dependencies.CreateFSMManager());
             }
+
+            m_HasRegisteredCoreManagers = true;
         }
 
         /// <summary>
@@ -94,7 +103,15 @@ namespace LWCore
         /// </summary>
         public async UniTask InitializeCoreAsync(MonoBehaviour host, FrameworkBootstrapSettings settings)
         {
-            RegisterCoreManagers(settings);
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            if (!m_HasRegisteredCoreManagers)
+            {
+                RegisterCoreManagers(settings);
+            }
 
             IAssetsManager assetsManager = ManagerUtility.AssetsMgr;
             if (assetsManager != null && !assetsManager.IsInitialized)
