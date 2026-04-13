@@ -40,7 +40,7 @@ namespace LWFramework.Tests.Framework.EditMode
         [Test]
         public async Task WarmupHotfixAsync_ByCode_ShouldSkipExternalAssemblyLoad()
         {
-            FakeHotfixManager fakeHotfixManager = new FakeHotfixManager();
+            FakeHotfixManager fakeHotfixManager = new FakeHotfixManager(false, true);
             FrameworkBootstrapperDependencies dependencies = new FrameworkBootstrapperDependencies();
             dependencies.CreateHotfixManager = (mode) => fakeHotfixManager;
             FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper(dependencies);
@@ -65,7 +65,7 @@ namespace LWFramework.Tests.Framework.EditMode
         [Test]
         public async Task WarmupHotfixAsync_Reflection_ShouldUseFixedReflectionDirectory()
         {
-            FakeHotfixManager fakeHotfixManager = new FakeHotfixManager();
+            FakeHotfixManager fakeHotfixManager = new FakeHotfixManager(false, true);
             FrameworkBootstrapperDependencies dependencies = new FrameworkBootstrapperDependencies();
             dependencies.CreateHotfixManager = (mode) => fakeHotfixManager;
             FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper(dependencies);
@@ -84,22 +84,87 @@ namespace LWFramework.Tests.Framework.EditMode
             Assert.AreEqual(1, fakeHotfixManager.LoadScriptAsyncCallCount);
             Assert.AreEqual("Game.Hotfix", fakeHotfixManager.LastLoadScriptDllName);
             Assert.AreEqual(FrameworkBootstrapSettings.DEFAULT_REFLECTION_HOTFIX_DIR, fakeHotfixManager.LastLoadScriptDirectory);
+            Assert.IsTrue(fakeHotfixManager.Loaded);
         }
 
         /// <summary>
-        /// 验证可选模块启用后仅注册 Audio 与 StepSystem 管理器。
+        /// 验证 HybridCLR 兼容回退路线也会走反射预热并成功加载。
+        /// </summary>
+        [Test]
+        public async Task WarmupHotfixAsync_ByHybridClrFallback_ShouldWarmupAndLoad()
+        {
+            FakeHotfixManager fakeHotfixManager = new FakeHotfixManager(false, true);
+            FrameworkBootstrapperDependencies dependencies = new FrameworkBootstrapperDependencies();
+            dependencies.CreateHotfixManager = (mode) => fakeHotfixManager;
+            FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper(dependencies);
+            FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
+            settings.EnableAssets = false;
+            settings.EnableEvent = false;
+            settings.EnableUI = false;
+            settings.EnableFSM = false;
+            settings.EnableHotfix = true;
+            settings.HotfixMode = HotfixCodeRunMode.ByHyBridCLR;
+            settings.ReflectionHotfixAssemblyName = "Game.Hotfix";
+
+            bootstrapper.RegisterCoreManagers(settings);
+            await bootstrapper.WarmupHotfixAsync(settings);
+
+            Assert.AreEqual(1, fakeHotfixManager.LoadScriptAsyncCallCount);
+            Assert.AreEqual("Game.Hotfix", fakeHotfixManager.LastLoadScriptDllName);
+            Assert.AreEqual(FrameworkBootstrapSettings.DEFAULT_REFLECTION_HOTFIX_DIR, fakeHotfixManager.LastLoadScriptDirectory);
+            Assert.IsTrue(fakeHotfixManager.Loaded);
+        }
+
+        /// <summary>
+        /// 验证反射预热后若仍未加载成功会抛出异常，阻断后续流程。
+        /// </summary>
+        [Test]
+        public void WarmupHotfixAsync_Reflection_WhenStillNotLoaded_ShouldThrow()
+        {
+            FakeHotfixManager fakeHotfixManager = new FakeHotfixManager(false, false);
+            FrameworkBootstrapperDependencies dependencies = new FrameworkBootstrapperDependencies();
+            dependencies.CreateHotfixManager = (mode) => fakeHotfixManager;
+            FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper(dependencies);
+            FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
+            settings.EnableAssets = false;
+            settings.EnableEvent = false;
+            settings.EnableUI = false;
+            settings.EnableFSM = false;
+            settings.EnableHotfix = true;
+            settings.HotfixMode = HotfixCodeRunMode.ByReflection;
+            settings.ReflectionHotfixAssemblyName = "Game.Hotfix";
+
+            bootstrapper.RegisterCoreManagers(settings);
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                bootstrapper.WarmupHotfixAsync(settings).GetAwaiter().GetResult();
+            });
+            Assert.AreEqual(1, fakeHotfixManager.LoadScriptAsyncCallCount);
+            Assert.IsFalse(fakeHotfixManager.Loaded);
+        }
+
+        /// <summary>
+        /// 验证可选模块启用后会在核心模块已注册前提下注册 Audio 与 StepSystem，且核心模块不丢失。
         /// </summary>
         [Test]
         public void RegisterOptionalManagers_WhenEnabled_ShouldRegisterAudioAndStepSystem()
         {
+            FakeHotfixManager fakeHotfixManager = new FakeHotfixManager(false, true);
+            FrameworkBootstrapperDependencies dependencies = new FrameworkBootstrapperDependencies();
+            dependencies.CreateHotfixManager = (mode) => fakeHotfixManager;
+            FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper(dependencies);
             FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
-            settings.EnableAudio = true;
-            settings.EnableStepSystem = true;
             settings.EnableAssets = false;
             settings.EnableEvent = false;
             settings.EnableUI = false;
-            settings.EnableHotfix = false;
+            settings.EnableHotfix = true;
             settings.EnableFSM = false;
+            settings.EnableAudio = true;
+            settings.EnableStepSystem = true;
+
+            bootstrapper.RegisterCoreManagers(settings);
+            IHotfixManager hotfixManagerBeforeOptional = ManagerUtility.HotfixMgr;
 
             InvokeRegisterOptionalManagers(
                 settings,
@@ -108,11 +173,33 @@ namespace LWFramework.Tests.Framework.EditMode
 
             Assert.NotNull(ManagerUtility.AudioMgr);
             Assert.NotNull(ManagerUtility.StepMgr);
+            Assert.NotNull(ManagerUtility.HotfixMgr);
+            Assert.AreSame(hotfixManagerBeforeOptional, ManagerUtility.HotfixMgr);
             Assert.IsNull(ManagerUtility.AssetsMgr);
             Assert.IsNull(ManagerUtility.EventMgr);
             Assert.IsNull(ManagerUtility.UIMgr);
-            Assert.IsNull(ManagerUtility.HotfixMgr);
             Assert.IsNull(ManagerUtility.FSMMgr);
+        }
+
+        /// <summary>
+        /// 验证未先完成核心注册时调用可选模块注册会抛出异常。
+        /// </summary>
+        [Test]
+        public void RegisterOptionalManagers_WithoutCoreRegistration_ShouldThrow()
+        {
+            FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
+            settings.EnableAudio = true;
+            settings.EnableStepSystem = false;
+            settings.EnableAssets = false;
+            settings.EnableEvent = false;
+            settings.EnableUI = false;
+            settings.EnableHotfix = false;
+            settings.EnableFSM = false;
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                InvokeRegisterOptionalManagers(settings, () => new FakeAudioManager(), null);
+            });
         }
 
         /// <summary>
@@ -138,7 +225,19 @@ namespace LWFramework.Tests.Framework.EditMode
             }
 
             object[] registerParameters = new object[] { settings, createAudioManager, createStepManager };
-            registerMethod.Invoke(null, registerParameters);
+            try
+            {
+                registerMethod.Invoke(null, registerParameters);
+            }
+            catch (TargetInvocationException exception)
+            {
+                if (exception.InnerException != null)
+                {
+                    throw exception.InnerException;
+                }
+
+                throw;
+            }
         }
 
         /// <summary>
@@ -146,11 +245,23 @@ namespace LWFramework.Tests.Framework.EditMode
         /// </summary>
         private sealed class FakeHotfixManager : IHotfixManager, IManager
         {
+            private bool m_Loaded;
+            private readonly bool m_IsLoadedAfterLoadScript;
+
+            /// <summary>
+            /// 创建可配置加载状态的热更管理器测试桩。
+            /// </summary>
+            public FakeHotfixManager(bool initialLoaded, bool isLoadedAfterLoadScript)
+            {
+                m_Loaded = initialLoaded;
+                m_IsLoadedAfterLoadScript = isLoadedAfterLoadScript;
+            }
+
             public bool Loaded
             {
                 get
                 {
-                    return true;
+                    return m_Loaded;
                 }
             }
 
@@ -180,6 +291,11 @@ namespace LWFramework.Tests.Framework.EditMode
                 LoadScriptAsyncCallCount++;
                 LastLoadScriptDllName = hotfixDllName;
                 LastLoadScriptDirectory = dir;
+                if (m_IsLoadedAfterLoadScript)
+                {
+                    m_Loaded = true;
+                }
+
                 return UniTask.CompletedTask;
             }
 

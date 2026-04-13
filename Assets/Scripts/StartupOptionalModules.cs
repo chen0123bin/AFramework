@@ -1,5 +1,6 @@
 using System;
 using LWAudio;
+using LWAssets;
 using LWCore;
 using LWStep;
 
@@ -21,6 +22,13 @@ public static class StartupOptionalModules
             throw new ArgumentNullException(nameof(settings));
         }
 
+        if (!settings.EnableAudio && !settings.EnableStepSystem)
+        {
+            return;
+        }
+
+        EnsureCoreManagersRegistered();
+
         if (settings.EnableAudio)
         {
             Func<IAudioManager> audioFactory = createAudioManager ?? CreateDefaultAudioManager;
@@ -31,6 +39,30 @@ public static class StartupOptionalModules
         {
             Func<IStepManager> stepFactory = createStepManager ?? CreateDefaultStepManager;
             RegisterOptionalManager<IStepManager>(stepFactory());
+        }
+    }
+
+    /// <summary>
+    /// 校验核心模块已完成注册，避免可选模块被后续核心初始化清空。
+    /// </summary>
+    private static void EnsureCoreManagersRegistered()
+    {
+        IAssetsManager assetsManager;
+        IEventManager eventManager;
+        IUIManager uiManager;
+        IHotfixManager hotfixManager;
+        IFSMManager fsmManager;
+
+        bool hasCoreManagerRegistered =
+            ManagerUtility.MainMgr.TryGetManager<IAssetsManager>(out assetsManager) ||
+            ManagerUtility.MainMgr.TryGetManager<IEventManager>(out eventManager) ||
+            ManagerUtility.MainMgr.TryGetManager<IUIManager>(out uiManager) ||
+            ManagerUtility.MainMgr.TryGetManager<IHotfixManager>(out hotfixManager) ||
+            ManagerUtility.MainMgr.TryGetManager<IFSMManager>(out fsmManager);
+
+        if (!hasCoreManagerRegistered)
+        {
+            throw new InvalidOperationException("RegisterOptionalManagers 必须在核心模块注册完成后调用。");
         }
     }
 

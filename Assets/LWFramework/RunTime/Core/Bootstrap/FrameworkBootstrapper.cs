@@ -123,7 +123,7 @@ namespace LWCore
         }
 
         /// <summary>
-        /// 按配置执行热更预热，仅反射模式会触发外部程序集加载。
+        /// 按配置执行热更预热，反射路线（含 HybridCLR 兼容回退）会触发外部程序集加载。
         /// </summary>
         public async UniTask WarmupHotfixAsync(FrameworkBootstrapSettings settings)
         {
@@ -137,19 +137,30 @@ namespace LWCore
                 return;
             }
 
-            if (settings.HotfixMode != HotfixCodeRunMode.ByReflection)
+            if (!ShouldWarmupByReflectionCompatibleRoute(settings.HotfixMode))
             {
                 return;
             }
 
             if (string.IsNullOrEmpty(settings.ReflectionHotfixAssemblyName))
             {
-                throw new InvalidOperationException("反射热更模式要求配置 ReflectionHotfixAssemblyName。");
+                throw new InvalidOperationException("反射兼容热更模式要求配置 ReflectionHotfixAssemblyName。");
             }
 
-            await ManagerUtility.HotfixMgr.LoadScriptAsync(
+            IHotfixManager hotfixManager = ManagerUtility.HotfixMgr;
+            if (hotfixManager == null)
+            {
+                throw new InvalidOperationException("热更预热前未找到 IHotfixManager，请先完成核心模块注册。");
+            }
+
+            await hotfixManager.LoadScriptAsync(
                 settings.ReflectionHotfixAssemblyName,
                 FrameworkBootstrapSettings.DEFAULT_REFLECTION_HOTFIX_DIR);
+
+            if (!hotfixManager.Loaded)
+            {
+                throw new InvalidOperationException("热更程序集加载后仍未处于 Loaded 状态，启动流程已中止。");
+            }
         }
 
         /// <summary>
@@ -183,6 +194,14 @@ namespace LWCore
             }
 
             ManagerUtility.MainMgr.AddManager(typeof(TService).ToString(), manager);
+        }
+
+        /// <summary>
+        /// 判断当前热更模式是否走反射兼容预热路线。
+        /// </summary>
+        private static bool ShouldWarmupByReflectionCompatibleRoute(HotfixCodeRunMode hotfixMode)
+        {
+            return hotfixMode == HotfixCodeRunMode.ByReflection || hotfixMode == HotfixCodeRunMode.ByHyBridCLR;
         }
     }
 }
