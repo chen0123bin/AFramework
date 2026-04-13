@@ -123,6 +123,55 @@ namespace LWCore
         }
 
         /// <summary>
+        /// 按配置执行热更预热，仅反射模式会触发外部程序集加载。
+        /// </summary>
+        public async UniTask WarmupHotfixAsync(FrameworkBootstrapSettings settings)
+        {
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            if (!settings.IsModuleEnabled(FrameworkModuleId.Hotfix))
+            {
+                return;
+            }
+
+            if (settings.HotfixMode != HotfixCodeRunMode.ByReflection)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(settings.ReflectionHotfixAssemblyName))
+            {
+                throw new InvalidOperationException("反射热更模式要求配置 ReflectionHotfixAssemblyName。");
+            }
+
+            await ManagerUtility.HotfixMgr.LoadScriptAsync(
+                settings.ReflectionHotfixAssemblyName,
+                FrameworkBootstrapSettings.DEFAULT_REFLECTION_HOTFIX_DIR);
+        }
+
+        /// <summary>
+        /// 解析首个流程类型，解析失败时返回 null 让流程系统走默认启动。
+        /// </summary>
+        public Type ResolveFirstProcedureType(FrameworkBootstrapSettings settings)
+        {
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            IHotfixManager hotfixManager = ManagerUtility.HotfixMgr;
+            if (hotfixManager == null || string.IsNullOrEmpty(settings.ProcedureName))
+            {
+                return null;
+            }
+
+            return hotfixManager.GetTypeByName(settings.ProcedureName);
+        }
+
+        /// <summary>
         /// 注册单个管理器并确保其实现 IManager。
         /// </summary>
         private static void RegisterManager<TService>(TService managerInstance) where TService : class

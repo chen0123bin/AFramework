@@ -1,24 +1,25 @@
 using System;
 using Cysharp.Threading.Tasks;
 using LWAssets;
-using LWAudio;
 using LWCore;
-using LWFMS;
-using LWHotfix;
-using LWStep;
-using LWUI;
 using UnityEngine;
 
 [DefaultExecutionOrder(1000)]
 public class Startup : MonoBehaviour
 {
-
     public string configUrl;
     public string procedureName = "StartProcedure";
+    public HotfixCodeRunMode hotfixCodeRunMode = HotfixCodeRunMode.ByCode;
+    public string reflectionHotfixAssemblyName = string.Empty;
+    public bool enableAudio = false;
+    public bool enableStepSystem = false;
 
+    /// <summary>
+    /// 执行宿主启动链路：初始化核心、注册可选模块、更新资源并启动流程。
+    /// </summary>
     async void Start()
     {
-        LWDebug.Log("Start");
+        LWDebug.Log("启动流程开始");
         Application.targetFrameRate = 60;
         DontDestroyOnLoad(gameObject);
         //LWUpdate.ManifestNameUtility = new DefaultManifestNameUtility();
@@ -26,19 +27,13 @@ public class Startup : MonoBehaviour
         //设置LWDebug数据
         LWDebug.SetLogConfig(true, 3, true);
 
-        ManagerUtility.MainMgr.Init();
-        //添加各种管理器      
-        ManagerUtility.MainMgr.AddManager(typeof(IAssetsManager).ToString(), new LWAssetsManager());
-        ManagerUtility.MainMgr.AddManager(typeof(IEventManager).ToString(), new LWEventManager());
-        ManagerUtility.MainMgr.AddManager(typeof(IUIManager).ToString(), new UIManager());
-        ManagerUtility.MainMgr.AddManager(typeof(IHotfixManager).ToString(), new HotFixCodeManager());
-        ManagerUtility.MainMgr.AddManager(typeof(IFSMManager).ToString(), new FSMManager());
-        ManagerUtility.MainMgr.AddManager(typeof(IAudioManager).ToString(), new AudioManager());
-        ManagerUtility.MainMgr.AddManager(typeof(IStepManager).ToString(), new StepManager());
-        await ManagerUtility.AssetsMgr.InitializeAsync();
-        ManagerUtility.MainMgr.MonoBehaviour = this;
+        FrameworkBootstrapSettings settings = BuildBootstrapSettings();
+        FrameworkBootstrapper bootstrapper = new FrameworkBootstrapper();
+        await bootstrapper.InitializeCoreAsync(this, settings);
+        StartupOptionalModules.RegisterOptionalManagers(settings);
 
-        if (ManagerUtility.AssetsMgr.CurrentPlayMode == LWAssets.PlayMode.Online)
+        IAssetsManager assetsManager = ManagerUtility.AssetsMgr;
+        if (assetsManager != null && assetsManager.CurrentPlayMode == LWAssets.PlayMode.Online)
         {
             ManagerUtility.UIMgr.OpenLoadingBar("检查更新...", true);
             try
@@ -52,13 +47,14 @@ public class Startup : MonoBehaviour
             }
         }
 
-        //设置第一个启动的流程
-        MainManager.Instance.FirstFSMState = ManagerUtility.HotfixMgr.GetTypeByName(procedureName);
+        await bootstrapper.WarmupHotfixAsync(settings);
+        MainManager.Instance.FirstFSMState = bootstrapper.ResolveFirstProcedureType(settings);
         MainManager.Instance.StartProcedure();
-
     }
 
-    // Update is called once per frame
+    /// <summary>
+    /// 逐帧驱动主管理器更新。
+    /// </summary>
     void Update()
     {
         MainManager.Instance.Update();
@@ -79,7 +75,7 @@ public class Startup : MonoBehaviour
         {
             // 检查更新
             ManagerUtility.UIMgr.UpdateLoadingBar(0f, "检查更新...", true);
-            var checkResult = await ManagerUtility.AssetsMgr.Version.CheckUpdateAsync();
+            UpdateCheckResult checkResult = await ManagerUtility.AssetsMgr.Version.CheckUpdateAsync();
 
             if (checkResult.Status == UpdateStatus.NoUpdate)
             {
@@ -104,19 +100,37 @@ public class Startup : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 构建框架启动配置并写入宿主可调参数。
+    /// </summary>
+    private FrameworkBootstrapSettings BuildBootstrapSettings()
+    {
+        FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
+        settings.ProcedureName = procedureName;
+        settings.HotfixMode = hotfixCodeRunMode;
+        settings.ReflectionHotfixAssemblyName = reflectionHotfixAssemblyName?.Trim() ?? string.Empty;
+        settings.EnableAudio = enableAudio;
+        settings.EnableStepSystem = enableStepSystem;
+        return settings;
+    }
+
+    /// <summary>
+    /// 触发启动脚本销毁收尾流程。
+    /// </summary>
     void OnDestroy()
     {
         WaitDestroy();
     }
 
+    /// <summary>
+    /// 延迟一帧执行销毁清理，避免与当前帧逻辑竞争。
+    /// </summary>
     async void WaitDestroy()
     {
         await UniTask.DelayFrame(1);
         // ManagerUtility.HotfixMgr.Destroy();
         //SqliteHelp.Instance.Close();
         MainManager.Instance.ClearManager();
-        Debug.Log("Startup OnDestroy");
+        Debug.Log("Startup 已销毁");
     }
-
-
 }

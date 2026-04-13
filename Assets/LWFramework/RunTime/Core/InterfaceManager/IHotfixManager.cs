@@ -13,13 +13,11 @@ namespace LWCore
         /// </summary>
         ByHyBridCLR = 0,
         /// <summary>
-        /// 必须使用mono模式打包，目前增加自动过滤。。。
-        /// 
-        /// 后面可以手动备用操作发布程序时热更域必须勾选为其他平台，用于打包时剔除内置的代码，开发时勾选所有平台。(建议勾选一个Editor 和基本不打包的平台),
+        /// 可选动态装载路线，仅在宿主项目显式启用时使用，通过 Assets 固定 Hotfix/ 目录加载程序集。
         /// </summary>
         ByReflection = 1,
         /// <summary>
-        /// 必须使用mono模式打包，域不能为Eidtor
+        /// v1.1 默认稳定路线，表示热更能力存在，但不要求项目必须加载外部 DLL。
         /// </summary>
         ByCode = 2,
     }
