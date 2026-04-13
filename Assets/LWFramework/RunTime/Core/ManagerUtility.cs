@@ -78,16 +78,6 @@ namespace LWCore
                 return MainManager.Instance.GetManager<IAudioManager>();
             }
         }
-        /// <summary>
-        /// 获取步骤管理类
-        /// </summary>
-        public static IStepManager StepMgr
-        {
-            get
-            {
-                return MainManager.Instance.GetManager<IStepManager>();
-            }
-        }
     }
 }
 

@@ -267,7 +267,14 @@ namespace LWStep.Editor
                 EditorUtility.DisplayDialog("警告", $"自动刷新已开启，不能修改数据", "确定");
                 return;
             }
-            ManagerUtility.StepMgr.LoadContextFromJson(m_ContextText.value);
+            IStepManager stepManager;
+            if (!StepManagerUtility.TryGetStepMgr(out stepManager))
+            {
+                EditorUtility.DisplayDialog("警告", "StepManager 未初始化", "确定");
+                return;
+            }
+
+            stepManager.LoadContextFromJson(m_ContextText.value);
         }
         private void OnContextFoldoutValueChanged(ChangeEvent<bool> evt)
         {
@@ -282,12 +289,12 @@ namespace LWStep.Editor
             }
             if (!EditorApplication.isPlaying)
             {
-                m_ContextText.value = "仅在运行时显示 StepContext1";
+                m_ContextText.value = "仅在运行时显示 StepContext / Report";
                 return;
             }
 
-            IStepManager stepManager = ManagerUtility.StepMgr;
-            if (stepManager == null)
+            IStepManager stepManager;
+            if (!StepManagerUtility.TryGetStepMgr(out stepManager))
             {
                 m_ContextText.value = "StepManager 未初始化";
                 return;
@@ -300,13 +307,14 @@ namespace LWStep.Editor
             }
 
             string contextJson = stepManager.GetContextToJson();
+            string reportText = "CurrentNode: " + stepManager.CurrentNodeId;
             if (string.IsNullOrEmpty(contextJson))
             {
-                m_ContextText.value = "StepContext 为空";
+                m_ContextText.value = reportText + "\nStepContext 为空";
                 return;
             }
 
-            m_ContextText.value = contextJson;
+            m_ContextText.value = reportText + "\n" + contextJson;
         }
 
         /// <summary>
@@ -386,8 +394,8 @@ namespace LWStep.Editor
                 m_GraphView.SetRuntimeNodeStatuses(null);
                 return;
             }
-            IStepManager stepManager = ManagerUtility.StepMgr;
-            if (stepManager == null || !stepManager.IsRunning)
+            IStepManager stepManager;
+            if (!StepManagerUtility.TryGetStepMgr(out stepManager) || !stepManager.IsRunning)
             {
                 if (!string.IsNullOrEmpty(m_RuntimeNodeId))
                 {
@@ -460,8 +468,8 @@ namespace LWStep.Editor
             {
                 return;
             }
-            IStepManager stepManager = ManagerUtility.StepMgr;
-            if (stepManager == null || !stepManager.IsRunning)
+            IStepManager stepManager;
+            if (!StepManagerUtility.TryGetStepMgr(out stepManager) || !stepManager.IsRunning)
             {
                 return;
             }

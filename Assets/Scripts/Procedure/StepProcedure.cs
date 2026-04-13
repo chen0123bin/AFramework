@@ -34,15 +34,15 @@ public class StepProcedure : BaseFSMState
 
         m_EventLogs = new List<string>();
         // 初始化步骤系统并开始流程。
-        ManagerUtility.StepMgr.OnAllStepsCompleted += OnAllStepsCompleted;
-        ManagerUtility.StepMgr.OnNodeEnter += OnNodeEnter;
-        ManagerUtility.StepMgr.OnNodeLeave += OnNodeLeave;
-        ManagerUtility.StepMgr.OnNodeChanged += OnNodeChanged;
-        ManagerUtility.StepMgr.OnActionChanged += OnActionChanged;
-        ManagerUtility.StepMgr.OnJumpProgress += OnJumpProgress;
-        ManagerUtility.StepMgr.OnJumpFailed += OnJumpFailed;
+        StepManagerUtility.StepMgr.OnAllStepsCompleted += OnAllStepsCompleted;
+        StepManagerUtility.StepMgr.OnNodeEnter += OnNodeEnter;
+        StepManagerUtility.StepMgr.OnNodeLeave += OnNodeLeave;
+        StepManagerUtility.StepMgr.OnNodeChanged += OnNodeChanged;
+        StepManagerUtility.StepMgr.OnActionChanged += OnActionChanged;
+        StepManagerUtility.StepMgr.OnJumpProgress += OnJumpProgress;
+        StepManagerUtility.StepMgr.OnJumpFailed += OnJumpFailed;
 
-        ManagerUtility.StepMgr.LoadGraph(m_XmlPath);
+        StepManagerUtility.StepMgr.LoadGraph(m_XmlPath);
         string graphName = Path.GetFileNameWithoutExtension(m_XmlPath);
         if (string.IsNullOrEmpty(graphName))
         {
@@ -50,10 +50,10 @@ public class StepProcedure : BaseFSMState
             return;
         }
 
-        ManagerUtility.StepMgr.Start(graphName);
+        StepManagerUtility.StepMgr.Start(graphName);
 
         //收集所有步骤节点ID
-        List<StepNode> nodeList = ManagerUtility.StepMgr.GetAllDisplayNodes();
+        List<StepNode> nodeList = StepManagerUtility.StepMgr.GetAllDisplayNodes();
         StepView stepView = ManagerUtility.UIMgr.OpenView<StepView>(nodeList);
         SyncAllStepStatuses(stepView, nodeList);
         if (m_ApplyPresetContextOnStart)
@@ -64,7 +64,7 @@ public class StepProcedure : BaseFSMState
             presetContext.SetValue("isVip", m_PresetIsVip);
 
             string presetJson = presetContext.ToJson();
-            ManagerUtility.StepMgr.LoadContextFromJson(presetJson);
+            StepManagerUtility.StepMgr.LoadContextFromJson(presetJson);
 
             LWDebug.Log("步骤流程：已加载预设上下文");
         }
@@ -76,7 +76,7 @@ public class StepProcedure : BaseFSMState
         ManagerUtility.EventMgr.RemoveListener(StepView.EVENT_NEXT, OnNext);
         ManagerUtility.EventMgr.RemoveListener<string>(StepView.EVENT_JUMP, OnJumpByView);
 
-        IStepManager stepManager = ManagerUtility.StepMgr;
+        IStepManager stepManager = StepManagerUtility.StepMgr;
         if (stepManager != null)
         {
             stepManager.OnAllStepsCompleted -= OnAllStepsCompleted;
@@ -99,34 +99,34 @@ public class StepProcedure : BaseFSMState
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            //ManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId);
+            //StepManagerUtility.StepMgr.JumpTo(m_JumpTargetNodeId);
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", -0.2f);
+            StepManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", -0.2f);
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
-            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0);
+            StepManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0);
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0.2f);
+            StepManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0.2f);
         }
         else if (Input.GetKeyUp(KeyCode.RightArrow))
         {
-            ManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0);
+            StepManagerUtility.StepMgr.GetStepContext().SetValue<float>("Ani1", 0);
         }
         if (Input.GetKeyDown(KeyCode.S))
         {
-            m_SavedContextJson = ManagerUtility.StepMgr.GetContextToJson();
+            m_SavedContextJson = StepManagerUtility.StepMgr.GetContextToJson();
             LWDebug.Log("步骤流程：获取当前上下文");
         }
         if (Input.GetKeyDown(KeyCode.L))
         {
             if (!string.IsNullOrEmpty(m_SavedContextJson))
             {
-                ManagerUtility.StepMgr.LoadContextFromJson(m_SavedContextJson);
+                StepManagerUtility.StepMgr.LoadContextFromJson(m_SavedContextJson);
                 LWDebug.Log("步骤流程：已恢复上下文");
             }
         }
@@ -226,7 +226,7 @@ public class StepProcedure : BaseFSMState
     /// </summary>
     private void OnPrev()
     {
-        ManagerUtility.StepMgr.Backward();
+        StepManagerUtility.StepMgr.Backward();
     }
 
     /// <summary>
@@ -234,7 +234,7 @@ public class StepProcedure : BaseFSMState
     /// </summary>
     private void OnNext()
     {
-        ManagerUtility.StepMgr.Forward();
+        StepManagerUtility.StepMgr.Forward();
     }
 
     /// <summary>
@@ -246,13 +246,13 @@ public class StepProcedure : BaseFSMState
         {
             return;
         }
-        ManagerUtility.StepMgr.JumpTo(nodeId);
+        StepManagerUtility.StepMgr.JumpTo(nodeId);
     }
 
     private void SyncAllStepStatuses()
     {
         StepView stepView = ManagerUtility.UIMgr.GetView<StepView>();
-        List<StepNode> nodeList = ManagerUtility.StepMgr.GetAllNodes();
+        List<StepNode> nodeList = StepManagerUtility.StepMgr.GetAllNodes();
         SyncAllStepStatuses(stepView, nodeList);
     }
 

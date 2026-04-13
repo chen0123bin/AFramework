@@ -1,0 +1,21 @@
+{
+  "name": "LWFramework.Tests.StepSystem.EditMode",
+  "rootNamespace": "LWFramework.Tests.StepSystem.EditMode",
+  "references": [
+    "LWFramework.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

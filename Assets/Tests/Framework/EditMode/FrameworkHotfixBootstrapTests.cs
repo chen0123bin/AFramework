@@ -172,7 +172,7 @@ namespace LWFramework.Tests.Framework.EditMode
                 () => new FakeStepManager());
 
             Assert.NotNull(ManagerUtility.AudioMgr);
-            Assert.NotNull(ManagerUtility.StepMgr);
+            Assert.NotNull(StepManagerUtility.StepMgr);
             Assert.NotNull(ManagerUtility.HotfixMgr);
             Assert.AreSame(hotfixManagerBeforeOptional, ManagerUtility.HotfixMgr);
             Assert.IsNull(ManagerUtility.AssetsMgr);

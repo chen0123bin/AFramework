@@ -8,6 +8,7 @@ using LWFMS;
 using LWAssets;
 using LWCore;
 using LWHotfix;
+using LWStep;
 using LWUI;
 using NUnit.Framework;
 using UnityEngine;
@@ -69,7 +70,7 @@ namespace LWFramework.Tests.Framework.EditMode
             Assert.NotNull(ManagerUtility.HotfixMgr);
             Assert.NotNull(ManagerUtility.FSMMgr);
             Assert.IsNull(ManagerUtility.AudioMgr);
-            Assert.IsNull(ManagerUtility.StepMgr);
+            Assert.IsNull(StepManagerUtility.StepMgr);
         }
 
         /// <summary>
