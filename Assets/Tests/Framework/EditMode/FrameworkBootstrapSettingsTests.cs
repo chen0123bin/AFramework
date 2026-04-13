@@ -1,3 +1,4 @@
+using System;
 using LWCore;
 using NUnit.Framework;
 
@@ -37,6 +38,17 @@ namespace LWFramework.Tests.Framework.EditMode
             Assert.AreEqual(HotfixCodeRunMode.ByCode, settings.HotfixMode);
             Assert.AreEqual(string.Empty, settings.ReflectionHotfixAssemblyName);
             Assert.AreEqual(FrameworkBootstrapSettings.DEFAULT_REFLECTION_HOTFIX_DIR, "Hotfix/");
+        }
+
+        /// <summary>
+        /// 验证未知模块的状态查询会抛出越界异常。
+        /// </summary>
+        [Test]
+        public void DefaultSettings_UnknownModuleThrows()
+        {
+            FrameworkBootstrapSettings settings = FrameworkBootstrapSettings.CreateDefault();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => settings.IsModuleEnabled((FrameworkModuleId)999));
         }
     }
 }

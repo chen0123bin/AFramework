@@ -49,7 +49,7 @@ namespace LWCore
                 case FrameworkModuleId.StepSystem:
                     return EnableStepSystem;
                 default:
-                    return false;
+                throw new ArgumentOutOfRangeException(nameof(moduleId), moduleId, "不支持的模块");
             }
         }
     }
