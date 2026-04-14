@@ -51,9 +51,9 @@ LWAssets是一个功能完整、高效稳定的Unity资源管理系统，支持A
 
 ## 🔑 访问方式
 
-LWAssets 在框架启动链（Startup → Bootstrap → MainManager）中完成注册，由 `LWCore.ManagerUtility` 提供统一入口。`ManagerUtility.AssetsMgr` 会返回当前活跃的 `IAssetsManager` 实例，业务侧应优先通过它访问资源能力，而不是依赖 LWAssetsManager 提供的静态单例访问方式。这样可以确保在框架完整初始化前不会访问未注册的单例，访问方式与框架启动过程保持一致。
+LWAssets 在框架启动链（Startup → Bootstrap → MainManager）中完成注册，由 `LWCore.ManagerUtility` 提供统一入口。当前框架对外没有 LWAssetsManager 提供的可用单例入口，业务侧必须且仅能通过 `ManagerUtility.AssetsMgr` 访问资源系统，确保在 ManagerUtility 注册完成后再执行加载、下载、释放等操作，以避免访问未初始化的管理器。
 
-在框架默认接入逻辑中，LWAssets 会在 Core 层的启动流程中为 Assets 模块完成注册，热更、UI、FSM 以及其他模块可以通过 `ManagerUtility.AssetsMgr` 获取资源资源器并执行加载、下载、释放等操作。
+在框架默认接入逻辑中，Core 层负责为 Assets 模块完成注册，热更、UI、FSM 以及其他模块都可以通过 `ManagerUtility.AssetsMgr` 获取资源器并调用其能力。
 
 ## 🚀 快速开始
 
@@ -304,7 +304,7 @@ A: 支持Windows、MacOS、Linux、Android、iOS、WebGL等主流Unity平台。
 
 ## 📄 API参考
 
-框架通过 `LWCore.ManagerUtility.AssetsMgr` 暴露 `LWAssetsManager` 接口，业务代码无需直接引用 LWAssetsManager 提供的静态单例，可以在启动链完成后通过 ManagerUtility 获取通用的 `IAssetsManager` 实例进行调用。以下方法即对应 LWAssetsManager 提供的能力。
+框架通过 `LWCore.ManagerUtility.AssetsMgr` 暴露 `LWAssetsManager` 接口，`ManagerUtility.AssetsMgr` 是当前唯一的对外入口；LWAssetsManager 早期提供的单例写法已经移除/不可用。以下方法即对应 LWAssetsManager 提供的能力。
 
 ### LWAssetsManager
 
