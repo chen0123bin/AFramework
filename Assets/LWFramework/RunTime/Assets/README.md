@@ -49,6 +49,12 @@ LWAssets是一个功能完整、高效稳定的Unity资源管理系统，支持A
 | **PreloadManager** | 预加载管理 | `RunTime/Assets/Preload/PreloadManager.cs` |
 | **BundleManifest** | Bundle清单管理 | `RunTime/Assets/Bundle/BundleManifest.cs` |
 
+## 🔑 访问方式
+
+LWAssets 在框架启动链（Startup → Bootstrap → MainManager）中完成注册，由 `LWCore.ManagerUtility` 提供统一入口。`ManagerUtility.AssetsMgr` 会返回当前活跃的 `IAssetsManager` 实例，业务侧应优先通过它访问资源能力，而不是依赖 LWAssetsManager 提供的静态单例访问方式。这样可以确保在框架完整初始化前不会访问未注册的单例，访问方式与框架启动过程保持一致。
+
+在框架默认接入逻辑中，LWAssets 会在 Core 层的启动流程中为 Assets 模块完成注册，热更、UI、FSM 以及其他模块可以通过 `ManagerUtility.AssetsMgr` 获取资源资源器并执行加载、下载、释放等操作。
+
 ## 🚀 快速开始
 
 ### 1. 安装配置
@@ -69,18 +75,19 @@ LWAssets是一个功能完整、高效稳定的Unity资源管理系统，支持A
 
 ```csharp
 using LWAssets;
+using LWCore;
 using UnityEngine;
 
 public class GameStartup : MonoBehaviour
 {
     private async void Start()
     {
-        // 初始化资源系统
-        await LWAssetsManager.Instance.InitializeAsync();
+        // 初始化资源系统（由 ManagerUtility.AssetsMgr 返回）
+        await ManagerUtility.AssetsMgr.InitializeAsync();
         
         // 加载并实例化预制体
-        var prefab = await LWAssetsManager.Instance.LoadAssetAsync<GameObject>("path/to/prefab");
-        Instantiate(prefab);
+        var prefab = await ManagerUtility.AssetsMgr.LoadAssetAsync<GameObject>("path/to/prefab");
+        ManagerUtility.AssetsMgr.Instantiate(prefab);
         
         // 初始化完成，进入游戏主逻辑
         EnterGame();
@@ -99,23 +106,23 @@ public class GameStartup : MonoBehaviour
 
 ```csharp
 // 异步加载单个资源
-var texture = await LWAssetsManager.Instance.LoadAssetAsync<Texture2D>("textures/main_bg");
+var texture = await ManagerUtility.AssetsMgr.LoadAssetAsync<Texture2D>("textures/main_bg");
 
 // 异步实例化预制体
-var gameObject = await LWAssetsManager.Instance.InstantiateAsync("prefabs/player");
+var gameObject = await ManagerUtility.AssetsMgr.InstantiateAsync("prefabs/player");
 
 // 异步加载场景
-var sceneHandle = await LWAssetsManager.Instance.LoadSceneAsync("scenes/main", LoadSceneMode.Additive);
+var sceneHandle = await ManagerUtility.AssetsMgr.LoadSceneAsync("scenes/main", LoadSceneMode.Additive);
 ```
 
 #### 同步加载资源
 
 ```csharp
 // 同步加载资源
-var sprite = LWAssetsManager.Instance.LoadAsset<Sprite>("sprites/icon");
+var sprite = ManagerUtility.AssetsMgr.LoadAsset<Sprite>("sprites/icon");
 
 // 同步实例化预制体
-var enemy = LWAssetsManager.Instance.Instantiate("prefabs/enemy");
+var enemy = ManagerUtility.AssetsMgr.Instantiate("prefabs/enemy");
 ```
 
 #### 批量加载资源
@@ -124,14 +131,14 @@ var enemy = LWAssetsManager.Instance.Instantiate("prefabs/enemy");
 // 批量加载资源
 string[] assetPaths = { "textures/ui1", "textures/ui2", "textures/ui3" };
 var progress = new Progress<float>(p => Debug.Log($"加载进度: {p:P}"));
-var textures = await LWAssetsManager.Instance.LoadAssetsAsync<Texture2D>(assetPaths, progress);
+    var textures = await ManagerUtility.AssetsMgr.LoadAssetsAsync<Texture2D>(assetPaths, progress);
 ```
 
 ### 4. 资源更新示例
 
 ```csharp
 // 检查资源更新
-long downloadSize = await LWAssetsManager.Instance.GetDownloadSizeAsync();
+long downloadSize = await ManagerUtility.AssetsMgr.GetDownloadSizeAsync();
 if (downloadSize > 0)
 {
     Debug.Log($"需要下载: {FormatBytes(downloadSize)}");
@@ -142,7 +149,7 @@ if (downloadSize > 0)
         Debug.Log($"下载进度: {p.Progress:P}, 速度: {FormatBytes(p.Speed)}/s");
     });
     
-    await LWAssetsManager.Instance.DownloadAsync(progress: progress);
+    await ManagerUtility.AssetsMgr.DownloadAsync(progress: progress);
     Debug.Log("资源更新完成");
 }
 
@@ -297,6 +304,8 @@ A: 可以通过菜单 `LWAssets/Clear All Cache` 清理，或调用 `CacheManage
 A: 支持Windows、MacOS、Linux、Android、iOS、WebGL等主流Unity平台。
 
 ## 📄 API参考
+
+框架通过 `LWCore.ManagerUtility.AssetsMgr` 暴露 `LWAssetsManager` 接口，业务代码无需直接引用 LWAssetsManager 提供的静态单例，可以在启动链完成后通过 ManagerUtility 获取通用的 `IAssetsManager` 实例进行调用。以下方法即对应 LWAssetsManager 提供的能力。
 
 ### LWAssetsManager
 
