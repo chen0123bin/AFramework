@@ -85,9 +85,8 @@ public class GameStartup : MonoBehaviour
         // 初始化资源系统（由 ManagerUtility.AssetsMgr 返回）
         await ManagerUtility.AssetsMgr.InitializeAsync();
         
-        // 加载并实例化预制体
-        var prefab = await ManagerUtility.AssetsMgr.LoadAssetAsync<GameObject>("path/to/prefab");
-        ManagerUtility.AssetsMgr.Instantiate(prefab);
+        // 直接通过资源系统异步实例化预制体
+        GameObject prefabInstance = await ManagerUtility.AssetsMgr.InstantiateAsync("path/to/prefab");
         
         // 初始化完成，进入游戏主逻辑
         EnterGame();
