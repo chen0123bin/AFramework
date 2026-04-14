@@ -11,8 +11,8 @@ public class Startup : MonoBehaviour
     public string procedureName = "StartProcedure";
     public HotfixCodeRunMode hotfixCodeRunMode = HotfixCodeRunMode.ByCode;
     public string reflectionHotfixAssemblyName = string.Empty;
-    public bool enableAudio = false;
-    public bool enableStepSystem = false;
+    public bool enableAudio = true;
+    public bool enableStepSystem = true;
 
     /// <summary>
     /// 执行宿主启动链路：初始化核心、注册可选模块、更新资源并启动流程。
