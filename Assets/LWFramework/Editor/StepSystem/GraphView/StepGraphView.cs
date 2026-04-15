@@ -22,6 +22,7 @@ namespace LWStep.Editor
         private Port m_PendingOutputPort;
         private Vector2 m_LastMouseWorldPosition;
         private string m_RuntimeNodeId;
+        private string m_RuntimeCurrentActionName;
         private Dictionary<string, StepNodeStatus> m_RuntimeNodeStatuses;
         private HashSet<string> m_RuntimeTrailNodeIds;
 
@@ -38,6 +39,7 @@ namespace LWStep.Editor
             m_Data = data;
             m_NodeViews = new Dictionary<string, StepNodeView>();
             m_LastMouseWorldPosition = Vector2.zero;
+            m_RuntimeCurrentActionName = string.Empty;
             m_RuntimeTrailNodeIds = new HashSet<string>();
 
             GridBackground grid = new GridBackground();
@@ -138,6 +140,21 @@ namespace LWStep.Editor
         public void SetRuntimeNodeStatuses(Dictionary<string, StepNodeStatus> nodeStatuses)
         {
             m_RuntimeNodeStatuses = nodeStatuses;
+            UpdateAllNodeTitles();
+        }
+
+        /// <summary>
+        /// 设置运行时当前动作名称并刷新节点展示。
+        /// </summary>
+        public void SetRuntimeCurrentActionName(string actionName)
+        {
+            string newActionName = actionName ?? string.Empty;
+            if (m_RuntimeCurrentActionName == newActionName)
+            {
+                return;
+            }
+
+            m_RuntimeCurrentActionName = newActionName;
             UpdateAllNodeTitles();
         }
 
@@ -459,7 +476,7 @@ namespace LWStep.Editor
                     m_RuntimeNodeId,
                     status,
                     m_RuntimeTrailNodeIds,
-                    string.Empty);
+                    kvp.Key == m_RuntimeNodeId ? m_RuntimeCurrentActionName : string.Empty);
                 kvp.Value.BindPresentation(presentation);
             }
         }

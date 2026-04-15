@@ -280,7 +280,7 @@ namespace LWStep.Editor
                 return;
             }
 
-            stepManager.LoadContextFromJson(m_ContextText.value);
+            stepManager.LoadContextFromJson(ExtractContextJsonText(m_ContextText.value));
         }
         private void OnContextFoldoutValueChanged(ChangeEvent<bool> evt)
         {
@@ -312,15 +312,38 @@ namespace LWStep.Editor
                 return;
             }
 
+            StepRuntimeDebugSnapshot snapshot = stepManager.GetRuntimeDebugSnapshot();
             string contextJson = stepManager.GetContextToJson();
-            string reportText = "CurrentNode: " + stepManager.CurrentNodeId;
+            string currentNodeId = snapshot != null ? snapshot.CurrentNodeId : stepManager.CurrentNodeId;
+            string currentActionName = snapshot != null ? snapshot.CurrentActionName : string.Empty;
+            string reportText = "CurrentNode: " + currentNodeId + "\nCurrentAction: " + currentActionName;
             if (string.IsNullOrEmpty(contextJson))
             {
-                m_ContextText.value = reportText + "\nStepContext 为空";
+                m_ContextText.value = reportText + "\nContextJson:\nStepContext 为空";
                 return;
             }
 
-            m_ContextText.value = reportText + "\n" + contextJson;
+            m_ContextText.value = reportText + "\nContextJson:\n" + contextJson;
+        }
+
+        /// <summary>
+        /// 从调试面板文本中提取可回写的 Context JSON 段。
+        /// </summary>
+        private string ExtractContextJsonText(string panelText)
+        {
+            if (string.IsNullOrEmpty(panelText))
+            {
+                return string.Empty;
+            }
+
+            const string contextHeader = "ContextJson:\n";
+            int headerIndex = panelText.IndexOf(contextHeader, StringComparison.Ordinal);
+            if (headerIndex < 0)
+            {
+                return panelText;
+            }
+
+            return panelText.Substring(headerIndex + contextHeader.Length);
         }
 
         /// <summary>
@@ -397,6 +420,8 @@ namespace LWStep.Editor
                     m_RuntimeNodeId = string.Empty;
                     m_GraphView.SetRuntimeNodeId(string.Empty);
                 }
+                m_GraphView.SetRuntimeCurrentActionName(string.Empty);
+                m_GraphView.SetRuntimeTrail(null);
                 m_GraphView.SetRuntimeNodeStatuses(null);
                 return;
             }
@@ -408,15 +433,20 @@ namespace LWStep.Editor
                     m_RuntimeNodeId = string.Empty;
                     m_GraphView.SetRuntimeNodeId(string.Empty);
                 }
+                m_GraphView.SetRuntimeCurrentActionName(string.Empty);
+                m_GraphView.SetRuntimeTrail(null);
                 m_GraphView.SetRuntimeNodeStatuses(null);
                 return;
             }
-            string currentNodeId = stepManager.CurrentNodeId;
+            StepRuntimeDebugSnapshot snapshot = stepManager.GetRuntimeDebugSnapshot();
+            string currentNodeId = snapshot != null ? snapshot.CurrentNodeId : stepManager.CurrentNodeId;
             if (m_RuntimeNodeId != currentNodeId)
             {
                 m_RuntimeNodeId = currentNodeId;
                 m_GraphView.SetRuntimeNodeId(m_RuntimeNodeId);
             }
+            m_GraphView.SetRuntimeCurrentActionName(snapshot != null ? snapshot.CurrentActionName : string.Empty);
+            m_GraphView.SetRuntimeTrail(snapshot != null ? snapshot.TrailNodeIds : null);
 
             Dictionary<string, StepNodeStatus> nodeStatuses = new Dictionary<string, StepNodeStatus>();
             if (m_Data != null && m_Data.Nodes != null)
