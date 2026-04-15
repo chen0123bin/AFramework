@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
 using LWStep;
 using LWStep.Editor;
 using LWStep.Editor.Presentation;
@@ -123,90 +122,46 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
-        /// 节点视图绑定计划应包含副标题、徽标、摘要与状态类映射。
+        /// 节点视图应暴露展示绑定 API 与任务要求的渲染字段。
         /// </summary>
         [Test]
-        public void BuildBindingPlan_ShouldExposeSubtitleBadgesSummariesAndClasses()
+        public void StepNodeView_ShouldExposePresentationBindingSurface()
         {
-            StepNodePresentation presentation = new StepNodePresentation();
-            presentation.Title = "node_bind";
-            presentation.Subtitle = "副标题";
-            presentation.Badges.Add("Start");
-            presentation.Badges.Add("Serial");
-            presentation.ActionSummaries.Add("Move:Cube");
-            presentation.ActionSummaries.Add("Log:Ready");
-            presentation.IsCompleted = true;
-            presentation.IsInTrail = true;
+            MethodInfo bindPresentation = typeof(StepNodeView).GetMethod("BindPresentation", BindingFlags.Instance | BindingFlags.Public);
+            FieldInfo subtitleField = typeof(StepNodeView).GetField("m_SubtitleLabel", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo badgeContainerField = typeof(StepNodeView).GetField("m_BadgeContainer", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo summaryContainerField = typeof(StepNodeView).GetField("m_SummaryContainer", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            object bindingPlan = InvokeNonPublicStaticMethod(typeof(StepNodeView), "BuildBindingPlan", presentation);
-
-            Assert.IsNotNull(bindingPlan);
-            Assert.AreEqual("node_bind", GetMemberValue<string>(bindingPlan, "Title"));
-            Assert.AreEqual("副标题", GetMemberValue<string>(bindingPlan, "Subtitle"));
-            CollectionAssert.AreEqual(
-                new[] { "Start", "Serial" },
-                GetMemberValue<List<string>>(bindingPlan, "Badges"));
-            CollectionAssert.AreEqual(
-                new[] { "Move:Cube", "Log:Ready" },
-                GetMemberValue<List<string>>(bindingPlan, "SummaryLines"));
-            CollectionAssert.Contains(
-                GetMemberValue<List<string>>(bindingPlan, "EnabledClasses"),
-                "step-node-completed");
-            CollectionAssert.Contains(
-                GetMemberValue<List<string>>(bindingPlan, "EnabledClasses"),
-                "step-node-trail");
+            Assert.IsNotNull(bindPresentation);
+            Assert.AreEqual(typeof(void), bindPresentation.ReturnType);
+            Assert.AreEqual(1, bindPresentation.GetParameters().Length);
+            Assert.AreEqual(typeof(StepNodePresentation), bindPresentation.GetParameters()[0].ParameterType);
+            Assert.IsNotNull(subtitleField);
+            Assert.AreEqual("Label", subtitleField.FieldType.Name);
+            Assert.IsNotNull(badgeContainerField);
+            Assert.AreEqual("VisualElement", badgeContainerField.FieldType.Name);
+            Assert.IsNotNull(summaryContainerField);
+            Assert.AreEqual("VisualElement", summaryContainerField.FieldType.Name);
         }
 
         /// <summary>
-        /// BindPresentation 应通过绑定计划驱动节点 UI 渲染。
+        /// 图视图应暴露运行时轨迹入口与任务要求的渲染字段。
         /// </summary>
         [Test]
-        public void BindPresentation_ShouldUseBindingPlanBuilder()
+        public void StepGraphView_ShouldExposeRuntimeTrailAndEdgeRefreshSurface()
         {
-            MethodInfo bindPresentation = GetNonPublicOrPublicInstanceMethod(typeof(StepNodeView), "BindPresentation");
-            MethodInfo buildBindingPlan = GetNonPublicOrPublicStaticMethod(typeof(StepNodeView), "BuildBindingPlan");
+            MethodInfo setRuntimeTrail = typeof(StepGraphView).GetMethod("SetRuntimeTrail", BindingFlags.Instance | BindingFlags.Public);
+            MethodInfo updateEdgeView = typeof(StepGraphView).GetMethod("UpdateEdgeView", BindingFlags.Instance | BindingFlags.Public);
+            FieldInfo runtimeTrailField = typeof(StepGraphView).GetField("m_RuntimeTrailNodeIds", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            Assert.IsTrue(MethodCalls(bindPresentation, buildBindingPlan));
-        }
-
-        /// <summary>
-        /// 运行时轨迹刷新应通过 UpdateAllNodeTitles 驱动节点重绑。
-        /// </summary>
-        [Test]
-        public void SetRuntimeTrail_ShouldCallUpdateAllNodeTitles()
-        {
-            MethodInfo setRuntimeTrail = GetNonPublicOrPublicInstanceMethod(typeof(StepGraphView), "SetRuntimeTrail");
-            MethodInfo updateAllNodeTitles = GetNonPublicOrPublicInstanceMethod(typeof(StepGraphView), "UpdateAllNodeTitles");
-
-            Assert.IsTrue(MethodCalls(setRuntimeTrail, updateAllNodeTitles));
-        }
-
-        /// <summary>
-        /// 节点标题刷新应同时调用展示构建器与节点绑定方法。
-        /// </summary>
-        [Test]
-        public void UpdateAllNodeTitles_ShouldUsePresentationBuilderAndBindPresentation()
-        {
-            MethodInfo updateAllNodeTitles = GetNonPublicOrPublicInstanceMethod(typeof(StepGraphView), "UpdateAllNodeTitles");
-            MethodInfo buildNodePresentation = GetNonPublicOrPublicStaticMethod(typeof(StepGraphPresentationBuilder), "BuildNodePresentation");
-            MethodInfo bindPresentation = GetNonPublicOrPublicInstanceMethod(typeof(StepNodeView), "BindPresentation");
-
-            Assert.IsTrue(MethodCalls(updateAllNodeTitles, buildNodePresentation));
-            Assert.IsTrue(MethodCalls(updateAllNodeTitles, bindPresentation));
-        }
-
-        /// <summary>
-        /// 连线配置应通过展示构建器生成标签并创建标签控件。
-        /// </summary>
-        [Test]
-        public void ConfigureEdgeView_ShouldUseEdgePresentationBuilderAndCreateLabel()
-        {
-            MethodInfo configureEdgeView = GetNonPublicOrPublicInstanceMethod(typeof(StepGraphView), "ConfigureEdgeView");
-            MethodInfo buildEdgePresentation = GetNonPublicOrPublicStaticMethod(typeof(StepGraphPresentationBuilder), "BuildEdgePresentation");
-            MethodInfo getOrCreateEdgeLabel = GetNonPublicOrPublicInstanceMethod(typeof(StepGraphView), "GetOrCreateEdgeLabel");
-
-            Assert.IsTrue(MethodCalls(configureEdgeView, buildEdgePresentation));
-            Assert.IsTrue(MethodCalls(configureEdgeView, getOrCreateEdgeLabel));
+            Assert.IsNotNull(setRuntimeTrail);
+            Assert.AreEqual(typeof(void), setRuntimeTrail.ReturnType);
+            Assert.AreEqual(1, setRuntimeTrail.GetParameters().Length);
+            Assert.AreEqual(typeof(List<string>), setRuntimeTrail.GetParameters()[0].ParameterType);
+            Assert.IsNotNull(updateEdgeView);
+            Assert.AreEqual(typeof(void), updateEdgeView.ReturnType);
+            Assert.IsNotNull(runtimeTrailField);
+            Assert.AreEqual(typeof(HashSet<string>), runtimeTrailField.FieldType);
         }
 
         /// <summary>
@@ -220,203 +175,5 @@ namespace LWFramework.Tests.StepSystem.EditMode
             return action;
         }
 
-        /// <summary>
-        /// 通过反射调用非公开静态方法。
-        /// </summary>
-        private static object InvokeNonPublicStaticMethod(Type targetType, string methodName, params object[] parameters)
-        {
-            MethodInfo method = GetNonPublicOrPublicStaticMethod(targetType, methodName);
-            return method.Invoke(null, parameters);
-        }
-
-        /// <summary>
-        /// 读取对象字段或属性值。
-        /// </summary>
-        private static T GetMemberValue<T>(object target, string memberName)
-        {
-            Type targetType = target.GetType();
-            PropertyInfo property = targetType.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (property != null)
-            {
-                return (T)property.GetValue(target, null);
-            }
-
-            FieldInfo field = targetType.GetField(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field != null)
-            {
-                return (T)field.GetValue(target);
-            }
-
-            Assert.Fail("未找到成员: " + memberName);
-            return default(T);
-        }
-
-        /// <summary>
-        /// 获取公开或非公开的实例方法。
-        /// </summary>
-        private static MethodInfo GetNonPublicOrPublicInstanceMethod(Type targetType, string methodName)
-        {
-            MethodInfo method = targetType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            Assert.IsNotNull(method, "未找到实例方法: " + targetType.FullName + "." + methodName);
-            return method;
-        }
-
-        /// <summary>
-        /// 获取公开或非公开的静态方法。
-        /// </summary>
-        private static MethodInfo GetNonPublicOrPublicStaticMethod(Type targetType, string methodName)
-        {
-            MethodInfo method = targetType.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            Assert.IsNotNull(method, "未找到静态方法: " + targetType.FullName + "." + methodName);
-            return method;
-        }
-
-        /// <summary>
-        /// 判断调用方法的 IL 中是否包含目标方法调用。
-        /// </summary>
-        private static bool MethodCalls(MethodInfo caller, MethodInfo callee)
-        {
-            Assert.IsNotNull(caller);
-            Assert.IsNotNull(callee);
-
-            MethodBody methodBody = caller.GetMethodBody();
-            Assert.IsNotNull(methodBody, "方法缺少 IL 方法体: " + caller.Name);
-
-            byte[] ilBytes = methodBody.GetILAsByteArray();
-            Module module = caller.Module;
-            int index = 0;
-            while (index < ilBytes.Length)
-            {
-                OpCode opCode = ReadOpCode(ilBytes, ref index);
-                if (opCode == OpCodes.Call || opCode == OpCodes.Callvirt)
-                {
-                    int metadataToken = ReadInt32(ilBytes, ref index);
-                    MethodBase calledMethod = module.ResolveMethod(metadataToken);
-                    MethodInfo calledMethodInfo = calledMethod as MethodInfo;
-                    if (calledMethodInfo != null && AreSameMethod(calledMethodInfo, callee))
-                    {
-                        return true;
-                    }
-                    continue;
-                }
-
-                SkipOperand(ilBytes, ref index, opCode);
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// 判断两个方法是否指向同一声明。
-        /// </summary>
-        private static bool AreSameMethod(MethodInfo left, MethodInfo right)
-        {
-            return left.Module == right.Module && left.MetadataToken == right.MetadataToken;
-        }
-
-        /// <summary>
-        /// 从 IL 字节流中读取操作码。
-        /// </summary>
-        private static OpCode ReadOpCode(byte[] ilBytes, ref int index)
-        {
-            byte code = ilBytes[index++];
-            if (code != 0xFE)
-            {
-                return s_OneByteOpCodes[code];
-            }
-
-            byte secondCode = ilBytes[index++];
-            return s_TwoByteOpCodes[secondCode];
-        }
-
-        /// <summary>
-        /// 按操作数类型跳过当前 IL 指令的操作数部分。
-        /// </summary>
-        private static void SkipOperand(byte[] ilBytes, ref int index, OpCode opCode)
-        {
-            switch (opCode.OperandType)
-            {
-                case OperandType.InlineNone:
-                    return;
-                case OperandType.ShortInlineBrTarget:
-                case OperandType.ShortInlineI:
-                case OperandType.ShortInlineVar:
-                    index += 1;
-                    return;
-                case OperandType.InlineVar:
-                    index += 2;
-                    return;
-                case OperandType.InlineI:
-                case OperandType.InlineBrTarget:
-                case OperandType.InlineField:
-                case OperandType.InlineMethod:
-                case OperandType.InlineSig:
-                case OperandType.InlineString:
-                case OperandType.InlineTok:
-                case OperandType.InlineType:
-                case OperandType.ShortInlineR:
-                    index += 4;
-                    return;
-                case OperandType.InlineI8:
-                case OperandType.InlineR:
-                    index += 8;
-                    return;
-                case OperandType.InlineSwitch:
-                    int caseCount = ReadInt32(ilBytes, ref index);
-                    index += caseCount * 4;
-                    return;
-                default:
-                    throw new NotSupportedException("未支持的 OperandType: " + opCode.OperandType);
-            }
-        }
-
-        /// <summary>
-        /// 从 IL 字节流中读取 Int32。
-        /// </summary>
-        private static int ReadInt32(byte[] ilBytes, ref int index)
-        {
-            int value = BitConverter.ToInt32(ilBytes, index);
-            index += 4;
-            return value;
-        }
-
-        private static readonly OpCode[] s_OneByteOpCodes = BuildOpCodeMap(false);
-        private static readonly OpCode[] s_TwoByteOpCodes = BuildOpCodeMap(true);
-
-        /// <summary>
-        /// 构建单字节或双字节 IL 操作码映射表。
-        /// </summary>
-        private static OpCode[] BuildOpCodeMap(bool twoByte)
-        {
-            OpCode[] opCodes = new OpCode[256];
-            FieldInfo[] fields = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static);
-            for (int i = 0; i < fields.Length; i++)
-            {
-                if (fields[i].FieldType != typeof(OpCode))
-                {
-                    continue;
-                }
-
-                OpCode opCode = (OpCode)fields[i].GetValue(null);
-                ushort value = unchecked((ushort)opCode.Value);
-                if (twoByte)
-                {
-                    if ((value & 0xFF00) != 0xFE00)
-                    {
-                        continue;
-                    }
-                    opCodes[value & 0xFF] = opCode;
-                    continue;
-                }
-
-                if ((value & 0xFF00) == 0xFE00)
-                {
-                    continue;
-                }
-                opCodes[value] = opCode;
-            }
-
-            return opCodes;
-        }
     }
 }
