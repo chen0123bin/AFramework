@@ -91,6 +91,24 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
+        /// 当可用 realtime 提供器时，Update 应按 realtime 时间判断结束。
+        /// </summary>
+        [Test]
+        public void StepWaitSecondsAction_Update_ShouldUseRealtimeProviderWhenAvailable()
+        {
+            RealtimeDrivenStepWaitSecondsAction action = new RealtimeDrivenStepWaitSecondsAction(100d, 101.2d);
+            action.SetParameters(new Dictionary<string, string>
+            {
+                { "seconds", "1" }
+            });
+
+            action.Enter();
+            action.Update();
+
+            Assert.IsTrue(action.IsFinished);
+        }
+
+        /// <summary>
         /// Apply 路径应只派发一次事件。
         /// </summary>
         [Test]
@@ -361,6 +379,37 @@ namespace LWFramework.Tests.StepSystem.EditMode
             /// </summary>
             public void Update()
             {
+            }
+        }
+
+        /// <summary>
+        /// 可注入 realtime 时间序列的等待动作测试替身。
+        /// </summary>
+        private sealed class RealtimeDrivenStepWaitSecondsAction : StepWaitSecondsAction
+        {
+            private readonly Queue<double> m_RealtimeSequence;
+
+            /// <summary>
+            /// 使用指定 realtime 时间序列初始化替身动作。
+            /// </summary>
+            public RealtimeDrivenStepWaitSecondsAction(params double[] realtimeSequence)
+            {
+                m_RealtimeSequence = new Queue<double>(realtimeSequence ?? System.Array.Empty<double>());
+            }
+
+            /// <summary>
+            /// 返回预设 realtime 时间，驱动 realtime 分支逻辑。
+            /// </summary>
+            protected override bool TryGetUnityRealtimeSeconds(out double realtimeSeconds)
+            {
+                if (m_RealtimeSequence.Count == 0)
+                {
+                    realtimeSeconds = 0d;
+                    return false;
+                }
+
+                realtimeSeconds = m_RealtimeSequence.Dequeue();
+                return true;
             }
         }
     }

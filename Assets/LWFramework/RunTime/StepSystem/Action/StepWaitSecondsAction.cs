@@ -18,20 +18,23 @@ namespace LWStep
         /// </summary>
         protected override void OnEnter()
         {
-            m_EndTimeUtc = DateTime.UtcNow.AddSeconds(m_Seconds);
+            DateTime nowUtc = DateTime.UtcNow;
+            double waitSeconds = NormalizeWaitSeconds(m_Seconds);
+
+            m_EndTimeUtc = GetSafeEndTimeUtc(nowUtc, waitSeconds);
 
             double realtimeSeconds;
             if (TryGetUnityRealtimeSeconds(out realtimeSeconds))
             {
                 m_UseUnityRealtime = true;
-                m_EndRealtimeSeconds = realtimeSeconds + m_Seconds;
+                m_EndRealtimeSeconds = realtimeSeconds + waitSeconds;
             }
             else
             {
                 m_UseUnityRealtime = false;
             }
 
-            if (m_Seconds <= 0f)
+            if (waitSeconds <= 0d)
             {
                 Finish();
             }
@@ -79,7 +82,7 @@ namespace LWStep
         /// <summary>
         /// 获取 Unity 非缩放实时时间（仅在运行态可用）。
         /// </summary>
-        private bool TryGetUnityRealtimeSeconds(out double realtimeSeconds)
+        protected virtual bool TryGetUnityRealtimeSeconds(out double realtimeSeconds)
         {
             realtimeSeconds = 0d;
             try
@@ -96,6 +99,31 @@ namespace LWStep
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 归一化等待秒数：将非法值转为 0，负值保持原语义以便立即完成。
+        /// </summary>
+        private static double NormalizeWaitSeconds(float seconds)
+        {
+            double normalizedSeconds = seconds;
+            if (double.IsNaN(normalizedSeconds) || double.IsInfinity(normalizedSeconds))
+            {
+                return 0d;
+            }
+
+            return normalizedSeconds;
+        }
+
+        /// <summary>
+        /// 安全计算截止时间：将秒数限制在 DateTime 可表示范围内，避免 AddSeconds 抛异常。
+        /// </summary>
+        private static DateTime GetSafeEndTimeUtc(DateTime startUtc, double seconds)
+        {
+            double minSeconds = (DateTime.MinValue - startUtc).TotalSeconds;
+            double maxSeconds = (DateTime.MaxValue - startUtc).TotalSeconds;
+            double clampedSeconds = Math.Max(minSeconds, Math.Min(maxSeconds, seconds));
+            return startUtc.AddSeconds(clampedSeconds);
         }
     }
 }

@@ -32,7 +32,7 @@ namespace LWStep
         }
 
         /// <summary>
-        /// 快速应用：派发事件。
+        /// 快速应用：进入阶段已完成派发与结束，此处无需额外逻辑。
         /// </summary>
         protected override void OnApply()
         {
