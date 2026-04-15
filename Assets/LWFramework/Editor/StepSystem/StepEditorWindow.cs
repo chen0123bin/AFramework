@@ -116,6 +116,7 @@ namespace LWStep.Editor
             Toolbar toolbar = new Toolbar();
             Button newButton = new Button(OnNewGraph) { text = "新建" };
             Button importButton = new Button(OnImportXml) { text = "导入XML" };
+            ToolbarMenu exampleMenu = CreateExampleToolbarMenu();
             Button exportButton = new Button(OnExportXml) { text = "导出XML" };
             Button validateButton = new Button(OnValidateGraph) { text = "校验" };
             Button frameButton = new Button(OnFrameAll) { text = "居中" };
@@ -124,6 +125,7 @@ namespace LWStep.Editor
             Button previewButton = new Button(OnPreviewPlayMode) { text = "预览PlayMode" };
             toolbar.Add(newButton);
             toolbar.Add(importButton);
+            toolbar.Add(exampleMenu);
             toolbar.Add(exportButton);
             toolbar.Add(validateButton);
             toolbar.Add(frameButton);
@@ -163,6 +165,25 @@ namespace LWStep.Editor
             BuildContextPanel();
             UpdateContextPanel();
             SaveUndoSnapshot("初始化");
+        }
+
+        /// <summary>
+        /// 创建示例导入工具栏菜单。
+        /// </summary>
+        private ToolbarMenu CreateExampleToolbarMenu()
+        {
+            ToolbarMenu menu = new ToolbarMenu();
+            menu.text = "导入示例";
+
+            IReadOnlyList<string> examplePaths = StepExampleTemplateCatalog.ExamplePaths;
+            for (int i = 0; i < examplePaths.Count; i++)
+            {
+                string examplePath = examplePaths[i];
+                string displayName = StepExampleTemplateCatalog.GetDisplayName(examplePath);
+                menu.menu.AppendAction(displayName, action => ImportExampleTemplate(examplePath), DropdownMenuAction.Status.Normal);
+            }
+
+            return menu;
         }
 
         private void OnRightSplitterMouseDown(MouseDownEvent evt)
@@ -1178,17 +1199,42 @@ namespace LWStep.Editor
                     return;
                 }
                 string xmlText = File.ReadAllText(path);
-                ImportXml(xmlText);
+                ImportXmlText(xmlText, "导入预览图");
             }
             else
             {
-                ImportXml(m_BindingXmlAsset.text);
+                ImportXmlText(m_BindingXmlAsset.text, "导入预览图");
                 //EditorUtility.DisplayDialog("快速导入成功", $"XML 导入成功\n路径：{m_BindingXmlPath}", "确定");
             }
             BuildContextPanel();
 
         }
-        private void ImportXml(string xmlText)
+
+        /// <summary>
+        /// 导入示例模板 XML 到当前图编辑器。
+        /// </summary>
+        private void ImportExampleTemplate(string path)
+        {
+            string fullPath = path;
+            if (!Path.IsPathRooted(fullPath))
+            {
+                fullPath = Path.Combine(GetProjectRootPath(), path);
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                EditorUtility.DisplayDialog("导入失败", "示例文件不存在\n" + fullPath, "确定");
+                return;
+            }
+
+            string xmlText = File.ReadAllText(fullPath);
+            ImportXmlText(xmlText, "导入示例");
+        }
+
+        /// <summary>
+        /// 从 XML 文本导入步骤图并记录 Undo。
+        /// </summary>
+        private void ImportXmlText(string xmlText, string undoActionName)
         {
             StepEditorGraphData data = StepXmlImporter.LoadFromText(xmlText);
             if (data == null)
@@ -1197,9 +1243,23 @@ namespace LWStep.Editor
                 return;
             }
             LoadGraphData(data);
-            SaveUndoSnapshot("导入预览图");
-
+            SaveUndoSnapshot(undoActionName);
         }
+
+        /// <summary>
+        /// 返回 Unity 项目根目录。
+        /// </summary>
+        private static string GetProjectRootPath()
+        {
+            DirectoryInfo projectRoot = Directory.GetParent(Application.dataPath);
+            if (projectRoot == null)
+            {
+                return string.Empty;
+            }
+
+            return projectRoot.FullName;
+        }
+
         /// <summary>
         /// 导出当前步骤图为XML文件
         /// </summary>

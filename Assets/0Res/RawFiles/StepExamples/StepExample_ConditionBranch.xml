@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_condition_branch" start="step_enter">
+  <nodes>
+    <node id="step_enter" name="条件分支-入口" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="示例：进入条件分支" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_gate" name="条件分支-判定" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="根据 mode 选择路径" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_mode_a" name="条件分支-A" x="440.00" y="-80.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="命中 A 分支" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_mode_b" name="条件分支-B" x="440.00" y="80.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="命中非 A 分支" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_done" name="条件分支-结束" x="660.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="条件分支结束" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_enter" to="step_gate" priority="0" />
+    <edge from="step_gate" to="step_mode_a" priority="10" conditionKey="mode" comparisonType="EqualTo" conditionValue="A" />
+    <edge from="step_gate" to="step_mode_b" priority="5" conditionKey="mode" comparisonType="NotEqualTo" conditionValue="A" />
+    <edge from="step_mode_a" to="step_done" priority="0" />
+    <edge from="step_mode_b" to="step_done" priority="0" />
+  </edges>
+</graph>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_parallel_actions" start="step_intro">
+  <nodes>
+    <node id="step_intro" name="并行动作-入口" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="示例：进入并行动作节点" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_parallel" name="并行动作-执行" x="240.00" y="0.00" mode="parallel">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="并行输出日志" />
+        </action>
+        <action type="LWStep.StepWaitSecondsAction">
+          <param key="seconds" value="0.5" />
+        </action>
+        <action type="LWStep.StepDispatchEventAction">
+          <param key="eventName" value="StepExample.Parallel.Tick" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_complete" name="并行动作-完成" x="480.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="并行动作完成" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_intro" to="step_parallel" priority="0" />
+    <edge from="step_parallel" to="step_complete" priority="0" />
+  </edges>
+</graph>

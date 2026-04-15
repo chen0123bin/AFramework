@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_actions_context" start="step_set_mode">
+  <nodes>
+    <node id="step_set_mode" name="上下文动作-写入模式" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="mode" />
+          <param key="value" value="Teach" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_set_score" name="上下文动作-写入成绩" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="score" />
+          <param key="value" value="92" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_dispatch" name="上下文动作-派发事件" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepDispatchEventAction">
+          <param key="eventName" value="StepExample.Context.Actions" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_remove" name="上下文动作-删除缓存" x="660.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepRemoveContextValueAction">
+          <param key="key" value="legacyFlag" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_set_mode" to="step_set_score" priority="0" />
+    <edge from="step_set_score" to="step_dispatch" priority="0" />
+    <edge from="step_dispatch" to="step_remove" priority="0" />
+  </edges>
+</graph>
