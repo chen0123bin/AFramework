@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using LWStep;
 using System.Threading.Tasks;
+using LWStep.Editor.Metadata;
 
 namespace LWStep.Editor
 {
@@ -47,6 +48,7 @@ namespace LWStep.Editor
 
         private static Type[] s_ActionTypes;
         private static string[] s_ActionTypeNames;
+        private static string[] s_ActionTypeDisplayNames;
         private static Dictionary<Type, List<StepParamBinding>> s_ParamBindingsCache = new Dictionary<Type, List<StepParamBinding>>();
 
 
@@ -117,12 +119,16 @@ namespace LWStep.Editor
             Button exportButton = new Button(OnExportXml) { text = "导出XML" };
             Button validateButton = new Button(OnValidateGraph) { text = "校验" };
             Button frameButton = new Button(OnFrameAll) { text = "居中" };
+            Button duplicateButton = new Button(OnDuplicateSelection) { text = "重复" };
+            Button autoLayoutButton = new Button(OnAutoLayout) { text = "自动布局" };
             Button previewButton = new Button(OnPreviewPlayMode) { text = "预览PlayMode" };
             toolbar.Add(newButton);
             toolbar.Add(importButton);
             toolbar.Add(exportButton);
             toolbar.Add(validateButton);
             toolbar.Add(frameButton);
+            toolbar.Add(duplicateButton);
+            toolbar.Add(autoLayoutButton);
             toolbar.Add(previewButton);
             rootVisualElement.Add(toolbar);
 
@@ -509,14 +515,56 @@ namespace LWStep.Editor
                 }
             }
 
-            typeList.Sort(StepUtility.CompareTypeFullName);
+            typeList.Sort(CompareActionTypeByCategoryAndName);
             s_ActionTypes = typeList.ToArray();
             s_ActionTypeNames = new string[s_ActionTypes.Length];
+            s_ActionTypeDisplayNames = new string[s_ActionTypes.Length];
             for (int i = 0; i < s_ActionTypes.Length; i++)
             {
                 Type type = s_ActionTypes[i];
                 s_ActionTypeNames[i] = type.FullName != null ? type.FullName : type.Name;
+                s_ActionTypeDisplayNames[i] = BuildActionTypeDisplayName(type);
             }
+        }
+
+        /// <summary>
+        /// 按“分类/显示名/类型名”排序动作类型，便于下拉选择。
+        /// </summary>
+        private static int CompareActionTypeByCategoryAndName(Type a, Type b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return 0;
+            }
+            if (a == null)
+            {
+                return 1;
+            }
+            if (b == null)
+            {
+                return -1;
+            }
+
+            string aDisplay = BuildActionTypeDisplayName(a);
+            string bDisplay = BuildActionTypeDisplayName(b);
+            int displayCompare = string.CompareOrdinal(aDisplay, bDisplay);
+            if (displayCompare != 0)
+            {
+                return displayCompare;
+            }
+
+            return StepUtility.CompareTypeFullName(a, b);
+        }
+
+        /// <summary>
+        /// 构建动作类型下拉项的“分类/显示名”展示文本。
+        /// </summary>
+        private static string BuildActionTypeDisplayName(Type actionType)
+        {
+            StepActionDescriptor descriptor = StepActionDescriptorRegistry.GetDescriptor(actionType);
+            string category = descriptor != null && !string.IsNullOrEmpty(descriptor.Category) ? descriptor.Category : "未分类";
+            string displayName = descriptor != null && !string.IsNullOrEmpty(descriptor.DisplayName) ? descriptor.DisplayName : actionType.Name;
+            return category + "/" + displayName;
         }
 
 
@@ -590,9 +638,9 @@ namespace LWStep.Editor
 
             List<string> options = new List<string>(s_ActionTypeNames.Length + 1);
             options.Add("未选择");
-            for (int i = 0; i < s_ActionTypeNames.Length; i++)
+            for (int i = 0; i < s_ActionTypeDisplayNames.Length; i++)
             {
-                options.Add(s_ActionTypeNames[i]);
+                options.Add(s_ActionTypeDisplayNames[i]);
             }
 
             int currentIndex = matchIndex >= 0 ? matchIndex + 1 : 0;
@@ -816,15 +864,43 @@ namespace LWStep.Editor
                     SaveUndoSnapshot("编辑动作");
                 }
 
-                if (GUILayout.Button("删除动作"))
+                bool moved = false;
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    m_SelectedNode.Actions.RemoveAt(i);
-                    EditorGUILayout.EndVertical();
-                    SaveUndoSnapshot("删除动作");
-                    break;
+                    GUI.enabled = i > 0;
+                    if (GUILayout.Button("上移"))
+                    {
+                        StepEditorActionData current = m_SelectedNode.Actions[i];
+                        m_SelectedNode.Actions[i] = m_SelectedNode.Actions[i - 1];
+                        m_SelectedNode.Actions[i - 1] = current;
+                        SaveUndoSnapshot("上移动作");
+                        moved = true;
+                    }
+
+                    GUI.enabled = i < m_SelectedNode.Actions.Count - 1;
+                    if (GUILayout.Button("下移"))
+                    {
+                        StepEditorActionData current = m_SelectedNode.Actions[i];
+                        m_SelectedNode.Actions[i] = m_SelectedNode.Actions[i + 1];
+                        m_SelectedNode.Actions[i + 1] = current;
+                        SaveUndoSnapshot("下移动作");
+                        moved = true;
+                    }
+                    GUI.enabled = true;
+
+                    if (GUILayout.Button("删除动作"))
+                    {
+                        m_SelectedNode.Actions.RemoveAt(i);
+                        SaveUndoSnapshot("删除动作");
+                        moved = true;
+                    }
                 }
 
                 EditorGUILayout.EndVertical();
+                if (moved)
+                {
+                    break;
+                }
             }
 
             if (GUILayout.Button("新增动作"))
@@ -1116,6 +1192,55 @@ namespace LWStep.Editor
             {
                 m_GraphView.FrameAll();
             }
+        }
+
+        /// <summary>
+        /// 复制并粘贴当前选中节点，提升重复编辑效率。
+        /// </summary>
+        private void OnDuplicateSelection()
+        {
+            if (m_Data == null || m_GraphView == null)
+            {
+                return;
+            }
+
+            List<string> selectedNodeIds = m_GraphView.GetSelectedNodeIds();
+            if (selectedNodeIds.Count == 0 && m_SelectedNode != null && !string.IsNullOrEmpty(m_SelectedNode.Id))
+            {
+                selectedNodeIds.Add(m_SelectedNode.Id);
+            }
+
+            if (selectedNodeIds.Count == 0)
+            {
+                EditorUtility.DisplayDialog("提示", "请先选择至少一个节点。", "确定");
+                return;
+            }
+
+            StepEditorClipboardPayload payload = StepEditorClipboard.Copy(m_Data, selectedNodeIds);
+            List<string> pastedNodeIds = StepEditorClipboard.Paste(m_Data, payload, new Vector2(40f, 20f));
+            if (pastedNodeIds.Count == 0)
+            {
+                return;
+            }
+
+            m_GraphView.RebuildView();
+            m_GraphView.SelectNodes(pastedNodeIds);
+            SaveUndoSnapshot("重复节点");
+        }
+
+        /// <summary>
+        /// 对当前步骤图执行从左到右自动布局并刷新视图。
+        /// </summary>
+        private void OnAutoLayout()
+        {
+            if (m_Data == null || m_GraphView == null)
+            {
+                return;
+            }
+
+            StepGraphAutoLayout.ApplyLeftToRight(m_Data, 240f, 160f);
+            m_GraphView.RebuildView();
+            SaveUndoSnapshot("自动布局");
         }
 
         /// <summary>

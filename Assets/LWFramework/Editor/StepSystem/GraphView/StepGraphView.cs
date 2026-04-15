@@ -185,6 +185,58 @@ namespace LWStep.Editor
         }
 
         /// <summary>
+        /// 获取当前选中的节点ID列表。
+        /// </summary>
+        public List<string> GetSelectedNodeIds()
+        {
+            List<string> nodeIds = new List<string>();
+            foreach (ISelectable selectable in selection)
+            {
+                StepNodeView nodeView = selectable as StepNodeView;
+                if (nodeView == null || nodeView.Data == null || string.IsNullOrEmpty(nodeView.Data.Id))
+                {
+                    continue;
+                }
+
+                nodeIds.Add(nodeView.Data.Id);
+            }
+
+            return nodeIds;
+        }
+
+        /// <summary>
+        /// 按节点ID集合恢复选中状态。
+        /// </summary>
+        public void SelectNodes(IList<string> nodeIds)
+        {
+            ClearSelection();
+            if (nodeIds == null || nodeIds.Count == 0)
+            {
+                DispatchSelectionChanged();
+                return;
+            }
+
+            for (int i = 0; i < nodeIds.Count; i++)
+            {
+                string nodeId = nodeIds[i];
+                if (string.IsNullOrEmpty(nodeId))
+                {
+                    continue;
+                }
+
+                StepNodeView nodeView = GetNodeView(nodeId);
+                if (nodeView == null)
+                {
+                    continue;
+                }
+
+                AddToSelection(nodeView);
+            }
+
+            DispatchSelectionChanged();
+        }
+
+        /// <summary>
         /// 删除节点及其相关连线
         /// </summary>
         public void RemoveNode(StepEditorNodeData nodeData)
