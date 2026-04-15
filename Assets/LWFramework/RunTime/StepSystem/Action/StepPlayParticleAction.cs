@@ -21,6 +21,13 @@ namespace LWStep
         protected override void OnEnter()
         {
             PlayParticles();
+            if (m_WaitForFinish && HasLoopingParticleSystem())
+            {
+                LWDebug.LogWarning("步骤动作-播放粒子：检测到循环粒子，自动转为非阻塞完成。");
+                Finish();
+                return;
+            }
+
             if (!m_WaitForFinish)
             {
                 Finish();
@@ -116,6 +123,28 @@ namespace LWStep
             {
                 ParticleSystem particleSystem = m_ParticleSystems[i];
                 if (particleSystem != null && particleSystem.IsAlive(true))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 判断当前缓存的粒子系统中是否存在循环播放配置。
+        /// </summary>
+        private bool HasLoopingParticleSystem()
+        {
+            if (m_ParticleSystems == null || m_ParticleSystems.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < m_ParticleSystems.Length; i++)
+            {
+                ParticleSystem particleSystem = m_ParticleSystems[i];
+                if (particleSystem != null && particleSystem.main.loop)
                 {
                     return true;
                 }

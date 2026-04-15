@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Security;
-using System.Text;
 using LWStep;
+using LWStep.Editor;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -17,13 +16,13 @@ namespace LWFramework.Tests.StepSystem.EditMode
     /// </summary>
     public sealed class StepObjectActionsTests
     {
-        private const string RESULT_FILE_ENV = "LW_STEP_OBJECT_ACTIONS_RESULT_FILE";
-        private const string CASE_NAMES_ENV = "LW_STEP_OBJECT_ACTIONS_CASES";
-        private const string LOG_FILE_ENV = "LW_STEP_OBJECT_ACTIONS_LOG_FILE";
+        private const string ResultFileEnv = "LW_STEP_OBJECT_ACTIONS_RESULT_FILE";
+        private const string CaseNamesEnv = "LW_STEP_OBJECT_ACTIONS_CASES";
+        private const string LogFileEnv = "LW_STEP_OBJECT_ACTIONS_LOG_FILE";
 
         private static bool? s_CanUseUnityObjects;
         private static readonly object s_BehaviorHarnessLock = new object();
-        private static Dictionary<string, BehaviorCaseResult> s_BehaviorHarnessResults;
+        private static Dictionary<string, StepObjectActionsBatchmodeEntry.BehaviorCaseResult> s_BehaviorHarnessResults;
 
         /// <summary>
         /// 每条用例执行后清理临时对象，避免污染其他测试。
@@ -38,7 +37,13 @@ namespace LWFramework.Tests.StepSystem.EditMode
 
             DestroyIfExists("StepTarget_SetActive");
             DestroyIfExists("StepTarget_SetPosition");
+            DestroyIfExists("StepTarget_SetRotation");
+            DestroyIfExists("StepTarget_SetScale");
+            DestroyIfExists("StepParent_SetParent");
+            DestroyIfExists("StepTarget_SetParent");
             DestroyIfExists("StepTarget_Destroy");
+            DestroyIfExists("StepTarget_PlayParticleLoop");
+            DestroyIfExists("StepPrefab_Instance");
         }
 
         /// <summary>
@@ -48,7 +53,6 @@ namespace LWFramework.Tests.StepSystem.EditMode
         public void StepSetActiveAction_Apply_ShouldChangeActiveState()
         {
             AssertBehaviorCasePasses(nameof(StepSetActiveAction_Apply_ShouldChangeActiveState));
-            RunStepSetActiveActionCase();
         }
 
         /// <summary>
@@ -58,7 +62,33 @@ namespace LWFramework.Tests.StepSystem.EditMode
         public void StepSetPositionAction_Apply_ShouldWriteTransformPosition()
         {
             AssertBehaviorCasePasses(nameof(StepSetPositionAction_Apply_ShouldWriteTransformPosition));
-            RunStepSetPositionActionCase();
+        }
+
+        /// <summary>
+        /// Apply 应写入本地旋转。
+        /// </summary>
+        [Test]
+        public void StepSetRotationAction_Apply_ShouldWriteTransformRotation()
+        {
+            AssertBehaviorCasePasses(nameof(StepSetRotationAction_Apply_ShouldWriteTransformRotation));
+        }
+
+        /// <summary>
+        /// Apply 应写入本地缩放。
+        /// </summary>
+        [Test]
+        public void StepSetScaleAction_Apply_ShouldWriteLocalScale()
+        {
+            AssertBehaviorCasePasses(nameof(StepSetScaleAction_Apply_ShouldWriteLocalScale));
+        }
+
+        /// <summary>
+        /// Apply 应设置父节点。
+        /// </summary>
+        [Test]
+        public void StepSetParentAction_Apply_ShouldSetParentTransform()
+        {
+            AssertBehaviorCasePasses(nameof(StepSetParentAction_Apply_ShouldSetParentTransform));
         }
 
         /// <summary>
@@ -68,7 +98,24 @@ namespace LWFramework.Tests.StepSystem.EditMode
         public void StepDestroyTargetAction_Apply_ShouldDestroyTargetImmediatelyInEditor()
         {
             AssertBehaviorCasePasses(nameof(StepDestroyTargetAction_Apply_ShouldDestroyTargetImmediatelyInEditor));
-            RunStepDestroyTargetActionCase();
+        }
+
+        /// <summary>
+        /// 循环粒子在等待完成模式下应立即转为非阻塞完成。
+        /// </summary>
+        [Test]
+        public void StepPlayParticleAction_Enter_WithLoopingParticlesAndWaitForFinish_ShouldFinishImmediately()
+        {
+            AssertBehaviorCasePasses(nameof(StepPlayParticleAction_Enter_WithLoopingParticlesAndWaitForFinish_ShouldFinishImmediately));
+        }
+
+        /// <summary>
+        /// Apply 应实例化预制体。
+        /// </summary>
+        [Test]
+        public void StepInstantiatePrefabAction_Apply_ShouldInstantiatePrefab()
+        {
+            AssertBehaviorCasePasses(nameof(StepInstantiatePrefabAction_Apply_ShouldInstantiatePrefab));
         }
 
         /// <summary>
@@ -123,80 +170,32 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
-        /// 若对象存在则立即销毁，避免测试残留。
-        /// </summary>
-        private static void DestroyIfExists(string objectName)
-        {
-            GameObject target = GameObject.Find(objectName);
-            if (target == null)
-            {
-                return;
-            }
-
-            UnityEngine.Object.DestroyImmediate(target);
-        }
-
-        /// <summary>
-        /// 在当前测试宿主内探测是否可安全创建 Unity 对象。
-        /// </summary>
-        private static bool CanUseUnityObjects()
-        {
-            if (s_CanUseUnityObjects.HasValue)
-            {
-                return s_CanUseUnityObjects.Value;
-            }
-
-            try
-            {
-                GameObject probe = new GameObject("StepObjectActions_RuntimeProbe");
-                UnityEngine.Object.DestroyImmediate(probe);
-                s_CanUseUnityObjects = true;
-            }
-            catch (SecurityException)
-            {
-                s_CanUseUnityObjects = false;
-            }
-
-            return s_CanUseUnityObjects.Value;
-        }
-
-        /// <summary>
-        /// 当测试宿主不支持 Unity 对象内部调用时，改由 Unity batchmode harness 回传真实结果。
-        /// </summary>
-        private static void RequireUnityObjectAccess()
-        {
-            if (!CanUseUnityObjects())
-            {
-                Assert.Ignore("当前 dotnet test 宿主不支持 UnityEngine.GameObject 内部调用，跳过对象级行为断言。");
-            }
-        }
-
-        /// <summary>
         /// 当前宿主无法直接访问 Unity 对象时，断言对应行为用例在 Unity batchmode 中执行通过。
         /// </summary>
         private static void AssertBehaviorCasePasses(string caseName)
         {
+            StepObjectActionsBatchmodeEntry.BehaviorCaseResult result;
             if (CanUseUnityObjects())
             {
-                return;
+                result = StepObjectActionsBatchmodeEntry.ExecuteCase(caseName);
             }
-
-            Dictionary<string, BehaviorCaseResult> results = EnsureBehaviorHarnessResults();
-            BehaviorCaseResult result;
-            if (!results.TryGetValue(caseName, out result))
+            else
             {
-                Assert.Fail("Unity harness 未返回用例结果: " + caseName);
-                return;
+                Dictionary<string, StepObjectActionsBatchmodeEntry.BehaviorCaseResult> results = EnsureBehaviorHarnessResults();
+                if (!results.TryGetValue(caseName, out result))
+                {
+                    Assert.Fail("Unity harness 未返回用例结果: " + caseName);
+                    return;
+                }
             }
 
             Assert.IsTrue(result.IsPassed, result.Message);
-            Assert.Pass();
         }
 
         /// <summary>
         /// 确保已获取 Unity batchmode 行为测试结果；首次调用时仅启动一次 Unity。
         /// </summary>
-        private static Dictionary<string, BehaviorCaseResult> EnsureBehaviorHarnessResults()
+        private static Dictionary<string, StepObjectActionsBatchmodeEntry.BehaviorCaseResult> EnsureBehaviorHarnessResults()
         {
             lock (s_BehaviorHarnessLock)
             {
@@ -211,9 +210,9 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
-        /// 启动一次 Unity batchmode，在真实 Editor 环境内执行 3 条对象行为断言。
+        /// 启动一次 Unity batchmode，在真实 Editor 环境内执行对象行为断言。
         /// </summary>
-        private static Dictionary<string, BehaviorCaseResult> RunBehaviorHarnessInUnity()
+        private static Dictionary<string, StepObjectActionsBatchmodeEntry.BehaviorCaseResult> RunBehaviorHarnessInUnity()
         {
             string projectRoot = FindProjectRoot();
             string unityExePath = ResolveUnityExePath(projectRoot);
@@ -223,10 +222,7 @@ namespace LWFramework.Tests.StepSystem.EditMode
             string resultFilePath = Path.Combine(harnessDirectory, "results.txt");
             string warmupLogFilePath = Path.Combine(harnessDirectory, "unity-warmup.log");
             string logFilePath = Path.Combine(harnessDirectory, "unity-batchmode.log");
-            if (File.Exists(resultFilePath))
-            {
-                File.Delete(resultFilePath);
-            }
+            string[] caseNames = StepObjectActionsBatchmodeEntry.GetBehaviorCaseNames();
 
             int warmupExitCode = RunUnityBatchmodeProcess(
                 unityExePath,
@@ -237,16 +233,17 @@ namespace LWFramework.Tests.StepSystem.EditMode
                 null);
             if (warmupExitCode != 0)
             {
-                return BuildHarnessFailureResults(
+                return StepObjectActionsBatchmodeEntry.BuildFailureResults(
                     "Unity batchmode 预热失败，ExitCode=" + warmupExitCode + "。日志: " + warmupLogFilePath,
-                    warmupLogFilePath);
+                    warmupLogFilePath,
+                    caseNames);
             }
 
             Dictionary<string, string> environment = new Dictionary<string, string>
             {
-                { RESULT_FILE_ENV, resultFilePath },
-                { LOG_FILE_ENV, logFilePath },
-                { CASE_NAMES_ENV, string.Join(";", GetBehaviorCaseNames()) }
+                { ResultFileEnv, resultFilePath },
+                { LogFileEnv, logFilePath },
+                { CaseNamesEnv, string.Join(";", caseNames) }
             };
             int executeExitCode = RunUnityBatchmodeProcess(
                 unityExePath,
@@ -257,17 +254,21 @@ namespace LWFramework.Tests.StepSystem.EditMode
                 resultFilePath);
             if (executeExitCode != 0)
             {
-                return BuildHarnessFailureResults(
+                return StepObjectActionsBatchmodeEntry.BuildFailureResults(
                     "Unity batchmode 执行失败，ExitCode=" + executeExitCode + "。日志: " + logFilePath,
-                    logFilePath);
+                    logFilePath,
+                    caseNames);
             }
 
             if (!File.Exists(resultFilePath))
             {
-                return BuildHarnessFailureResults("Unity harness 未写出结果文件: " + resultFilePath, logFilePath);
+                return StepObjectActionsBatchmodeEntry.BuildFailureResults(
+                    "Unity harness 未写出结果文件: " + resultFilePath,
+                    logFilePath,
+                    caseNames);
             }
 
-            return ReadHarnessResults(resultFilePath, logFilePath);
+            return StepObjectActionsBatchmodeEntry.ReadResults(resultFilePath, logFilePath);
         }
 
         /// <summary>
@@ -324,269 +325,41 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
-        /// Unity batchmode 入口：在真实 Editor 环境内执行 3 条对象行为检查并写出结果文件。
+        /// 在当前测试宿主内探测是否可安全创建 Unity 对象。
         /// </summary>
-        public static void RunUnityBatchmodeBehaviorHarness()
+        private static bool CanUseUnityObjects()
         {
-            string resultFilePath = System.Environment.GetEnvironmentVariable(RESULT_FILE_ENV);
-            string logFilePath = System.Environment.GetEnvironmentVariable(LOG_FILE_ENV);
-            string rawCaseNames = System.Environment.GetEnvironmentVariable(CASE_NAMES_ENV);
-            Dictionary<string, BehaviorCaseResult> results = new Dictionary<string, BehaviorCaseResult>();
+            if (s_CanUseUnityObjects.HasValue)
+            {
+                return s_CanUseUnityObjects.Value;
+            }
 
             try
             {
-                string[] caseNames = ParseCaseNames(rawCaseNames);
-                for (int i = 0; i < caseNames.Length; i++)
-                {
-                    string caseName = caseNames[i];
-                    results[caseName] = ExecuteBehaviorCase(caseName);
-                }
-
-                WriteHarnessResults(resultFilePath, results);
-                TryExitUnityBatchmode(0);
+                GameObject probe = new GameObject("StepObjectActions_RuntimeProbe");
+                UnityEngine.Object.DestroyImmediate(probe);
+                s_CanUseUnityObjects = true;
             }
-            catch (System.Exception ex)
+            catch (SecurityException)
             {
-                Dictionary<string, BehaviorCaseResult> failedResults = BuildHarnessFailureResults(
-                    "Unity harness 执行异常: " + ex,
-                    logFilePath);
-                try
-                {
-                    WriteHarnessResults(resultFilePath, failedResults);
-                }
-                catch
-                {
-                }
-
-                TryExitUnityBatchmode(1);
+                s_CanUseUnityObjects = false;
             }
+
+            return s_CanUseUnityObjects.Value;
         }
 
         /// <summary>
-        /// 在 Unity Editor 环境中执行单条行为检查，并把异常转为失败结果。
+        /// 若对象存在则立即销毁，避免测试残留。
         /// </summary>
-        private static BehaviorCaseResult ExecuteBehaviorCase(string caseName)
+        private static void DestroyIfExists(string objectName)
         {
-            try
+            GameObject target = GameObject.Find(objectName);
+            if (target == null)
             {
-                switch (caseName)
-                {
-                    case nameof(StepSetActiveAction_Apply_ShouldChangeActiveState):
-                        RunStepSetActiveActionCase();
-                        break;
-                    case nameof(StepSetPositionAction_Apply_ShouldWriteTransformPosition):
-                        RunStepSetPositionActionCase();
-                        break;
-                    case nameof(StepDestroyTargetAction_Apply_ShouldDestroyTargetImmediatelyInEditor):
-                        RunStepDestroyTargetActionCase();
-                        break;
-                    default:
-                        return BehaviorCaseResult.Fail("未知的行为用例: " + caseName);
-                }
-
-                return BehaviorCaseResult.Pass();
-            }
-            catch (System.Exception ex)
-            {
-                return BehaviorCaseResult.Fail(ex.ToString());
-            }
-        }
-
-        /// <summary>
-        /// 执行设置激活状态行为断言。
-        /// </summary>
-        private static void RunStepSetActiveActionCase()
-        {
-            const string objectName = "StepTarget_SetActive";
-            DestroyIfExists(objectName);
-            GameObject target = new GameObject(objectName);
-            try
-            {
-                StepSetActiveAction action = new StepSetActiveAction();
-                action.SetParameters(new Dictionary<string, string>
-                {
-                    { "target", target.name },
-                    { "active", "false" }
-                });
-
-                action.Apply();
-
-                Assert.IsFalse(target.activeSelf);
-            }
-            finally
-            {
-                DestroyIfExists(objectName);
-            }
-        }
-
-        /// <summary>
-        /// 执行设置位置行为断言。
-        /// </summary>
-        private static void RunStepSetPositionActionCase()
-        {
-            const string objectName = "StepTarget_SetPosition";
-            DestroyIfExists(objectName);
-            GameObject target = new GameObject(objectName);
-            try
-            {
-                StepSetPositionAction action = new StepSetPositionAction();
-                action.SetParameters(new Dictionary<string, string>
-                {
-                    { "target", target.name },
-                    { "x", "1" },
-                    { "y", "2" },
-                    { "z", "3" },
-                    { "isLocal", "true" }
-                });
-
-                action.Apply();
-
-                Assert.AreEqual(new Vector3(1f, 2f, 3f), target.transform.localPosition);
-            }
-            finally
-            {
-                DestroyIfExists(objectName);
-            }
-        }
-
-        /// <summary>
-        /// 执行销毁对象行为断言。
-        /// </summary>
-        private static void RunStepDestroyTargetActionCase()
-        {
-            const string objectName = "StepTarget_Destroy";
-            DestroyIfExists(objectName);
-            GameObject target = new GameObject(objectName);
-            StepDestroyTargetAction action = new StepDestroyTargetAction();
-            action.SetParameters(new Dictionary<string, string>
-            {
-                { "target", target.name }
-            });
-
-            action.Apply();
-
-            Assert.IsNull(GameObject.Find(objectName));
-        }
-
-        /// <summary>
-        /// 解析 batchmode 需要执行的行为用例名称列表。
-        /// </summary>
-        private static string[] ParseCaseNames(string rawCaseNames)
-        {
-            if (string.IsNullOrEmpty(rawCaseNames))
-            {
-                return GetBehaviorCaseNames();
+                return;
             }
 
-            return rawCaseNames
-                .Split(new[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries)
-                .Select(item => item.Trim())
-                .Where(item => !string.IsNullOrEmpty(item))
-                .ToArray();
-        }
-
-        /// <summary>
-        /// 返回 3 条对象行为用例名称，供 dotnet 宿主与 Unity harness 共享。
-        /// </summary>
-        private static string[] GetBehaviorCaseNames()
-        {
-            return new[]
-            {
-                nameof(StepSetActiveAction_Apply_ShouldChangeActiveState),
-                nameof(StepSetPositionAction_Apply_ShouldWriteTransformPosition),
-                nameof(StepDestroyTargetAction_Apply_ShouldDestroyTargetImmediatelyInEditor)
-            };
-        }
-
-        /// <summary>
-        /// 把行为测试结果写入本地文本文件，供 dotnet 宿主读取。
-        /// </summary>
-        private static void WriteHarnessResults(string resultFilePath, Dictionary<string, BehaviorCaseResult> results)
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach (string caseName in GetBehaviorCaseNames())
-            {
-                BehaviorCaseResult result;
-                if (!results.TryGetValue(caseName, out result))
-                {
-                    result = BehaviorCaseResult.Fail("Unity harness 未返回结果。");
-                }
-
-                string encodedMessage = System.Convert.ToBase64String(Encoding.UTF8.GetBytes(result.Message ?? string.Empty));
-                builder.Append(caseName)
-                    .Append('\t')
-                    .Append(result.IsPassed ? "PASS" : "FAIL")
-                    .Append('\t')
-                    .Append(encodedMessage)
-                    .AppendLine();
-            }
-
-            File.WriteAllText(resultFilePath, builder.ToString(), Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// 读取 Unity harness 输出的结果文件。
-        /// </summary>
-        private static Dictionary<string, BehaviorCaseResult> ReadHarnessResults(string resultFilePath, string logFilePath)
-        {
-            Dictionary<string, BehaviorCaseResult> results = new Dictionary<string, BehaviorCaseResult>();
-            string[] lines = File.ReadAllLines(resultFilePath, Encoding.UTF8);
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string line = lines[i];
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    continue;
-                }
-
-                string[] parts = line.Split(new[] { '\t' }, 3);
-                if (parts.Length < 2)
-                {
-                    continue;
-                }
-
-                string caseName = parts[0];
-                bool isPassed = parts[1] == "PASS";
-                string message = string.Empty;
-                if (parts.Length >= 3 && !string.IsNullOrEmpty(parts[2]))
-                {
-                    byte[] bytes = System.Convert.FromBase64String(parts[2]);
-                    message = Encoding.UTF8.GetString(bytes);
-                }
-
-                if (!isPassed && !string.IsNullOrEmpty(logFilePath))
-                {
-                    message = string.IsNullOrEmpty(message) ? "日志: " + logFilePath : message + "\n日志: " + logFilePath;
-                }
-
-                results[caseName] = new BehaviorCaseResult(isPassed, message);
-            }
-
-            foreach (string caseName in GetBehaviorCaseNames())
-            {
-                if (!results.ContainsKey(caseName))
-                {
-                    results[caseName] = BehaviorCaseResult.Fail("Unity harness 缺少结果项。日志: " + logFilePath);
-                }
-            }
-
-            return results;
-        }
-
-        /// <summary>
-        /// 为所有行为用例构造统一失败结果，便于 dotnet 侧逐条断言。
-        /// </summary>
-        private static Dictionary<string, BehaviorCaseResult> BuildHarnessFailureResults(string message, string logFilePath)
-        {
-            Dictionary<string, BehaviorCaseResult> results = new Dictionary<string, BehaviorCaseResult>();
-            string fullMessage = string.IsNullOrEmpty(logFilePath) ? message : message + "\n日志: " + logFilePath;
-            string[] caseNames = GetBehaviorCaseNames();
-            for (int i = 0; i < caseNames.Length; i++)
-            {
-                results[caseNames[i]] = BehaviorCaseResult.Fail(fullMessage);
-            }
-
-            return results;
+            UnityEngine.Object.DestroyImmediate(target);
         }
 
         /// <summary>
@@ -601,15 +374,15 @@ namespace LWFramework.Tests.StepSystem.EditMode
                 for (int i = 0; i < lines.Length; i++)
                 {
                     string line = lines[i];
-                    int hintStart = line.IndexOf("<HintPath>", System.StringComparison.Ordinal);
-                    int unityEngineIndex = line.IndexOf("UnityEngine.dll", System.StringComparison.OrdinalIgnoreCase);
+                    int hintStart = line.IndexOf("<HintPath>", StringComparison.Ordinal);
+                    int unityEngineIndex = line.IndexOf("UnityEngine.dll", StringComparison.OrdinalIgnoreCase);
                     if (hintStart < 0 || unityEngineIndex < 0)
                     {
                         continue;
                     }
 
                     string hintPath = line.Substring(hintStart + "<HintPath>".Length);
-                    int hintEnd = hintPath.IndexOf("</HintPath>", System.StringComparison.Ordinal);
+                    int hintEnd = hintPath.IndexOf("</HintPath>", StringComparison.Ordinal);
                     if (hintEnd >= 0)
                     {
                         hintPath = hintPath.Substring(0, hintEnd);
@@ -733,60 +506,6 @@ namespace LWFramework.Tests.StepSystem.EditMode
 
             Assert.Fail(actionType.FullName + " 缺少参数元数据: " + key);
             return null;
-        }
-
-        /// <summary>
-        /// 若当前运行环境为 Unity Editor，则通过反射请求设置 batchmode 退出码。
-        /// </summary>
-        private static void TryExitUnityBatchmode(int exitCode)
-        {
-            Type editorApplicationType = Type.GetType("UnityEditor.EditorApplication, UnityEditor");
-            if (editorApplicationType == null)
-            {
-                return;
-            }
-
-            MethodInfo exitMethod = editorApplicationType.GetMethod("Exit", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(int) }, null);
-            if (exitMethod == null)
-            {
-                return;
-            }
-
-            exitMethod.Invoke(null, new object[] { exitCode });
-        }
-
-        /// <summary>
-        /// Unity harness 单条行为结果。
-        /// </summary>
-        private sealed class BehaviorCaseResult
-        {
-            public bool IsPassed { get; private set; }
-            public string Message { get; private set; }
-
-            /// <summary>
-            /// 创建行为结果对象。
-            /// </summary>
-            public BehaviorCaseResult(bool isPassed, string message)
-            {
-                IsPassed = isPassed;
-                Message = message ?? string.Empty;
-            }
-
-            /// <summary>
-            /// 创建通过结果。
-            /// </summary>
-            public static BehaviorCaseResult Pass()
-            {
-                return new BehaviorCaseResult(true, string.Empty);
-            }
-
-            /// <summary>
-            /// 创建失败结果。
-            /// </summary>
-            public static BehaviorCaseResult Fail(string message)
-            {
-                return new BehaviorCaseResult(false, message);
-            }
         }
     }
 }
