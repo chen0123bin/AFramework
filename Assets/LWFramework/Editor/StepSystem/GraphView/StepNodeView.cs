@@ -30,6 +30,29 @@ namespace LWStep.Editor
         private Vector2 m_Offset;
         public Action<StepNodeView> DragEnded;
 
+        private sealed class StepNodeBindingPlan
+        {
+            public string Title;
+            public string Subtitle;
+            public string CurrentActionLine;
+            public List<string> Badges;
+            public List<string> SummaryLines;
+            public List<string> EnabledClasses;
+
+            /// <summary>
+            /// 创建节点绑定计划并初始化集合字段。
+            /// </summary>
+            public StepNodeBindingPlan()
+            {
+                Title = string.Empty;
+                Subtitle = string.Empty;
+                CurrentActionLine = string.Empty;
+                Badges = new List<string>();
+                SummaryLines = new List<string>();
+                EnabledClasses = new List<string>();
+            }
+        }
+
         public StepEditorNodeData Data
         {
             get { return m_Data; }
@@ -133,22 +156,23 @@ namespace LWStep.Editor
                 return;
             }
 
-            title = presentation.Title ?? string.Empty;
+            StepNodeBindingPlan bindingPlan = BuildBindingPlan(presentation);
+            title = bindingPlan.Title;
 
             if (m_SubtitleLabel != null)
             {
-                m_SubtitleLabel.text = presentation.Subtitle ?? string.Empty;
+                m_SubtitleLabel.text = bindingPlan.Subtitle;
                 m_SubtitleLabel.style.display = string.IsNullOrEmpty(m_SubtitleLabel.text) ? DisplayStyle.None : DisplayStyle.Flex;
             }
 
-            RebuildBadgeViews(presentation.Badges);
-            RebuildSummaryViews(presentation.ActionSummaries, presentation.CurrentActionName);
+            RebuildBadgeViews(bindingPlan.Badges);
+            RebuildSummaryViews(bindingPlan.SummaryLines, bindingPlan.CurrentActionLine);
 
-            EnableInClassList(NODE_RUNNING_CLASS, presentation.IsRunning);
-            EnableInClassList(NODE_COMPLETED_CLASS, presentation.IsCompleted);
-            EnableInClassList(NODE_TRAIL_CLASS, presentation.IsInTrail);
-            EnableInClassList(NODE_WARNING_CLASS, presentation.HasWarning);
-            EnableInClassList(NODE_ERROR_CLASS, presentation.HasError);
+            EnableInClassList(NODE_RUNNING_CLASS, bindingPlan.EnabledClasses.Contains(NODE_RUNNING_CLASS));
+            EnableInClassList(NODE_COMPLETED_CLASS, bindingPlan.EnabledClasses.Contains(NODE_COMPLETED_CLASS));
+            EnableInClassList(NODE_TRAIL_CLASS, bindingPlan.EnabledClasses.Contains(NODE_TRAIL_CLASS));
+            EnableInClassList(NODE_WARNING_CLASS, bindingPlan.EnabledClasses.Contains(NODE_WARNING_CLASS));
+            EnableInClassList(NODE_ERROR_CLASS, bindingPlan.EnabledClasses.Contains(NODE_ERROR_CLASS));
         }
 
         /// <summary>
@@ -290,6 +314,40 @@ namespace LWStep.Editor
         }
 
         /// <summary>
+        /// 根据展示模型生成节点绑定计划，便于测试渲染映射逻辑。
+        /// </summary>
+        private static StepNodeBindingPlan BuildBindingPlan(StepNodePresentation presentation)
+        {
+            StepNodeBindingPlan bindingPlan = new StepNodeBindingPlan();
+            if (presentation == null)
+            {
+                return bindingPlan;
+            }
+
+            bindingPlan.Title = presentation.Title ?? string.Empty;
+            bindingPlan.Subtitle = presentation.Subtitle ?? string.Empty;
+
+            if (presentation.Badges != null)
+            {
+                bindingPlan.Badges.AddRange(presentation.Badges);
+            }
+
+            bindingPlan.CurrentActionLine = presentation.CurrentActionName ?? string.Empty;
+
+            if (presentation.ActionSummaries != null)
+            {
+                bindingPlan.SummaryLines.AddRange(presentation.ActionSummaries);
+            }
+
+            AppendEnabledClass(bindingPlan.EnabledClasses, NODE_RUNNING_CLASS, presentation.IsRunning);
+            AppendEnabledClass(bindingPlan.EnabledClasses, NODE_COMPLETED_CLASS, presentation.IsCompleted);
+            AppendEnabledClass(bindingPlan.EnabledClasses, NODE_TRAIL_CLASS, presentation.IsInTrail);
+            AppendEnabledClass(bindingPlan.EnabledClasses, NODE_WARNING_CLASS, presentation.HasWarning);
+            AppendEnabledClass(bindingPlan.EnabledClasses, NODE_ERROR_CLASS, presentation.HasError);
+            return bindingPlan;
+        }
+
+        /// <summary>
         /// 根据展示模型重建徽标视图。
         /// </summary>
         private void RebuildBadgeViews(List<string> badges)
@@ -357,6 +415,19 @@ namespace LWStep.Editor
             }
 
             m_SummaryContainer.style.display = m_SummaryContainer.childCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        /// <summary>
+        /// 条件满足时向类名列表追加目标样式类。
+        /// </summary>
+        private static void AppendEnabledClass(List<string> enabledClasses, string className, bool shouldEnable)
+        {
+            if (enabledClasses == null || !shouldEnable || string.IsNullOrEmpty(className))
+            {
+                return;
+            }
+
+            enabledClasses.Add(className);
         }
     }
 }
