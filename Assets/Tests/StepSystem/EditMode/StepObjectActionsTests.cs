@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Security;
 using LWStep;
-using LWStep.Editor;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -248,7 +247,7 @@ namespace LWFramework.Tests.StepSystem.EditMode
             int executeExitCode = RunUnityBatchmodeProcess(
                 unityExePath,
                 projectRoot,
-                "LWStep.Editor.StepObjectActionsBatchmodeEntry.Run",
+                "LWFramework.Tests.StepSystem.EditMode.StepObjectActionsBatchmodeEntry.Run",
                 logFilePath,
                 environment,
                 resultFilePath);

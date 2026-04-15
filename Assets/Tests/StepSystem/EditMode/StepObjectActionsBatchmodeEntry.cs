@@ -7,7 +7,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace LWStep.Editor
+namespace LWFramework.Tests.StepSystem.EditMode
 {
     /// <summary>
     /// StepObjectActionsTests 的 Unity batchmode 入口桥接器。
