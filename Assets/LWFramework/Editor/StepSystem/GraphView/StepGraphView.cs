@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using LWStep;
+using LWStep.Editor.Presentation;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,6 +10,9 @@ namespace LWStep.Editor
 {
     public class StepGraphView : GraphView
     {
+        private const string GRAPH_STYLE_PATH = "Assets/LWFramework/Editor/StepSystem/GraphView/StepGraphStyles.uss";
+        private const string EDGE_LABEL_ELEMENT_NAME = "step-edge-label";
+
         private StepEditorGraphData m_Data;
         private Dictionary<string, StepNodeView> m_NodeViews;
         public System.Action<List<ISelectable>> SelectionChanged;
@@ -18,6 +23,7 @@ namespace LWStep.Editor
         private Vector2 m_LastMouseWorldPosition;
         private string m_RuntimeNodeId;
         private Dictionary<string, StepNodeStatus> m_RuntimeNodeStatuses;
+        private HashSet<string> m_RuntimeTrailNodeIds;
 
         private bool m_IsRectangleSelecting;
         private bool m_IsRectangleSelectAdditive;
@@ -32,12 +38,14 @@ namespace LWStep.Editor
             m_Data = data;
             m_NodeViews = new Dictionary<string, StepNodeView>();
             m_LastMouseWorldPosition = Vector2.zero;
+            m_RuntimeTrailNodeIds = new HashSet<string>();
 
             GridBackground grid = new GridBackground();
             Insert(0, grid);
             grid.StretchToParentSize();
 
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
+            AttachGraphStyleSheet();
 
             RegisterCallback<MouseUpEvent>(OnMouseUp);
             RegisterCallback<KeyUpEvent>(OnKeyUp);
@@ -130,6 +138,21 @@ namespace LWStep.Editor
         public void SetRuntimeNodeStatuses(Dictionary<string, StepNodeStatus> nodeStatuses)
         {
             m_RuntimeNodeStatuses = nodeStatuses;
+            UpdateAllNodeTitles();
+        }
+
+        /// <summary>
+        /// 设置运行时轨迹节点集合并刷新节点展示。
+        /// </summary>
+        public void SetRuntimeTrail(List<string> nodeIds)
+        {
+            HashSet<string> newTrailNodeIds = nodeIds != null ? new HashSet<string>(nodeIds) : new HashSet<string>();
+            if (m_RuntimeTrailNodeIds.SetEquals(newTrailNodeIds))
+            {
+                return;
+            }
+
+            m_RuntimeTrailNodeIds = newTrailNodeIds;
             UpdateAllNodeTitles();
         }
 
@@ -377,7 +400,15 @@ namespace LWStep.Editor
                 {
                     m_RuntimeNodeStatuses.TryGetValue(kvp.Key, out status);
                 }
-                kvp.Value.UpdateTitle(m_Data.StartNodeId, m_RuntimeNodeId, status);
+
+                StepNodePresentation presentation = StepGraphPresentationBuilder.BuildNodePresentation(
+                    kvp.Value.Data,
+                    m_Data != null ? m_Data.StartNodeId : string.Empty,
+                    m_RuntimeNodeId,
+                    status,
+                    m_RuntimeTrailNodeIds,
+                    string.Empty);
+                kvp.Value.BindPresentation(presentation);
             }
         }
 
@@ -738,7 +769,45 @@ namespace LWStep.Editor
             {
                 return;
             }
+
             edge.userData = edgeData;
+            StepEdgePresentation presentation = StepGraphPresentationBuilder.BuildEdgePresentation(edgeData);
+            Label edgeLabel = GetOrCreateEdgeLabel(edge);
+            edgeLabel.text = presentation.Label ?? string.Empty;
+            edgeLabel.style.display = string.IsNullOrEmpty(edgeLabel.text) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        /// <summary>
+        /// 为图视图挂载步骤图样式表。
+        /// </summary>
+        private void AttachGraphStyleSheet()
+        {
+            StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(GRAPH_STYLE_PATH);
+            if (styleSheet == null)
+            {
+                return;
+            }
+
+            styleSheets.Add(styleSheet);
+        }
+
+        /// <summary>
+        /// 获取或创建连线标签控件。
+        /// </summary>
+        private Label GetOrCreateEdgeLabel(Edge edge)
+        {
+            Label edgeLabel = edge.Q<Label>(EDGE_LABEL_ELEMENT_NAME);
+            if (edgeLabel != null)
+            {
+                return edgeLabel;
+            }
+
+            edgeLabel = new Label();
+            edgeLabel.name = EDGE_LABEL_ELEMENT_NAME;
+            edgeLabel.pickingMode = PickingMode.Ignore;
+            edgeLabel.AddToClassList("step-edge-label");
+            edge.Add(edgeLabel);
+            return edgeLabel;
         }
 
         /// <summary>
