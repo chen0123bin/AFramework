@@ -279,6 +279,7 @@ namespace LWStep
                     m_ForwardHistory.Add(m_History[i]);
                 }
                 m_History.RemoveRange(targetHistoryIndex + 1, m_History.Count - (targetHistoryIndex + 1));
+                m_DebugTracker.RecordJump(targetNodeId);
                 SwitchToNodeWithRebuild(targetNodeId, targetHistoryIndex);
                 return;
             }

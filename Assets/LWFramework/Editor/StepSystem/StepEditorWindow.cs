@@ -280,7 +280,14 @@ namespace LWStep.Editor
                 return;
             }
 
-            stepManager.LoadContextFromJson(ExtractContextJsonText(m_ContextText.value));
+            string contextJson = ExtractContextJsonText(m_ContextText.value);
+            if (string.IsNullOrEmpty(contextJson))
+            {
+                EditorUtility.DisplayDialog("警告", "ContextJson 段无效，已取消回写", "确定");
+                return;
+            }
+
+            stepManager.LoadContextFromJson(contextJson);
         }
         private void OnContextFoldoutValueChanged(ChangeEvent<bool> evt)
         {
@@ -340,10 +347,30 @@ namespace LWStep.Editor
             int headerIndex = panelText.IndexOf(contextHeader, StringComparison.Ordinal);
             if (headerIndex < 0)
             {
-                return panelText;
+                return string.Empty;
             }
 
-            return panelText.Substring(headerIndex + contextHeader.Length);
+            string contextJson = panelText.Substring(headerIndex + contextHeader.Length).Trim();
+            if (!IsLikelyJsonText(contextJson))
+            {
+                return string.Empty;
+            }
+
+            return contextJson;
+        }
+
+        /// <summary>
+        /// 判断文本是否看起来像可回写的 JSON 片段。
+        /// </summary>
+        private bool IsLikelyJsonText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            return (text[0] == '{' && text[text.Length - 1] == '}')
+                || (text[0] == '[' && text[text.Length - 1] == ']');
         }
 
         /// <summary>
