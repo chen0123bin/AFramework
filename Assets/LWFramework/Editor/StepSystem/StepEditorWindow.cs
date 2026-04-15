@@ -723,7 +723,7 @@ namespace LWStep.Editor
                 if (EditorGUI.EndChangeCheck())
                 {
                     string newRawValue = StepUtility.ConvertToRawString(newValue, member.ValueType);
-                    SetOrUpdateParameter(action.Parameters, member.Key, newRawValue);
+                    SetOrUpdateParameter(action, member.Key, newRawValue);
                 }
             }
         }
@@ -761,12 +761,12 @@ namespace LWStep.Editor
         /// <summary>
         /// 设置或更新步骤动作的参数
         /// </summary>
-        /// <param name="parameters">参数数据</param>
+        /// <param name="action">动作数据</param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        private static void SetOrUpdateParameter(List<StepEditorParameterData> parameters, string key, string value)
+        private static void SetOrUpdateParameter(StepEditorActionData action, string key, string value)
         {
-            if (parameters == null)
+            if (action == null)
             {
                 return;
             }
@@ -774,21 +774,7 @@ namespace LWStep.Editor
             {
                 return;
             }
-
-            for (int i = 0; i < parameters.Count; i++)
-            {
-                StepEditorParameterData param = parameters[i];
-                if (param != null && string.Equals(param.Key, key, StringComparison.Ordinal))
-                {
-                    param.Value = value;
-                    return;
-                }
-            }
-
-            StepEditorParameterData newParam = new StepEditorParameterData();
-            newParam.Key = key;
-            newParam.Value = value;
-            parameters.Add(newParam);
+            action.SetParameterValue(key, value);
         }
 
 
