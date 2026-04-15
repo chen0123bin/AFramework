@@ -13,7 +13,7 @@ namespace LWStep
         /// </summary>
         protected override void OnEnter()
         {
-            ManagerUtility.EventMgr.DispatchEvent(m_EventName);
+            DispatchEventSafely();
             Finish();
         }
 
@@ -36,7 +36,25 @@ namespace LWStep
         /// </summary>
         protected override void OnApply()
         {
-            ManagerUtility.EventMgr.DispatchEvent(m_EventName);
+        }
+
+        /// <summary>
+        /// 安全派发无参事件：事件名为空或事件管理器缺失时跳过。
+        /// </summary>
+        private void DispatchEventSafely()
+        {
+            if (string.IsNullOrEmpty(m_EventName))
+            {
+                return;
+            }
+
+            IEventManager eventManager;
+            if (!MainManager.Instance.TryGetManager<IEventManager>(out eventManager) || eventManager == null)
+            {
+                return;
+            }
+
+            eventManager.DispatchEvent(m_EventName);
         }
     }
 }

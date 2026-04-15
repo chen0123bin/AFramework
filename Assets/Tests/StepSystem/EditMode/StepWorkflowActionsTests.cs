@@ -91,10 +91,10 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
-        /// Apply 应通过 EventMgr 派发指定事件名。
+        /// Apply 路径应只派发一次事件。
         /// </summary>
         [Test]
-        public void StepDispatchEventAction_Apply_ShouldDispatchConfiguredEvent()
+        public void StepDispatchEventAction_Apply_ShouldDispatchOnlyOnce()
         {
             FakeEventManager fakeEventManager = new FakeEventManager();
             MainManager.Instance.AddManager(typeof(IEventManager).ToString(), fakeEventManager);
@@ -106,8 +106,41 @@ namespace LWFramework.Tests.StepSystem.EditMode
 
             action.Apply();
 
-            Assert.AreEqual(2, fakeEventManager.DispatchCount);
+            Assert.AreEqual(1, fakeEventManager.DispatchCount);
             Assert.AreEqual("QuestCompleted", fakeEventManager.LastDispatchedEventName);
+        }
+
+        /// <summary>
+        /// 无事件管理器时 Apply 不应抛异常。
+        /// </summary>
+        [Test]
+        public void StepDispatchEventAction_Apply_WithoutEventManager_ShouldNotThrow()
+        {
+            StepDispatchEventAction action = new StepDispatchEventAction();
+            action.SetParameters(new Dictionary<string, string>
+            {
+                { "eventName", "QuestCompleted" }
+            });
+
+            Assert.DoesNotThrow(() => action.Apply());
+        }
+
+        /// <summary>
+        /// 事件名为空时 Apply 不应抛异常且不应派发。
+        /// </summary>
+        [Test]
+        public void StepDispatchEventAction_Apply_WithEmptyEventName_ShouldNotThrow()
+        {
+            FakeEventManager fakeEventManager = new FakeEventManager();
+            MainManager.Instance.AddManager(typeof(IEventManager).ToString(), fakeEventManager);
+            StepDispatchEventAction action = new StepDispatchEventAction();
+            action.SetParameters(new Dictionary<string, string>
+            {
+                { "eventName", string.Empty }
+            });
+
+            Assert.DoesNotThrow(() => action.Apply());
+            Assert.AreEqual(0, fakeEventManager.DispatchCount);
         }
 
         /// <summary>
