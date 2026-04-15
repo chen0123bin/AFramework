@@ -46,6 +46,26 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
+        /// 外部修改返回的描述对象不应污染全局缓存。
+        /// </summary>
+        [Test]
+        public void GetDescriptor_WhenMutatedExternally_ShouldNotPolluteCachedDescriptor()
+        {
+            StepActionDescriptor firstDescriptor = StepActionDescriptorRegistry.GetDescriptor(typeof(StepLogAction));
+            Assert.IsNotNull(firstDescriptor);
+
+            firstDescriptor.DisplayName = "被污染名称";
+            firstDescriptor.Parameters[0].Key = "tampered";
+            firstDescriptor.Keywords.Add("tampered");
+
+            StepActionDescriptor secondDescriptor = StepActionDescriptorRegistry.GetDescriptor(typeof(StepLogAction));
+            Assert.IsNotNull(secondDescriptor);
+            Assert.AreEqual("输出日志", secondDescriptor.DisplayName);
+            Assert.AreEqual("message", secondDescriptor.Parameters[0].Key);
+            Assert.IsFalse(secondDescriptor.Keywords.Contains("tampered"));
+        }
+
+        /// <summary>
         /// 创建测试用参数数据。
         /// </summary>
         private static StepEditorParameterData CreateParameter(string key, string value)

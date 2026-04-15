@@ -29,12 +29,12 @@ namespace LWStep.Editor.Metadata
                 StepActionDescriptor cachedDescriptor;
                 if (s_DescriptorCache.TryGetValue(actionType, out cachedDescriptor))
                 {
-                    return cachedDescriptor;
+                    return CloneDescriptor(cachedDescriptor);
                 }
 
                 StepActionDescriptor descriptor = BuildDescriptor(actionType);
                 s_DescriptorCache[actionType] = descriptor;
-                return descriptor;
+                return CloneDescriptor(descriptor);
             }
         }
 
@@ -297,6 +297,63 @@ namespace LWStep.Editor.Metadata
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// 深拷贝动作描述，避免外部修改污染缓存对象。
+        /// </summary>
+        private static StepActionDescriptor CloneDescriptor(StepActionDescriptor source)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            StepActionDescriptor clone = new StepActionDescriptor();
+            clone.ActionType = source.ActionType;
+            clone.TypeName = source.TypeName ?? string.Empty;
+            clone.DisplayName = source.DisplayName ?? string.Empty;
+            clone.Category = source.Category ?? string.Empty;
+            clone.SummaryTemplate = source.SummaryTemplate ?? string.Empty;
+            clone.Description = source.Description ?? string.Empty;
+
+            if (source.Keywords != null)
+            {
+                for (int i = 0; i < source.Keywords.Count; i++)
+                {
+                    clone.Keywords.Add(source.Keywords[i] ?? string.Empty);
+                }
+            }
+
+            if (source.Parameters != null)
+            {
+                for (int i = 0; i < source.Parameters.Count; i++)
+                {
+                    StepActionParameterDescriptor parameter = source.Parameters[i];
+                    clone.Parameters.Add(CloneParameterDescriptor(parameter));
+                }
+            }
+
+            return clone;
+        }
+
+        /// <summary>
+        /// 深拷贝动作参数描述，避免共享引用被外部篡改。
+        /// </summary>
+        private static StepActionParameterDescriptor CloneParameterDescriptor(StepActionParameterDescriptor source)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            StepActionParameterDescriptor clone = new StepActionParameterDescriptor();
+            clone.Key = source.Key ?? string.Empty;
+            clone.Label = source.Label ?? string.Empty;
+            clone.TypeName = source.TypeName ?? string.Empty;
+            clone.Order = source.Order;
+            clone.IsAdvanced = source.IsAdvanced;
+            return clone;
         }
     }
 }
