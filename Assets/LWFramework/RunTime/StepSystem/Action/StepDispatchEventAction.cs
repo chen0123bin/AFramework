@@ -13,7 +13,7 @@ namespace LWStep
         /// </summary>
         protected override void OnEnter()
         {
-            DispatchEvent();
+            ManagerUtility.EventMgr.DispatchEvent(m_EventName);
             Finish();
         }
 
@@ -36,24 +36,6 @@ namespace LWStep
         /// </summary>
         protected override void OnApply()
         {
-            DispatchEvent();
-        }
-
-        /// <summary>
-        /// 通过事件管理器派发无参事件。
-        /// </summary>
-        private void DispatchEvent()
-        {
-            if (string.IsNullOrEmpty(m_EventName))
-            {
-                return;
-            }
-
-            if (ManagerUtility.EventMgr == null)
-            {
-                return;
-            }
-
             ManagerUtility.EventMgr.DispatchEvent(m_EventName);
         }
     }
