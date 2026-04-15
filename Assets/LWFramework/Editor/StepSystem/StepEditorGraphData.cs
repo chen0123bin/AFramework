@@ -8,6 +8,7 @@ namespace LWStep.Editor
     [Serializable]
     public class StepEditorGraphData
     {
+        public string GraphId;
         public string StartNodeId;
         public List<StepEditorNodeData> Nodes;
         public List<StepEditorEdgeData> Edges;
@@ -17,6 +18,7 @@ namespace LWStep.Editor
         /// </summary>
         public StepEditorGraphData()
         {
+            GraphId = string.Empty;
             StartNodeId = string.Empty;
             Nodes = new List<StepEditorNodeData>();
             Edges = new List<StepEditorEdgeData>();
@@ -113,6 +115,66 @@ namespace LWStep.Editor
         {
             TypeName = string.Empty;
             Parameters = new List<StepEditorParameterData>();
+        }
+
+        /// <summary>
+        /// 根据参数键读取参数值，未命中时返回默认值。
+        /// </summary>
+        public string GetParameterValue(string key, string defaultValue = "")
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return defaultValue;
+            }
+
+            for (int i = 0; i < Parameters.Count; i++)
+            {
+                StepEditorParameterData parameter = Parameters[i];
+                if (parameter == null)
+                {
+                    continue;
+                }
+
+                if (string.Equals(parameter.Key, key, StringComparison.Ordinal))
+                {
+                    return parameter.Value ?? string.Empty;
+                }
+            }
+
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// 设置参数值；若参数已存在则覆盖，不存在则新增。
+        /// </summary>
+        public void SetParameterValue(string key, string value)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+
+            for (int i = 0; i < Parameters.Count; i++)
+            {
+                StepEditorParameterData parameter = Parameters[i];
+                if (parameter == null)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(parameter.Key, key, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                parameter.Value = value ?? string.Empty;
+                return;
+            }
+
+            StepEditorParameterData newParameter = new StepEditorParameterData();
+            newParameter.Key = key;
+            newParameter.Value = value ?? string.Empty;
+            Parameters.Add(newParameter);
         }
     }
 

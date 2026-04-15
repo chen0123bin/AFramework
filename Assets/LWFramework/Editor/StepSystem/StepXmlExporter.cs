@@ -16,6 +16,7 @@ namespace LWStep.Editor
             XmlDocument doc = new XmlDocument();
             XmlElement graphElement = doc.CreateElement("graph");
             doc.AppendChild(graphElement);
+            graphElement.SetAttribute("id", data.GraphId ?? string.Empty);
             graphElement.SetAttribute("start", data.StartNodeId ?? string.Empty);
 
             XmlElement nodesElement = doc.CreateElement("nodes");
