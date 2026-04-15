@@ -145,7 +145,7 @@ namespace LWStep.Editor
         }
 
         /// <summary>
-        /// 设置参数值；若参数已存在则覆盖，不存在则新增。
+        /// 设置参数值；若参数已存在则覆盖并清理同键重复项，不存在则新增。
         /// </summary>
         public void SetParameterValue(string key, string value)
         {
@@ -154,6 +154,7 @@ namespace LWStep.Editor
                 return;
             }
 
+            int firstMatchedIndex = -1;
             for (int i = 0; i < Parameters.Count; i++)
             {
                 StepEditorParameterData parameter = Parameters[i];
@@ -167,14 +168,24 @@ namespace LWStep.Editor
                     continue;
                 }
 
-                parameter.Value = value ?? string.Empty;
-                return;
+                if (firstMatchedIndex < 0)
+                {
+                    firstMatchedIndex = i;
+                    parameter.Value = value ?? string.Empty;
+                    continue;
+                }
+
+                Parameters.RemoveAt(i);
+                i--;
             }
 
-            StepEditorParameterData newParameter = new StepEditorParameterData();
-            newParameter.Key = key;
-            newParameter.Value = value ?? string.Empty;
-            Parameters.Add(newParameter);
+            if (firstMatchedIndex < 0)
+            {
+                StepEditorParameterData newParameter = new StepEditorParameterData();
+                newParameter.Key = key;
+                newParameter.Value = value ?? string.Empty;
+                Parameters.Add(newParameter);
+            }
         }
     }
 

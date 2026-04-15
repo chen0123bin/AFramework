@@ -44,6 +44,49 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
+        /// action 同时存在内联属性与 param 同键时，应以 param 为准。
+        /// </summary>
+        [Test]
+        public void LoadFromText_WhenInlineAndParamHaveSameKey_ShouldUseParamValue()
+        {
+            string xmlText = "<graph id=\"demo_graph\" start=\"node_start\"><nodes><node id=\"node_start\" name=\"开始\" x=\"0\" y=\"0\"><actions><action type=\"LWStep.StepLogAction\" message=\"inline\"><param key=\"message\" value=\"from_param\" /></action></actions></node></nodes><edges /></graph>";
+
+            StepEditorGraphData data = StepXmlImporter.LoadFromText(xmlText);
+
+            Assert.IsNotNull(data);
+            Assert.AreEqual("from_param", data.Nodes[0].Actions[0].GetParameterValue("message"));
+        }
+
+        /// <summary>
+        /// 历史脏数据存在重复参数键时，归一化后导出不应包含重复 param。
+        /// </summary>
+        [Test]
+        public void ExportToText_WhenDuplicateKeysExist_ShouldNormalizeToSingleParam()
+        {
+            StepEditorGraphData data = new StepEditorGraphData();
+            data.GraphId = "demo_graph";
+            data.StartNodeId = "node_start";
+
+            StepEditorNodeData node = new StepEditorNodeData();
+            node.Id = "node_start";
+            node.Name = "node_start";
+            node.Position = Vector2.zero;
+
+            StepEditorActionData action = new StepEditorActionData();
+            action.TypeName = typeof(StepLogAction).FullName;
+            action.Parameters.Add(CreateParameter("message", "legacy_a"));
+            action.Parameters.Add(CreateParameter("message", "legacy_b"));
+            action.SetParameterValue("message", "hello");
+            node.Actions.Add(action);
+            data.Nodes.Add(node);
+
+            string xmlText = StepXmlExporter.ExportToText(data);
+
+            StringAssert.Contains("<param key=\"message\" value=\"hello\" />", xmlText);
+            Assert.AreEqual(1, CountOccurrences(xmlText, "<param key=\"message\""));
+        }
+
+        /// <summary>
         /// 创建包含日志动作的节点数据。
         /// </summary>
         private static StepEditorNodeData CreateNodeWithLogAction(string nodeId, string message)
@@ -58,6 +101,37 @@ namespace LWFramework.Tests.StepSystem.EditMode
             action.SetParameterValue("message", message);
             node.Actions.Add(action);
             return node;
+        }
+
+        /// <summary>
+        /// 创建测试参数数据。
+        /// </summary>
+        private static StepEditorParameterData CreateParameter(string key, string value)
+        {
+            StepEditorParameterData parameter = new StepEditorParameterData();
+            parameter.Key = key;
+            parameter.Value = value;
+            return parameter;
+        }
+
+        /// <summary>
+        /// 统计字符串中目标片段出现次数。
+        /// </summary>
+        private static int CountOccurrences(string text, string token)
+        {
+            int count = 0;
+            int index = 0;
+            while (index >= 0)
+            {
+                index = text.IndexOf(token, index, System.StringComparison.Ordinal);
+                if (index < 0)
+                {
+                    break;
+                }
+                count++;
+                index += token.Length;
+            }
+            return count;
         }
     }
 }
