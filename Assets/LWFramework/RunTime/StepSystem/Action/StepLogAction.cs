@@ -2,9 +2,10 @@ using LWCore;
 
 namespace LWStep
 {
+    [StepActionInfo("输出日志", Category = "调试", SummaryTemplate = "Log:{message}")]
     public class StepLogAction : BaseStepAction
     {
-        [StepParam("message")]
+        [StepParam("message", label: "日志内容", order: 0)]
         private string m_Message = "步骤动作执行";
 
         /// <summary>

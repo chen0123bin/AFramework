@@ -6,21 +6,22 @@ using UnityEngine;
 
 namespace LWStep
 {
+    [StepActionInfo("移动对象", Category = "对象控制", SummaryTemplate = "Move:{target}")]
     public class StepMoveObjectAction : BaseTargeStepAction, IStepBaselineStateAction
     {
 
-        [StepParam("x")]
+        [StepParam("x", label: "目标X", order: 1)]
         private float m_X;
 
-        [StepParam("y")]
+        [StepParam("y", label: "目标Y", order: 2)]
         private float m_Y;
 
-        [StepParam("z")]
+        [StepParam("z", label: "目标Z", order: 3)]
         private float m_Z;
 
-        [StepParam("isLocal")]
+        [StepParam("isLocal", label: "本地坐标", order: 4)]
         private bool m_IsLocal;
-        [StepParam("moveTime")]
+        [StepParam("moveTime", label: "移动时长", order: 5)]
         private float m_MoveTime;
 
         private Vector3 targetPosition;

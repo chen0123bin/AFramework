@@ -4,18 +4,19 @@ using UnityEngine;
 
 namespace LWStep
 {
+    [StepActionInfo("播放音频", Category = "音频", SummaryTemplate = "Audio:{clip}")]
     public class StepPlayAudioAction : BaseTargeStepAction, IStepBaselineStateAction
     {
-        [StepParam("clip")]
+        [StepParam("clip", label: "音频资源", order: 0)]
         private string m_ClipPath;
 
-        [StepParam("volume")]
+        [StepParam("volume", label: "音量", order: 1)]
         private float m_Volume = -1f;
 
-        [StepParam("isLoop")]
+        [StepParam("isLoop", label: "循环播放", order: 2)]
         private bool m_IsLoop;
 
-        [StepParam("fadeInSeconds")]
+        [StepParam("fadeInSeconds", label: "淡入时长", order: 3)]
         private float m_FadeInSeconds;
 
         private bool m_HasBaseline;

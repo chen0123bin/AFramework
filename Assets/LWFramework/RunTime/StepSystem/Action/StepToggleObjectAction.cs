@@ -3,10 +3,11 @@ using UnityEngine;
 
 namespace LWStep
 {
+    [StepActionInfo("切换渲染显隐", Category = "对象控制", SummaryTemplate = "Toggle:{target}")]
     public class StepToggleObjectAction : BaseTargeStepAction, IStepBaselineStateAction
     {
 
-        [StepParam("isActive")]
+        [StepParam("isActive", label: "启用渲染", order: 1)]
         private bool m_IsActive = true;
 
         private bool m_HasBaseline;

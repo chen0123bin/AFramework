@@ -2,7 +2,8 @@
   "name": "LWFramework.Tests.StepSystem.EditMode",
   "rootNamespace": "LWFramework.Tests.StepSystem.EditMode",
   "references": [
-    "LWFramework.Runtime"
+    "LWFramework.Runtime",
+    "LWFramework.Editor"
   ],
   "includePlatforms": [
     "Editor"
