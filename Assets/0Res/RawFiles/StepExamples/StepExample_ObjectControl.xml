@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_object_control" start="step_enable">
+  <nodes>
+    <node id="step_enable" name="对象控制-显示" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetActiveAction">
+          <param key="target" value="DemoCube" />
+          <param key="active" value="True" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_move" name="对象控制-定位" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetPositionAction">
+          <param key="target" value="DemoCube" />
+          <param key="x" value="1" />
+          <param key="y" value="1.5" />
+          <param key="z" value="2" />
+          <param key="isLocal" value="False" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_rotate" name="对象控制-旋转" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetRotationAction">
+          <param key="target" value="DemoCube" />
+          <param key="x" value="0" />
+          <param key="y" value="45" />
+          <param key="z" value="0" />
+          <param key="isLocal" value="False" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_scale" name="对象控制-缩放" x="660.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetScaleAction">
+          <param key="target" value="DemoCube" />
+          <param key="x" value="1.2" />
+          <param key="y" value="1.2" />
+          <param key="z" value="1.2" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_parent" name="对象控制-挂载" x="880.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetParentAction">
+          <param key="target" value="DemoCube" />
+          <param key="parent" value="DemoRoot" />
+          <param key="worldPositionStays" value="True" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_enable" to="step_move" priority="0" />
+    <edge from="step_move" to="step_rotate" priority="0" />
+    <edge from="step_rotate" to="step_scale" priority="0" />
+    <edge from="step_scale" to="step_parent" priority="0" />
+  </edges>
+</graph>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_basic_flow" start="step_intro">
+  <nodes>
+    <node id="step_intro" name="基础流程-介绍" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="示例：基础流程开始" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_prepare" name="基础流程-准备" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepWaitSecondsAction">
+          <param key="seconds" value="1" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_finish" name="基础流程-完成" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepDispatchEventAction">
+          <param key="eventName" value="StepExample.BasicFlow.Completed" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_intro" to="step_prepare" priority="0" />
+    <edge from="step_prepare" to="step_finish" priority="0" />
+  </edges>
+</graph>

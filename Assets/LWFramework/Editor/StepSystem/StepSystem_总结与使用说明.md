@@ -70,19 +70,53 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
 
 5) **导入/导出 XML**
 - 顶部工具栏：导入XML / 导出XML。
+- 顶部工具栏：`导入示例` 下拉可直接载入内置 10 个 XML 示例模板，适合快速查看 Graph 结构、动作组合与条件连线写法。
 
 6) **校验**
 - 顶部工具栏“校验”会检查：图 ID、节点 ID 重复/为空、开始节点合法性、连线条件格式、DAG 无环、不可达节点、孤立节点。
 
-### 3.3 运行时联调预览
+### 3.3 升级后的 Graph 与模板入口
+
+- Graph 数据现已完整覆盖：`graph.id`、`graph.start`、节点坐标、节点执行模式（串行 / 并行）、动作参数、结构化条件连线。
+- 编辑器顶部工具栏新增 `导入示例` 下拉菜单，入口来自 `StepExampleTemplateCatalog`，统一维护所有示例路径，避免示例散落在代码里。
+- 点击任一示例后，编辑器会直接读取对应 XML，走 `StepXmlImporter.LoadFromText -> LoadGraphData -> SaveUndoSnapshot` 链路载入当前窗口，可继续编辑、校验、导出。
+- 该入口适合三类场景：
+  - 新人快速熟悉 StepGraph 结构
+  - 校对动作参数命名与连线条件写法
+  - 回归验证导入/导出/运行时加载链路
+
+### 3.4 运行时联调预览
 
 右侧“运行时预览”区域：
 - 选择一个 XML 作为预览输入
 - 配置图 ID / 开始节点 / 定位节点
 - 点击“进入PlayMode预览”后：
   - PlayMode 中的示例驱动脚本会读取 EditorPrefs 并按配置启动
-  - 编辑器窗口会高亮当前运行节点（标题带“运行中”标识）
+- 编辑器窗口会高亮当前运行节点（标题带“运行中”标识）
 - 选中节点后，可点击“跳转到此节点”（仅 PlayMode 且 StepManager 运行中有效）
+
+## 3.5 示例目录
+
+位置：`Assets/0Res/RawFiles/StepExamples/`
+
+当前内置 10 个示例：
+
+- `StepExample_BasicFlow.xml`：最小串行流程
+- `StepExample_ConditionBranch.xml`：条件分支与优先级
+- `StepExample_ParallelActions.xml`：并行动作节点
+- `StepExample_ContextOps.xml`：上下文写入与清理
+- `StepExample_ObjectControl.xml`：对象控制基础动作
+- `StepExample_Actions_Context.xml`：上下文类动作组合
+- `StepExample_Actions_Object.xml`：对象类动作组合
+- `StepExample_Actions_AudioFx.xml`：音频与特效动作组合
+- `StepExample_Flow_TeachingDemo.xml`：教学演示流程模板
+- `StepExample_Flow_GeneralPipeline.xml`：通用流程管线模板
+
+维护约定：
+
+- 新示例统一放在该目录，并同步登记到 `StepExampleTemplateCatalog.ExamplePaths`
+- 新示例需通过 `StepExampleXmlTests` 回归，保证导入、导出、运行时加载后图结构仍合法
+- 示例优先承担“教学模板 + 回归样本”双重角色，内容以结构清晰、主题明确为主，不追求运行场景资源齐全
 
 ## 4. XML 格式约定
 
@@ -100,7 +134,7 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
     </node>
   </nodes>
   <edges>
-    <edge from="a" to="b" priority="10" condition="mode == A" />
+    <edge from="a" to="b" priority="10" conditionKey="mode" comparisonType="EqualTo" conditionValue="A" />
   </edges>
 </graph>
 ```
@@ -110,7 +144,7 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
 - `graph.start`：开始节点 ID（可为空，但运行时 Start 通常需要可用起点）
 - `node.x/y`：编辑器布局位置（导入导出会保留）
 - `edge.priority`：出边候选排序依据（越大优先级越高）
-- `edge.condition`：条件表达式（基于 StepContext 的简单判断）
+- `edge.conditionKey/comparisonType/conditionValue`：结构化条件字段（基于 StepContext 的简单判断）
 
 条件表达式支持（当前实现）：
 - `key == value`

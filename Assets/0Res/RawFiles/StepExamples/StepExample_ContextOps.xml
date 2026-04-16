@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_context_ops" start="step_seed">
+  <nodes>
+    <node id="step_seed" name="上下文操作-写入分数" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="score" />
+          <param key="value" value="85" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_flag" name="上下文操作-写入标记" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="passed" />
+          <param key="value" value="True" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_cleanup" name="上下文操作-清理" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepRemoveContextValueAction">
+          <param key="key" value="tempKey" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_done" name="上下文操作-完成" x="660.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="上下文操作示例完成" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_seed" to="step_flag" priority="0" />
+    <edge from="step_flag" to="step_cleanup" priority="0" />
+    <edge from="step_cleanup" to="step_done" priority="0" />
+  </edges>
+</graph>

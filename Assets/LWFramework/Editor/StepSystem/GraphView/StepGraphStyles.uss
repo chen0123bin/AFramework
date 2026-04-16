@@ -1,0 +1,82 @@
+.step-node-card {
+    min-width: 180px;
+}
+
+.step-node-subtitle {
+    color: rgba(210, 210, 210, 0.85);
+    font-size: 11px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
+
+.step-node-badge-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.step-node-badge {
+    background-color: rgba(73, 132, 214, 0.22);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    color: rgb(218, 232, 255);
+    font-size: 10px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.step-node-summary-row {
+    flex-direction: column;
+}
+
+.step-node-summary-item {
+    color: rgba(240, 240, 240, 0.92);
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.step-node-current-action {
+    color: rgb(255, 216, 96);
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.step-node-running {
+    border-left-width: 4px;
+    border-left-color: rgba(255, 204, 68, 1);
+    background-color: rgba(255, 204, 68, 0.08);
+}
+
+.step-node-completed {
+    border-left-width: 4px;
+    border-left-color: rgba(80, 208, 120, 1);
+    background-color: rgba(80, 208, 120, 0.08);
+}
+
+.step-node-trail {
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(86, 175, 255, 0.92);
+}
+
+.step-edge-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    background-color: rgba(28, 28, 28, 0.9);
+    color: rgb(226, 226, 226);
+    font-size: 10px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}

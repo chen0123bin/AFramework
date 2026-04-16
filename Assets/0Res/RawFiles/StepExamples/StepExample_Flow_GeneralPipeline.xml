@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_flow_general_pipeline" start="step_draft">
+  <nodes>
+    <node id="step_draft" name="通用流水线-起草" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="qualityScore" />
+          <param key="value" value="90" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_review" name="通用流水线-复核" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepWaitSecondsAction">
+          <param key="seconds" value="0.2" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_gate" name="通用流水线-审批" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="根据 qualityScore 进行审批" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_publish" name="通用流水线-发布" x="660.00" y="-80.00">
+      <actions>
+        <action type="LWStep.StepDispatchEventAction">
+          <param key="eventName" value="StepExample.Pipeline.Publish" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_rework" name="通用流水线-返工" x="660.00" y="80.00">
+      <actions>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="needsRework" />
+          <param key="value" value="True" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_archive" name="通用流水线-归档" x="900.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="通用流水线完成" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_draft" to="step_review" priority="0" />
+    <edge from="step_review" to="step_gate" priority="0" />
+    <edge from="step_gate" to="step_publish" priority="10" conditionKey="qualityScore" comparisonType="GreaterThanOrEqual" conditionValue="80" />
+    <edge from="step_gate" to="step_rework" priority="5" conditionKey="qualityScore" comparisonType="LessThan" conditionValue="80" />
+    <edge from="step_publish" to="step_archive" priority="0" />
+    <edge from="step_rework" to="step_archive" priority="0" />
+  </edges>
+</graph>

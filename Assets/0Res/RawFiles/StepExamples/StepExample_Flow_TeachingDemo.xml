@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_flow_teaching_demo" start="step_opening">
+  <nodes>
+    <node id="step_opening" name="教学演示-开场" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="教学演示开始" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_prepare" name="教学演示-设置上下文" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="passed" />
+          <param key="value" value="True" />
+        </action>
+        <action type="LWStep.StepSetContextValueAction">
+          <param key="key" value="score" />
+          <param key="value" value="88" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_decide" name="教学演示-评分判断" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="根据 passed 选择反馈流程" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_pass" name="教学演示-通过反馈" x="660.00" y="-80.00">
+      <actions>
+        <action type="LWStep.StepDispatchEventAction">
+          <param key="eventName" value="StepExample.Teaching.Pass" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_retry" name="教学演示-补练反馈" x="660.00" y="80.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="进入补练流程" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_end" name="教学演示-结束" x="900.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepLogAction">
+          <param key="message" value="教学演示结束" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_opening" to="step_prepare" priority="0" />
+    <edge from="step_prepare" to="step_decide" priority="0" />
+    <edge from="step_decide" to="step_pass" priority="10" conditionKey="passed" comparisonType="EqualTo" conditionValue="True" />
+    <edge from="step_decide" to="step_retry" priority="5" conditionKey="passed" comparisonType="NotEqualTo" conditionValue="True" />
+    <edge from="step_pass" to="step_end" priority="0" />
+    <edge from="step_retry" to="step_end" priority="0" />
+  </edges>
+</graph>

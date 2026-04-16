@@ -98,6 +98,11 @@ namespace LWCore
         /// <returns>JSON字符串</returns>
         string GetContextToJson();
         /// <summary>
+        /// 获取当前运行时联调快照
+        /// </summary>
+        /// <returns>运行时联调快照</returns>
+        StepRuntimeDebugSnapshot GetRuntimeDebugSnapshot();
+        /// <summary>
         /// 从JSON字符串加载上下文数据
         /// </summary>
         /// <param name="json">JSON字符串</param>

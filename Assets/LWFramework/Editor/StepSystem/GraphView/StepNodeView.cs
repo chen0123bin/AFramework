@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using LWStep;
+using LWStep.Editor.Presentation;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,10 +10,21 @@ namespace LWStep.Editor
 {
     public class StepNodeView : Node
     {
+        private const string NODE_CARD_CLASS = "step-node-card";
+        private const string NODE_RUNNING_CLASS = "step-node-running";
+        private const string NODE_COMPLETED_CLASS = "step-node-completed";
+        private const string NODE_TRAIL_CLASS = "step-node-trail";
+        private const string NODE_WARNING_CLASS = "step-node-warning";
+        private const string NODE_ERROR_CLASS = "step-node-error";
+
         private StepGraphView m_GraphView;
         private StepEditorNodeData m_Data;
         private Port m_InputPort;
         private Port m_OutputPort;
+        private VisualElement m_MetadataContainer;
+        private Label m_SubtitleLabel;
+        private VisualElement m_BadgeContainer;
+        private VisualElement m_SummaryContainer;
         private bool m_IsDragging;
         private Vector2 m_DownNodePosition;
         private Vector2 m_Offset;
@@ -50,7 +63,9 @@ namespace LWStep.Editor
             m_OutputPort.portName = "Out";
             outputContainer.Add(m_OutputPort);
 
+            BuildPresentationContainer();
             SetPosition(new Rect(data.Position, new Vector2(180.0f, 120.0f)));
+            AddToClassList(NODE_CARD_CLASS);
 
             RegisterCallback<MouseDownEvent>(OnMouseDown);
             RegisterCallback<MouseMoveEvent>(OnMouseMove);
@@ -109,6 +124,34 @@ namespace LWStep.Editor
         }
 
         /// <summary>
+        /// 绑定节点展示模型并刷新卡片内容与状态样式。
+        /// </summary>
+        public void BindPresentation(StepNodePresentation presentation)
+        {
+            if (presentation == null)
+            {
+                return;
+            }
+
+            title = presentation.Title ?? string.Empty;
+
+            if (m_SubtitleLabel != null)
+            {
+                m_SubtitleLabel.text = presentation.Subtitle ?? string.Empty;
+                m_SubtitleLabel.style.display = string.IsNullOrEmpty(m_SubtitleLabel.text) ? DisplayStyle.None : DisplayStyle.Flex;
+            }
+
+            RebuildBadgeViews(presentation.Badges);
+            RebuildSummaryViews(presentation.ActionSummaries, presentation.CurrentActionName);
+
+            EnableInClassList(NODE_RUNNING_CLASS, presentation.IsRunning);
+            EnableInClassList(NODE_COMPLETED_CLASS, presentation.IsCompleted);
+            EnableInClassList(NODE_TRAIL_CLASS, presentation.IsInTrail);
+            EnableInClassList(NODE_WARNING_CLASS, presentation.HasWarning);
+            EnableInClassList(NODE_ERROR_CLASS, presentation.HasError);
+        }
+
+        /// <summary>
         /// 处理鼠标按下事件
         /// </summary>
         private void OnMouseDown(MouseDownEvent evt)
@@ -139,6 +182,10 @@ namespace LWStep.Editor
             m_DownNodePosition = GetPosition().position;
             m_Offset = downMousePosition - m_DownNodePosition;
         }
+
+        /// <summary>
+        /// 重置拖拽偏移与拖拽状态。
+        /// </summary>
         public void ResetOffset()
         {
             m_Offset = Vector2.zero;
@@ -195,6 +242,10 @@ namespace LWStep.Editor
             selfRect.position = mousePosition - m_Offset;
             SetPosition(selfRect);
         }
+
+        /// <summary>
+        /// 获取所属的步骤图视图实例。
+        /// </summary>
         private StepGraphView GetStepGraphView()
         {
             if (m_GraphView == null)
@@ -216,46 +267,96 @@ namespace LWStep.Editor
         }
 
         /// <summary>
-        /// 更新节点标题与运行时高亮
+        /// 构建节点卡片扩展内容容器。
         /// </summary>
-        public void UpdateTitle(string startNodeId, string runtimeNodeId, StepNodeStatus status)
+        private void BuildPresentationContainer()
         {
-            if (m_Data == null)
+            m_MetadataContainer = new VisualElement();
+            m_MetadataContainer.style.flexDirection = FlexDirection.Column;
+
+            m_SubtitleLabel = new Label();
+            m_SubtitleLabel.AddToClassList("step-node-subtitle");
+
+            m_BadgeContainer = new VisualElement();
+            m_BadgeContainer.AddToClassList("step-node-badge-row");
+
+            m_SummaryContainer = new VisualElement();
+            m_SummaryContainer.AddToClassList("step-node-summary-row");
+
+            m_MetadataContainer.Add(m_SubtitleLabel);
+            m_MetadataContainer.Add(m_BadgeContainer);
+            m_MetadataContainer.Add(m_SummaryContainer);
+            extensionContainer.Add(m_MetadataContainer);
+        }
+
+        /// <summary>
+        /// 根据展示模型重建徽标视图。
+        /// </summary>
+        private void RebuildBadgeViews(List<string> badges)
+        {
+            if (m_BadgeContainer == null)
             {
                 return;
             }
-            // Debug.Log("UpdateTitle: " + m_Data.Id + " startNodeId=" + startNodeId + " runtimeNodeId=" + runtimeNodeId);
-            bool isStart = !string.IsNullOrEmpty(startNodeId) && m_Data.Id == startNodeId;
-            bool isRuntime = !string.IsNullOrEmpty(runtimeNodeId) && m_Data.Id == runtimeNodeId;
-            StepNodeStatus displayStatus = isRuntime ? StepNodeStatus.Running : status;
 
-
-            string suffix = string.Empty;
-            if (isStart && displayStatus == StepNodeStatus.Running)
+            m_BadgeContainer.Clear();
+            if (badges == null || badges.Count == 0)
             {
-                suffix = " (Start, 运行中)";
+                m_BadgeContainer.style.display = DisplayStyle.None;
+                return;
             }
 
-            title = m_Data.Id + suffix;
+            for (int i = 0; i < badges.Count; i++)
+            {
+                string badgeText = badges[i];
+                if (string.IsNullOrEmpty(badgeText))
+                {
+                    continue;
+                }
 
-            if (displayStatus == StepNodeStatus.Running)
-            {
-                mainContainer.style.borderLeftWidth = 4;
-                mainContainer.style.borderLeftColor = new Color(1f, 0.8f, 0.2f, 1f);
-                mainContainer.style.backgroundColor = new Color(1f, 0.9f, 0.2f, 0.08f);
+                Label badgeLabel = new Label(badgeText);
+                badgeLabel.AddToClassList("step-node-badge");
+                m_BadgeContainer.Add(badgeLabel);
             }
-            else if (displayStatus == StepNodeStatus.Completed)
+
+            m_BadgeContainer.style.display = m_BadgeContainer.childCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        /// <summary>
+        /// 根据展示模型重建动作摘要视图。
+        /// </summary>
+        private void RebuildSummaryViews(List<string> actionSummaries, string currentActionName)
+        {
+            if (m_SummaryContainer == null)
             {
-                mainContainer.style.borderLeftWidth = 4;
-                mainContainer.style.borderLeftColor = new Color(0.2f, 0.8f, 0.4f, 1f);
-                mainContainer.style.backgroundColor = new Color(0.2f, 0.8f, 0.4f, 0.08f);
+                return;
             }
-            else
+
+            m_SummaryContainer.Clear();
+            if (!string.IsNullOrEmpty(currentActionName))
             {
-                mainContainer.style.borderLeftWidth = 0;
-                mainContainer.style.borderLeftColor = new Color(0f, 0f, 0f, 0f);
-                mainContainer.style.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                Label currentActionLabel = new Label("Current:" + currentActionName);
+                currentActionLabel.AddToClassList("step-node-current-action");
+                m_SummaryContainer.Add(currentActionLabel);
             }
+
+            if (actionSummaries != null)
+            {
+                for (int i = 0; i < actionSummaries.Count; i++)
+                {
+                    string summary = actionSummaries[i];
+                    if (string.IsNullOrEmpty(summary))
+                    {
+                        continue;
+                    }
+
+                    Label summaryLabel = new Label(summary);
+                    summaryLabel.AddToClassList("step-node-summary-item");
+                    m_SummaryContainer.Add(summaryLabel);
+                }
+            }
+
+            m_SummaryContainer.style.display = m_SummaryContainer.childCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

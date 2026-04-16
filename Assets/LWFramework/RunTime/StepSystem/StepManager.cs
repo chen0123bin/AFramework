@@ -31,6 +31,7 @@ namespace LWStep
         private List<string> m_History;
         private List<string> m_ForwardHistory;
         private List<IStepBaselineStateAction> m_BaselineStateActions;
+        private StepRuntimeDebugTracker m_DebugTracker;
         private string m_LastActionName;
         private bool m_HasAllStepsCompleted;
 
@@ -46,6 +47,7 @@ namespace LWStep
             m_History = new List<string>();
             m_ForwardHistory = new List<string>();
             m_BaselineStateActions = new List<IStepBaselineStateAction>();
+            m_DebugTracker = new StepRuntimeDebugTracker();
             IsRunning = false;
             m_HasAllStepsCompleted = false;
             m_CurrentGraphName = string.Empty;
@@ -129,9 +131,11 @@ namespace LWStep
             CaptureBaselineSnapshots(graph);
             IsRunning = true;
             m_HasAllStepsCompleted = false;
+            m_DebugTracker.Clear();
             m_CurrentNode.Enter(m_Context);
             m_LastActionName = string.Empty;
 
+            m_DebugTracker.RecordNodeEnter(node.Id);
             OnNodeEnter?.Invoke(node.Id);
             OnNodeChanged?.Invoke(node.Id);
             NotifyActionChanged(true);
@@ -144,6 +148,7 @@ namespace LWStep
         {
             if (m_CurrentNode != null)
             {
+                m_DebugTracker.RecordNodeLeave(m_CurrentNode.Id);
                 m_CurrentNode.Leave();
             }
             m_CurrentGraph = null;
@@ -155,6 +160,8 @@ namespace LWStep
             m_Context.Clear();
             IsRunning = false;
             m_HasAllStepsCompleted = false;
+            m_LastActionName = string.Empty;
+            m_DebugTracker.Clear();
         }
 
         /// <summary>
@@ -272,6 +279,7 @@ namespace LWStep
                     m_ForwardHistory.Add(m_History[i]);
                 }
                 m_History.RemoveRange(targetHistoryIndex + 1, m_History.Count - (targetHistoryIndex + 1));
+                m_DebugTracker.RecordJump(targetNodeId);
                 SwitchToNodeWithRebuild(targetNodeId, targetHistoryIndex);
                 return;
             }
@@ -295,6 +303,7 @@ namespace LWStep
                     }
                     node.Apply(m_Context);
                     m_History.Add(node.Id);
+                    m_DebugTracker.RecordJump(node.Id);
                     OnJumpProgress?.Invoke(node.Id);
                 }
             }
@@ -304,6 +313,7 @@ namespace LWStep
                 HandleJumpFailed("找不到跳转路径，已直接跳转: " + targetNodeId);
             }
 
+            m_DebugTracker.RecordJump(targetNodeId);
             SwitchToNode(targetNodeId, true);
         }
         /// <summary>
@@ -378,6 +388,20 @@ namespace LWStep
             return m_Context.ToJson();
         }
 
+        /// <summary>
+        /// 获取当前运行时联调快照。
+        /// </summary>
+        public StepRuntimeDebugSnapshot GetRuntimeDebugSnapshot()
+        {
+            if (m_DebugTracker == null)
+            {
+                m_DebugTracker = new StepRuntimeDebugTracker();
+            }
+
+            string currentActionName = m_CurrentNode != null ? m_CurrentNode.GetCurrentActionName() : string.Empty;
+            return m_DebugTracker.CreateSnapshot(m_Context, CurrentNodeId, currentActionName);
+        }
+
         public void LoadContextFromJson(string json)
         {
             if (m_Context == null)
@@ -398,6 +422,7 @@ namespace LWStep
 
             if (m_CurrentNode != null)
             {
+                m_DebugTracker.RecordNodeLeave(m_CurrentNode.Id);
                 m_CurrentNode.Leave();
                 OnNodeLeave?.Invoke(m_CurrentNode.Id);
             }
@@ -411,6 +436,7 @@ namespace LWStep
             m_CurrentNode.Enter(m_Context);
             m_HasAllStepsCompleted = false;
             m_LastActionName = string.Empty;
+            m_DebugTracker.RecordNodeEnter(node.Id);
             OnNodeEnter?.Invoke(node.Id);
             OnNodeChanged?.Invoke(node.Id);
             NotifyActionChanged(true);
@@ -427,6 +453,7 @@ namespace LWStep
 
             if (m_CurrentNode != null)
             {
+                m_DebugTracker.RecordNodeLeave(m_CurrentNode.Id);
                 m_CurrentNode.Leave();
                 OnNodeLeave?.Invoke(m_CurrentNode.Id);
             }
@@ -437,6 +464,7 @@ namespace LWStep
             m_CurrentNode.Enter(m_Context);
             m_HasAllStepsCompleted = false;
             m_LastActionName = string.Empty;
+            m_DebugTracker.RecordNodeEnter(node.Id);
             OnNodeEnter?.Invoke(node.Id);
             OnNodeChanged?.Invoke(node.Id);
 
@@ -547,14 +575,11 @@ namespace LWStep
 
         private void NotifyActionChanged(bool force)
         {
-            if (OnActionChanged == null)
-            {
-                return;
-            }
             string actionName = m_CurrentNode != null ? m_CurrentNode.GetCurrentActionName() : string.Empty;
             if (force || m_LastActionName != actionName)
             {
                 m_LastActionName = actionName;
+                m_DebugTracker.RecordActionChanged(actionName);
                 OnActionChanged?.Invoke(actionName);
             }
         }

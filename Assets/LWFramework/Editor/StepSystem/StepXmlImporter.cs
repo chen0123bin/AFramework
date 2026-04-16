@@ -24,6 +24,7 @@ namespace LWStep.Editor
             }
 
             StepEditorGraphData data = new StepEditorGraphData();
+            data.GraphId = GetAttr(graphElement, "id");
             data.StartNodeId = GetAttr(graphElement, "start");
 
             XmlNode nodesNode = graphElement.SelectSingleNode("nodes");
@@ -74,10 +75,8 @@ namespace LWStep.Editor
                                     {
                                         continue;
                                     }
-                                    StepEditorParameterData param = new StepEditorParameterData();
-                                    param.Key = attr.Name;
-                                    param.Value = attr.Value;
-                                    actionData.Parameters.Add(param);
+
+                                    actionData.SetParameterValue(attr.Name, attr.Value);
                                 }
                             }
 
@@ -89,12 +88,11 @@ namespace LWStep.Editor
                                 {
                                     continue;
                                 }
-                                StepEditorParameterData param = new StepEditorParameterData();
-                                param.Key = GetAttr(paramElement, "key");
-                                param.Value = GetAttr(paramElement, "value");
-                                if (!string.IsNullOrEmpty(param.Key))
+
+                                string key = GetAttr(paramElement, "key");
+                                if (!string.IsNullOrEmpty(key))
                                 {
-                                    actionData.Parameters.Add(param);
+                                    actionData.SetParameterValue(key, GetAttr(paramElement, "value"));
                                 }
                             }
 

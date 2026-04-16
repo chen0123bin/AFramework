@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graph id="step_example_actions_object" start="step_spawn">
+  <nodes>
+    <node id="step_spawn" name="对象动作-实例化" x="0.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepInstantiatePrefabAction">
+          <param key="prefab" value="Assets/0Res/Prefabs/DemoCube.prefab" />
+          <param key="instanceName" value="DemoCube_Instance" />
+          <param key="parent" value="DemoRoot" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_show" name="对象动作-激活" x="220.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetActiveAction">
+          <param key="target" value="DemoCube_Instance" />
+          <param key="active" value="True" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_place" name="对象动作-放置" x="440.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepSetPositionAction">
+          <param key="target" value="DemoCube_Instance" />
+          <param key="x" value="0" />
+          <param key="y" value="2" />
+          <param key="z" value="4" />
+          <param key="isLocal" value="False" />
+        </action>
+      </actions>
+    </node>
+    <node id="step_destroy" name="对象动作-销毁" x="660.00" y="0.00">
+      <actions>
+        <action type="LWStep.StepDestroyTargetAction">
+          <param key="target" value="DemoCube_Instance" />
+        </action>
+      </actions>
+    </node>
+  </nodes>
+  <edges>
+    <edge from="step_spawn" to="step_show" priority="0" />
+    <edge from="step_show" to="step_place" priority="0" />
+    <edge from="step_place" to="step_destroy" priority="0" />
+  </edges>
+</graph>

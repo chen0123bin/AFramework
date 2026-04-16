@@ -601,6 +601,14 @@ namespace LWFramework.Tests.Framework.EditMode
             }
 
             /// <summary>
+            /// 测试桩运行时联调快照接口。
+            /// </summary>
+            public StepRuntimeDebugSnapshot GetRuntimeDebugSnapshot()
+            {
+                return new StepRuntimeDebugSnapshot(string.Empty, string.Empty, new List<string>(), new List<string>(), new Dictionary<string, string>());
+            }
+
+            /// <summary>
             /// 测试桩上下文反序列化接口。
             /// </summary>
             public void LoadContextFromJson(string json)

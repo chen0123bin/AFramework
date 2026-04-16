@@ -12,13 +12,19 @@ namespace LWStep
     public sealed class StepParamAttribute : Attribute
     {
         public string Key { get; private set; }
+        public string Label { get; private set; }
+        public int Order { get; private set; }
+        public bool IsAdvanced { get; private set; }
 
         /// <summary>
         /// 创建参数绑定特性
         /// </summary>
-        public StepParamAttribute(string key)
+        public StepParamAttribute(string key, string label = null, int order = int.MaxValue, bool isAdvanced = false)
         {
             Key = key;
+            Label = label;
+            Order = order;
+            IsAdvanced = isAdvanced;
         }
     }
 
