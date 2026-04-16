@@ -134,7 +134,7 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
     </node>
   </nodes>
   <edges>
-    <edge from="a" to="b" priority="10" condition="mode == A" />
+    <edge from="a" to="b" priority="10" conditionKey="mode" comparisonType="EqualTo" conditionValue="A" />
   </edges>
 </graph>
 ```
@@ -144,7 +144,7 @@ StepSystem 与 LWFMS（Procedure/FSM）独立，可并存协作。
 - `graph.start`：开始节点 ID（可为空，但运行时 Start 通常需要可用起点）
 - `node.x/y`：编辑器布局位置（导入导出会保留）
 - `edge.priority`：出边候选排序依据（越大优先级越高）
-- `edge.condition`：条件表达式（基于 StepContext 的简单判断）
+- `edge.conditionKey/comparisonType/conditionValue`：结构化条件字段（基于 StepContext 的简单判断）
 
 条件表达式支持（当前实现）：
 - `key == value`

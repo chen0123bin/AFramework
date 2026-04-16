@@ -22,8 +22,7 @@ namespace LWFramework.Tests.StepSystem.EditMode
 
             Assert.IsNotNull(examplePaths);
             Assert.That(examplePaths.Count, Is.EqualTo(10));
-            CollectionAssert.Contains(examplePaths, Path.Combine("Assets", "0Res", "RawFiles", "StepExamples", "StepExample_BasicFlow.xml"));
-            CollectionAssert.Contains(examplePaths, Path.Combine("Assets", "0Res", "RawFiles", "StepExamples", "StepExample_Flow_GeneralPipeline.xml"));
+            CollectionAssert.AreEquivalent(GetExpectedExamplePaths(), examplePaths);
         }
 
         /// <summary>
@@ -43,7 +42,7 @@ namespace LWFramework.Tests.StepSystem.EditMode
         /// <summary>
         /// 10 个示例 XML 在导入、导出、运行时加载链路中都应保持可用。
         /// </summary>
-        [TestCaseSource(nameof(GetExamplePaths))]
+        [TestCaseSource(nameof(GetExamplePathsFromCatalog))]
         public void ExampleXml_ShouldRoundTripAndLoadRuntimeGraph(string relativePath)
         {
             string projectRoot = FindProjectRoot();
@@ -64,7 +63,19 @@ namespace LWFramework.Tests.StepSystem.EditMode
         /// <summary>
         /// 返回全部示例 XML 相对路径。
         /// </summary>
-        private static IEnumerable<string> GetExamplePaths()
+        private static IEnumerable<string> GetExamplePathsFromCatalog()
+        {
+            IReadOnlyList<string> examplePaths = StepExampleTemplateCatalog.ExamplePaths;
+            for (int i = 0; i < examplePaths.Count; i++)
+            {
+                yield return examplePaths[i];
+            }
+        }
+
+        /// <summary>
+        /// 返回示例目录应包含的 10 个路径定义。
+        /// </summary>
+        private static IEnumerable<string> GetExpectedExamplePaths()
         {
             yield return Path.Combine("Assets", "0Res", "RawFiles", "StepExamples", "StepExample_BasicFlow.xml");
             yield return Path.Combine("Assets", "0Res", "RawFiles", "StepExamples", "StepExample_ConditionBranch.xml");
