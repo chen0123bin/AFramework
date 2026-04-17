@@ -62,6 +62,7 @@ namespace LWStep.Editor
         public string Id;
         public string Name;
         public Vector2 Position;
+        public bool IsCollapsed;
         public StepNodeMode Mode;
         public List<StepEditorActionData> Actions;
 
@@ -73,6 +74,7 @@ namespace LWStep.Editor
             Id = string.Empty;
             Name = string.Empty;
             Position = Vector2.zero;
+            IsCollapsed = false;
             Mode = StepNodeMode.Serial;
             Actions = new List<StepEditorActionData>();
         }

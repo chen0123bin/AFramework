@@ -51,6 +51,9 @@ namespace LWStep
             m_Status = StepNodeStatus.Unfinished;
         }
 
+        /// <summary>
+        /// 重置节点运行状态为未完成。
+        /// </summary>
         public void ResetStatus()
         {
             m_Status = StepNodeStatus.Unfinished;
@@ -300,6 +303,9 @@ namespace LWStep
             return new List<BaseStepAction>(m_Actions);
         }
 
+        /// <summary>
+        /// 为当前节点内的所有动作绑定同一份运行时上下文。
+        /// </summary>
         private void BindContext(StepContext context)
         {
             for (int i = 0; i < m_Actions.Count; i++)
@@ -308,6 +314,9 @@ namespace LWStep
             }
         }
 
+        /// <summary>
+        /// 重置节点动作索引、动作状态和退出标记。
+        /// </summary>
         private void ResetActions()
         {
             for (int i = 0; i < m_Actions.Count; i++)

@@ -21,6 +21,8 @@ namespace LWStep.Editor
         private StepEditorNodeData m_Data;
         private Port m_InputPort;
         private Port m_OutputPort;
+        private EdgeConnector<Edge> m_InputEdgeConnector;
+        private EdgeConnector<Edge> m_OutputEdgeConnector;
         private VisualElement m_MetadataContainer;
         private Label m_SubtitleLabel;
         private VisualElement m_BadgeContainer;
@@ -64,14 +66,13 @@ namespace LWStep.Editor
             outputContainer.Add(m_OutputPort);
 
             BuildPresentationContainer();
+            RegisterCollapseStateSync();
             SetPosition(new Rect(data.Position, new Vector2(180.0f, 120.0f)));
             AddToClassList(NODE_CARD_CLASS);
 
             RegisterCallback<MouseDownEvent>(OnMouseDown);
             RegisterCallback<MouseMoveEvent>(OnMouseMove);
             RegisterCallback<MouseUpEvent>(OnMouseUp);
-
-            RefreshExpandedState();
             RefreshPorts();
         }
 
@@ -90,10 +91,13 @@ namespace LWStep.Editor
         /// <summary>
         /// 绑定端口点击回调
         /// </summary>
-        public void BindPortCallbacks(Action<Port> onInputClicked, Action<Port> onOutputClicked)
+        public void BindPortCallbacks(StepGraphView graphView, Action<Port> onInputClicked, Action<Port> onOutputClicked, IEdgeConnectorListener edgeConnectorListener)
         {
+            m_GraphView = graphView;
+
             if (m_InputPort != null)
             {
+                AttachInputEdgeConnector(edgeConnectorListener);
                 m_InputPort.RegisterCallback<MouseDownEvent>(evt =>
                 {
                     if (evt.button != 0)
@@ -109,6 +113,7 @@ namespace LWStep.Editor
 
             if (m_OutputPort != null)
             {
+                AttachOutputEdgeConnector(edgeConnectorListener);
                 m_OutputPort.RegisterCallback<MouseDownEvent>(evt =>
                 {
                     if (evt.button != 0)
@@ -152,11 +157,65 @@ namespace LWStep.Editor
         }
 
         /// <summary>
+        /// 在节点挂入图视图后，根据数据同步初始折叠态。
+        /// </summary>
+        public void SyncCollapsedStateFromData(bool isFirst = false)
+        {
+            ApplyCollapsedState(isFirst);       
+        }
+
+        /// <summary>
+        /// 切换节点折叠状态并写回编辑器数据。
+        /// </summary>
+        public void ToggleCollapsed()
+        {
+            if (m_Data == null)
+            {
+                return;
+            }
+
+            bool isChanged = SetCollapsed(!m_Data.IsCollapsed);
+            if (!isChanged)
+            {
+                return;
+            }
+
+            StepGraphView graphView = GetStepGraphView();
+            if (graphView != null)
+            {
+                graphView.NotifyNodeDataChanged();
+            }
+        }
+
+        /// <summary>
+        /// 直接设置节点折叠状态，并返回是否发生变化。
+        /// </summary>
+        public bool SetCollapsed(bool isCollapsed)
+        {
+            if (m_Data == null)
+            {
+                return false;
+            }
+            if (m_Data.IsCollapsed == isCollapsed)
+            {
+                return false;
+            }
+
+            m_Data.IsCollapsed = isCollapsed;
+            ApplyCollapsedState();
+            return true;
+        }
+
+        /// <summary>
         /// 处理鼠标按下事件
         /// </summary>
         private void OnMouseDown(MouseDownEvent evt)
         {
             if (evt.button != 0)
+            {
+                return;
+            }
+            if (IsInteractionHandledByChild(evt.target as VisualElement))
             {
                 return;
             }
@@ -176,7 +235,9 @@ namespace LWStep.Editor
                 }
             }
         }
-        //记录偏移量
+        /// <summary>
+        /// 记录拖拽起点与节点初始位置之间的偏移量。
+        /// </summary>
         public void RecordOffset(Vector2 downMousePosition)
         {
             m_DownNodePosition = GetPosition().position;
@@ -217,7 +278,7 @@ namespace LWStep.Editor
                     isThisNodeSelected = true;
                 }
             }
-            //框选处理
+            // 多选拖拽时，所有选中节点都要基于各自偏移量同步更新位置。
             if (selectedNodeCount > 1 && isThisNodeSelected)
             {
                 for (int i = 0; i < m_GraphView.selection.Count; i++)
@@ -235,7 +296,9 @@ namespace LWStep.Editor
                 ApplyTargets(graphMousePosition);
             }
         }
-        //根据当前鼠标点以及偏移量计算最新的坐标位置
+        /// <summary>
+        /// 根据当前鼠标位置和记录偏移量更新节点位置。
+        /// </summary>
         public void ApplyTargets(Vector2 mousePosition)
         {
             Rect selfRect = GetPosition();
@@ -260,6 +323,14 @@ namespace LWStep.Editor
         /// </summary>
         private void OnMouseUp(MouseUpEvent evt)
         {
+            if (evt.button != 0)
+            {
+                return;
+            }
+            if (!m_IsDragging)
+            {
+                return;
+            }
             if (DragEnded != null)
             {
                 DragEnded(this);
@@ -287,6 +358,140 @@ namespace LWStep.Editor
             m_MetadataContainer.Add(m_BadgeContainer);
             m_MetadataContainer.Add(m_SummaryContainer);
             extensionContainer.Add(m_MetadataContainer);
+        }
+
+        /// <summary>
+        /// 监听节点默认折叠箭头的交互并同步折叠状态。
+        /// </summary>
+        private void RegisterCollapseStateSync()
+        {
+            if (titleButtonContainer == null)
+            {
+                return;
+            }
+
+            titleButtonContainer.RegisterCallback<MouseUpEvent>(OnTitleButtonMouseUp);
+        }
+
+        /// <summary>
+        /// 为输入端口挂载拖拽连线连接器。
+        /// </summary>
+        private void AttachInputEdgeConnector(IEdgeConnectorListener edgeConnectorListener)
+        {
+            if (m_InputPort == null || edgeConnectorListener == null || m_InputEdgeConnector != null)
+            {
+                return;
+            }
+
+            m_InputEdgeConnector = new EdgeConnector<Edge>(edgeConnectorListener);
+            m_InputPort.AddManipulator(m_InputEdgeConnector);
+        }
+
+        /// <summary>
+        /// 为输出端口挂载拖拽连线连接器。
+        /// </summary>
+        private void AttachOutputEdgeConnector(IEdgeConnectorListener edgeConnectorListener)
+        {
+            if (m_OutputPort == null || edgeConnectorListener == null || m_OutputEdgeConnector != null)
+            {
+                return;
+            }
+
+            m_OutputEdgeConnector = new EdgeConnector<Edge>(edgeConnectorListener);
+            m_OutputPort.AddManipulator(m_OutputEdgeConnector);
+        }
+
+        /// <summary>
+        /// 根据节点数据刷新折叠态与按钮文案。
+        /// </summary>
+        private void ApplyCollapsedState(bool isFirst = false)
+        {
+            if (isFirst)
+            {
+                if(m_Data == null || !m_Data.IsCollapsed)
+                {
+                    RefreshExpandedState();
+                }
+            }
+            else
+            {
+                expanded = m_Data == null || !m_Data.IsCollapsed;           
+                if(expanded)
+                {
+                    RefreshExpandedState();
+                }
+            }
+
+            RefreshPorts();
+        }
+
+        /// <summary>
+        /// 判断当前事件是否应由端口或按钮等子控件接管。
+        /// </summary>
+        private bool IsInteractionHandledByChild(VisualElement target)
+        {
+            if (target == null)
+            {
+                return false;
+            }
+
+            Button button = target as Button;
+            if (button == null)
+            {
+                button = target.GetFirstAncestorOfType<Button>();
+            }
+            if (button != null && titleButtonContainer != null && titleButtonContainer.Contains(button))
+            {
+                return true;
+            }
+
+            if (target is Port || target.GetFirstAncestorOfType<Port>() != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 处理标题按钮区域抬起事件，并在默认折叠箭头点击后同步折叠状态。
+        /// </summary>
+        private void OnTitleButtonMouseUp(MouseUpEvent evt)
+        {
+            if (evt.button != 0)
+            {
+                return;
+            }
+
+            Button button = evt.target as Button;
+            if (button == null)
+            {
+                button = (evt.target as VisualElement)?.GetFirstAncestorOfType<Button>();
+            }
+            if (button == null)
+            {
+                return;
+            }
+
+            schedule.Execute(SyncCollapsedStateFromExpanded);
+        }
+
+        /// <summary>
+        /// 根据当前 Node 的 expanded 状态回写编辑器节点数据。
+        /// </summary>
+        private void SyncCollapsedStateFromExpanded()
+        {
+            bool isChanged = SetCollapsed(!expanded);
+            if (!isChanged)
+            {
+                return;
+            }
+
+            StepGraphView graphView = GetStepGraphView();
+            if (graphView != null)
+            {
+                graphView.NotifyNodeDataChanged();
+            }
         }
 
         /// <summary>

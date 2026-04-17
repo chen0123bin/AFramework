@@ -37,6 +37,8 @@ namespace LWStep
     public class StepParamBinding
     {
         public string Key;
+        public string Label;
+        public int Order;
         public Type ValueType;
         public FieldInfo Field;
         public PropertyInfo Property;

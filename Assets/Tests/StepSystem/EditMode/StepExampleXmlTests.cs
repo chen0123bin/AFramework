@@ -40,6 +40,18 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
+        /// 加载图数据时不应再依赖全量刷边的错误修复链路。
+        /// </summary>
+        [Test]
+        public void StepEditorWindow_LoadGraphData_ShouldNotUseEdgeRefreshHack()
+        {
+            string source = ReadStepEditorWindowSource();
+
+            StringAssert.DoesNotContain("Task.Delay(System.TimeSpan.FromSeconds(0.2f))", source);
+            StringAssert.DoesNotContain("RefreshAllEdgeLayout", source);
+        }
+
+        /// <summary>
         /// 10 个示例 XML 在导入、导出、运行时加载链路中都应保持可用。
         /// </summary>
         [TestCaseSource(nameof(GetExamplePathsFromCatalog))]

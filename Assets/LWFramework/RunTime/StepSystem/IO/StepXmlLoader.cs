@@ -144,6 +144,9 @@ namespace LWStep
             return graph;
         }
 
+        /// <summary>
+        /// 读取动作节点上的参数，兼容内联属性和 param 子节点两种写法。
+        /// </summary>
         private Dictionary<string, string> ReadActionParameters(XmlElement actionElement)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>();
@@ -178,6 +181,9 @@ namespace LWStep
             return parameters;
         }
 
+        /// <summary>
+        /// 读取 XML 属性文本，缺失时返回空字符串。
+        /// </summary>
         private string GetAttr(XmlElement element, string name)
         {
             if (element.HasAttribute(name))
@@ -187,6 +193,9 @@ namespace LWStep
             return string.Empty;
         }
 
+        /// <summary>
+        /// 读取 XML 整数属性，解析失败时返回默认值。
+        /// </summary>
         private int GetAttrInt(XmlElement element, string name, int defaultValue)
         {
             string value = GetAttr(element, name);

@@ -161,6 +161,7 @@ namespace LWStep.Editor
             clone.Id = source.Id ?? string.Empty;
             clone.Name = source.Name ?? string.Empty;
             clone.Position = source.Position;
+            clone.IsCollapsed = source.IsCollapsed;
             clone.Mode = source.Mode;
 
             if (source.Actions != null)

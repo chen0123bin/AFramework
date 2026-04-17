@@ -52,6 +52,8 @@ namespace LWStep
 
                 StepParamBinding member = new StepParamBinding();
                 member.Key = attr.Key;
+                member.Label = attr.Label;
+                member.Order = attr.Order;
                 member.ValueType = field.FieldType;
                 member.Field = field;
                 member.Property = null;
@@ -79,13 +81,45 @@ namespace LWStep
 
                 StepParamBinding member = new StepParamBinding();
                 member.Key = attr.Key;
+                member.Label = attr.Label;
+                member.Order = attr.Order;
                 member.ValueType = property.PropertyType;
                 member.Field = null;
                 member.Property = property;
                 members.Add(member);
             }
 
+            members.Sort(CompareStepParamBinding);
             return members;
+        }
+
+        /// <summary>
+        /// 比较两个步骤参数绑定的显示顺序。
+        /// </summary>
+        private static int CompareStepParamBinding(StepParamBinding a, StepParamBinding b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return 0;
+            }
+            if (a == null)
+            {
+                return 1;
+            }
+            if (b == null)
+            {
+                return -1;
+            }
+
+            int orderCompare = a.Order.CompareTo(b.Order);
+            if (orderCompare != 0)
+            {
+                return orderCompare;
+            }
+
+            string leftKey = a.Key ?? string.Empty;
+            string rightKey = b.Key ?? string.Empty;
+            return string.CompareOrdinal(leftKey, rightKey);
         }
 
 

@@ -4,18 +4,19 @@ using UnityEngine;
 
 namespace LWStep
 {
+    [StepActionInfo("缩放对象", Category = "对象控制", SummaryTemplate = "Scale:{target}")]
     public class StepScaleObjectAction : BaseTargeStepAction, IStepBaselineStateAction
     {
-        [StepParam("x")]
+        [StepParam("x", label: "缩放X", order: 1)]
         private float m_X;
 
-        [StepParam("y")]
+        [StepParam("y", label: "缩放Y", order: 2)]
         private float m_Y;
 
-        [StepParam("z")]
+        [StepParam("z", label: "缩放Z", order: 3)]
         private float m_Z;
 
-        [StepParam("scaleTime")]
+        [StepParam("scaleTime", label: "缩放时长", order: 4)]
         private float m_ScaleTime;
 
         private Vector3 m_TargetScale;

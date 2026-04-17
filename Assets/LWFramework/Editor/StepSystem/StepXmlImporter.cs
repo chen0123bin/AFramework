@@ -51,6 +51,12 @@ namespace LWStep.Editor
                     {
                         nodeData.Mode = StepNodeMode.Serial;
                     }
+                    string collapsedValue = GetAttr(nodeElement, "collapsed");
+                    bool isCollapsed;
+                    if (bool.TryParse(collapsedValue, out isCollapsed))
+                    {
+                        nodeData.IsCollapsed = isCollapsed;
+                    }
 
                     XmlNode actionsNode = nodeElement.SelectSingleNode("actions");
                     if (actionsNode != null)

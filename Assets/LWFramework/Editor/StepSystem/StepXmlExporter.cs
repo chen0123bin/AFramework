@@ -30,6 +30,7 @@ namespace LWStep.Editor
                 nodeElement.SetAttribute("name", node.Name ?? string.Empty);
                 nodeElement.SetAttribute("x", node.Position.x.ToString("F2", CultureInfo.InvariantCulture));
                 nodeElement.SetAttribute("y", node.Position.y.ToString("F2", CultureInfo.InvariantCulture));
+                nodeElement.SetAttribute("collapsed", node.IsCollapsed ? "true" : "false");
                 if (node.Mode == StepNodeMode.Parallel)
                 {
                     nodeElement.SetAttribute("mode", "parallel");

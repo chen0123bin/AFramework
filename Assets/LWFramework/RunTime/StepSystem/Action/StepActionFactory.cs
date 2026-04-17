@@ -45,6 +45,9 @@ namespace LWStep
             return action;
         }
 
+        /// <summary>
+        /// 在当前应用域内按类型全名查找动作类型。
+        /// </summary>
         private Type FindActionType(string typeName)
         {
             Type type = Type.GetType(typeName);
@@ -71,6 +74,7 @@ namespace LWStep
                     continue;
                 }
 
+                // 兼容不同程序集加载顺序，逐个扫描已加载类型，避免 Type.GetType 找不到业务程序集。
                 for (int j = 0; j < types.Length; j++)
                 {
                     Type currentType = types[j];

@@ -53,6 +53,9 @@ namespace LWStep
             }
             return nodes;
         }
+        /// <summary>
+        /// 沿默认前进链递归收集显示节点。
+        /// </summary>
         private void AddDisplayNode(string nodeId, List<StepNode> nodes)
         {
             List<string> nextNodeIds = GetNextNodeIds(nodeId);
@@ -60,6 +63,7 @@ namespace LWStep
             {
                 return;
             }
+            // 编辑器的“显示节点”视图目前只沿首条优先路径展开。
             string nextNodeId = nextNodeIds[0];
             StepNode node = GetNode(nextNodeId);
             if (node != null)
@@ -69,6 +73,9 @@ namespace LWStep
             }
         }
 
+        /// <summary>
+        /// 重置图内所有节点状态为未完成。
+        /// </summary>
         public void ResetNodeStatuses()
         {
             foreach (KeyValuePair<string, StepNode> kvp in m_Nodes)
@@ -273,6 +280,9 @@ namespace LWStep
             return errors;
         }
 
+        /// <summary>
+        /// 使用拓扑排序检查当前图是否存在环路。
+        /// </summary>
         private bool HasCycle()
         {
             Dictionary<string, int> indegree = new Dictionary<string, int>();
@@ -290,6 +300,7 @@ namespace LWStep
             }
 
             Queue<string> queue = new Queue<string>();
+            // 先把所有入度为 0 的节点作为拓扑排序起点。
             foreach (KeyValuePair<string, int> kvp in indegree)
             {
                 if (kvp.Value == 0)
@@ -318,6 +329,7 @@ namespace LWStep
                     }
                 }
             }
+            // 若最终访问数少于总节点数，说明仍有节点处于环内。
             return visited != m_Nodes.Count;
         }
     }

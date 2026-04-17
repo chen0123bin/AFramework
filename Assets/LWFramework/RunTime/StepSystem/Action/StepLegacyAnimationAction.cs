@@ -3,17 +3,18 @@ using UnityEngine;
 
 namespace LWStep
 {
+    [StepActionInfo("播放旧版动画", Category = "动画与特效", SummaryTemplate = "Legacy:{state}")]
     public class StepLegacyAnimationAction : BaseTargeStepAction, IStepBaselineStateAction
     {
         private const float NORMALIZED_TIME_EPSILON = 0.0001f;
 
-        [StepParam("state")]
+        [StepParam("state", label: "状态名", order: 1)]
         private string m_StateName;
 
-        [StepParam("reverse")]
+        [StepParam("reverse", label: "倒放", order: 2)]
         private bool m_IsReverse;
 
-        [StepParam("manualSpeedKey")]
+        [StepParam("manualSpeedKey", label: "速度上下文键", order: 3)]
         private string m_ManualSpeedKey;
 
         private Animation m_Animation;

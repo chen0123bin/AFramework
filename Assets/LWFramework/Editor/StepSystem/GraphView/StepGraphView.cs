@@ -20,6 +20,7 @@ namespace LWStep.Editor
         private bool m_IsPanning;
         private Vector2 m_LastMousePosition;
         private Port m_PendingOutputPort;
+        private StepEdgeConnectorListener m_EdgeConnectorListener;
         private Vector2 m_LastMouseWorldPosition;
         private string m_RuntimeNodeId;
         private string m_RuntimeCurrentActionName;
@@ -38,6 +39,7 @@ namespace LWStep.Editor
         {
             m_Data = data;
             m_NodeViews = new Dictionary<string, StepNodeView>();
+            m_EdgeConnectorListener = new StepEdgeConnectorListener(this);
             m_LastMouseWorldPosition = Vector2.zero;
             m_RuntimeCurrentActionName = string.Empty;
             m_RuntimeTrailNodeIds = new HashSet<string>();
@@ -59,6 +61,38 @@ namespace LWStep.Editor
 
             RebuildView();
 
+        }
+
+        /// <summary>
+        /// 返回起始端口允许连接的目标端口集合。
+        /// </summary>
+        public override List<Port> GetCompatiblePorts(Port startPort, NodeAdapter nodeAdapter)
+        {
+            List<Port> compatiblePorts = new List<Port>();
+            if (startPort == null)
+            {
+                return compatiblePorts;
+            }
+
+            foreach (Port port in ports)
+            {
+                if (port == null || ReferenceEquals(port, startPort))
+                {
+                    continue;
+                }
+                if (ReferenceEquals(port.node, startPort.node))
+                {
+                    continue;
+                }
+                if (port.direction == startPort.direction)
+                {
+                    continue;
+                }
+
+                compatiblePorts.Add(port);
+            }
+
+            return compatiblePorts;
         }
 
         /// <summary>
@@ -104,6 +138,7 @@ namespace LWStep.Editor
                 StepEditorNodeData nodeData = m_Data.Nodes[i];
                 StepNodeView nodeView = CreateNodeView(nodeData);
                 AddElement(nodeView);
+                nodeView.SyncCollapsedStateFromData(true);
                 m_NodeViews.Add(nodeData.Id, nodeView);
             }
 
@@ -137,6 +172,9 @@ namespace LWStep.Editor
             UpdateAllNodeTitles();
         }
 
+        /// <summary>
+        /// 设置运行时节点状态映射并刷新所有节点展示。
+        /// </summary>
         public void SetRuntimeNodeStatuses(Dictionary<string, StepNodeStatus> nodeStatuses)
         {
             m_RuntimeNodeStatuses = nodeStatuses;
@@ -186,6 +224,7 @@ namespace LWStep.Editor
 
             StepNodeView nodeView = CreateNodeView(nodeData);
             AddElement(nodeView);
+            nodeView.SyncCollapsedStateFromData();
             m_NodeViews.Add(nodeData.Id, nodeView);
             UpdateAllNodeTitles();
             NotifyGraphChanged();
@@ -312,6 +351,46 @@ namespace LWStep.Editor
             {
                 AddNodeAtLastMousePosition();
             }, DropdownMenuAction.Status.Normal);
+            evt.menu.AppendAction("折叠选中节点", action =>
+            {
+                CollapseSelectedNodes();
+            }, GetSelectedNodeCount() > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            evt.menu.AppendAction("展开选中节点", action =>
+            {
+                ExpandSelectedNodes();
+            }, GetSelectedNodeCount() > 0 ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+        }
+
+        /// <summary>
+        /// 将当前选中的所有节点批量折叠。
+        /// </summary>
+        public int CollapseSelectedNodes()
+        {
+            return SetSelectedNodesCollapsed(true);
+        }
+
+        /// <summary>
+        /// 将当前选中的所有节点批量展开。
+        /// </summary>
+        public int ExpandSelectedNodes()
+        {
+            return SetSelectedNodesCollapsed(false);
+        }
+
+        /// <summary>
+        /// 将当前图中的所有节点批量折叠。
+        /// </summary>
+        public int CollapseAllNodes()
+        {
+            return SetAllNodesCollapsed(true);
+        }
+
+        /// <summary>
+        /// 将当前图中的所有节点批量展开。
+        /// </summary>
+        public int ExpandAllNodes()
+        {
+            return SetAllNodesCollapsed(false);
         }
 
         /// <summary>
@@ -320,7 +399,7 @@ namespace LWStep.Editor
         private StepNodeView CreateNodeView(StepEditorNodeData data)
         {
             StepNodeView nodeView = new StepNodeView(data);
-            nodeView.BindPortCallbacks(OnInputPortClicked, OnOutputPortClicked);
+            nodeView.BindPortCallbacks(this, OnInputPortClicked, OnOutputPortClicked, m_EdgeConnectorListener);
             nodeView.DragEnded += OnNodeDragEnded;
             return nodeView;
         }
@@ -801,6 +880,14 @@ namespace LWStep.Editor
         /// </summary>
         private void CreateEdge(StepNodeView fromView, StepNodeView toView, Port outputPort, Port inputPort)
         {
+            CreateEdge(fromView, toView, outputPort, inputPort, null);
+        }
+
+        /// <summary>
+        /// 创建连线并写入数据。
+        /// </summary>
+        private void CreateEdge(StepNodeView fromView, StepNodeView toView, Port outputPort, Port inputPort, Edge edgeView)
+        {
             if (fromView == null || toView == null)
             {
                 return;
@@ -819,7 +906,7 @@ namespace LWStep.Editor
             edgeData.ConditionValue = string.Empty;
             m_Data.Edges.Add(edgeData);
 
-            Edge edge = new Edge();
+            Edge edge = edgeView ?? new Edge();
             edge.output = outputPort;
             edge.input = inputPort;
             ConfigureEdgeView(edge, edgeData);
@@ -897,6 +984,91 @@ namespace LWStep.Editor
         }
 
         /// <summary>
+        /// 节点编辑器数据变更后刷新外部脏标记。
+        /// </summary>
+        public void NotifyNodeDataChanged()
+        {
+            NotifyGraphChanged();
+        }
+
+        /// <summary>
+        /// 批量设置当前选中节点的折叠状态。
+        /// </summary>
+        private int SetSelectedNodesCollapsed(bool isCollapsed)
+        {
+            int changedCount = 0;
+            for (int i = 0; i < selection.Count; i++)
+            {
+                StepNodeView nodeView = selection[i] as StepNodeView;
+                if (nodeView == null)
+                {
+                    continue;
+                }
+
+                if (!nodeView.SetCollapsed(isCollapsed))
+                {
+                    continue;
+                }
+
+                changedCount += 1;
+            }
+
+            if (changedCount > 0)
+            {
+                NotifyGraphChanged();
+            }
+
+            return changedCount;
+        }
+
+        /// <summary>
+        /// 获取当前选中的节点数量。
+        /// </summary>
+        private int GetSelectedNodeCount()
+        {
+            int nodeCount = 0;
+            for (int i = 0; i < selection.Count; i++)
+            {
+                if (selection[i] is StepNodeView)
+                {
+                    nodeCount += 1;
+                }
+            }
+
+            return nodeCount;
+        }
+
+        /// <summary>
+        /// 批量设置当前图所有节点的折叠状态。
+        /// </summary>
+        private int SetAllNodesCollapsed(bool isCollapsed)
+        {
+            int changedCount = 0;
+            foreach (KeyValuePair<string, StepNodeView> pair in m_NodeViews)
+            {
+                StepNodeView nodeView = pair.Value;
+                if (nodeView == null)
+                {
+                    continue;
+                }
+
+                if (!nodeView.SetCollapsed(isCollapsed))
+                {
+                    continue;
+                }
+
+                changedCount += 1;
+            }
+
+            if (changedCount > 0)
+            {
+                NotifyGraphChanged();
+            }
+
+            return changedCount;
+        }
+
+        /// <summary>
         /// 通知图数据已变更
         /// </summary>
         private void NotifyGraphChanged()
@@ -904,6 +1076,49 @@ namespace LWStep.Editor
             if (GraphChanged != null)
             {
                 GraphChanged();
+            }
+        }
+
+        /// <summary>
+        /// 拖拽连线完成时负责写回图数据与连线视图。
+        /// </summary>
+        private sealed class StepEdgeConnectorListener : IEdgeConnectorListener
+        {
+            private readonly StepGraphView m_GraphView;
+
+            /// <summary>
+            /// 创建拖拽连线监听器。
+            /// </summary>
+            public StepEdgeConnectorListener(StepGraphView graphView)
+            {
+                m_GraphView = graphView;
+            }
+
+            /// <summary>
+            /// 拖拽到空白区域时不做额外处理。
+            /// </summary>
+            public void OnDropOutsidePort(Edge edge, Vector2 position)
+            {
+            }
+
+            /// <summary>
+            /// 拖拽到合法端口时创建最终连线。
+            /// </summary>
+            public void OnDrop(GraphView graphView, Edge edge)
+            {
+                if (m_GraphView == null || edge == null || edge.output == null || edge.input == null)
+                {
+                    return;
+                }
+
+                StepNodeView fromView = edge.output.node as StepNodeView;
+                StepNodeView toView = edge.input.node as StepNodeView;
+                if (fromView == null || toView == null)
+                {
+                    return;
+                }
+
+                m_GraphView.CreateEdge(fromView, toView, edge.output, edge.input, edge);
             }
         }
     }

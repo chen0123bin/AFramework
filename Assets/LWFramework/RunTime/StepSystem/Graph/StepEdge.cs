@@ -131,6 +131,9 @@ namespace LWStep
             return string.Equals(actual.ToString(), expected, StringComparison.Ordinal);
         }
 
+        /// <summary>
+        /// 尝试将常见数值类型统一转换为 double。
+        /// </summary>
         private bool TryGetNumber(object value, out double number)
         {
             number = 0d;

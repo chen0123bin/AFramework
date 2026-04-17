@@ -10,8 +10,8 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using LWStep;
-using System.Threading.Tasks;
 using LWStep.Editor.Metadata;
+using System.Threading.Tasks;
 
 namespace LWStep.Editor
 {
@@ -121,6 +121,8 @@ namespace LWStep.Editor
             Button validateButton = new Button(OnValidateGraph) { text = "校验" };
             Button frameButton = new Button(OnFrameAll) { text = "居中" };
             Button duplicateButton = new Button(OnDuplicateSelection) { text = "重复" };
+            Button collapseSelectionButton = new Button(OnCollapseAllNodes) { text = "批量折叠" };
+            Button expandSelectionButton = new Button(OnExpandAllNodes) { text = "批量展开" };
             Button autoLayoutButton = new Button(OnAutoLayout) { text = "自动布局" };
             Button previewButton = new Button(OnPreviewPlayMode) { text = "预览PlayMode" };
             toolbar.Add(newButton);
@@ -130,6 +132,8 @@ namespace LWStep.Editor
             toolbar.Add(validateButton);
             toolbar.Add(frameButton);
             toolbar.Add(duplicateButton);
+            toolbar.Add(collapseSelectionButton);
+            toolbar.Add(expandSelectionButton);
             toolbar.Add(autoLayoutButton);
             toolbar.Add(previewButton);
             rootVisualElement.Add(toolbar);
@@ -186,6 +190,9 @@ namespace LWStep.Editor
             return menu;
         }
 
+        /// <summary>
+        /// 处理右侧分隔条按下，进入面板宽度拖拽状态。
+        /// </summary>
         private void OnRightSplitterMouseDown(MouseDownEvent evt)
         {
             if (evt.button != 0)
@@ -200,6 +207,9 @@ namespace LWStep.Editor
             evt.StopPropagation();
         }
 
+        /// <summary>
+        /// 处理右侧分隔条拖拽，实时更新检查器面板宽度。
+        /// </summary>
         private void OnRightSplitterMouseMove(MouseMoveEvent evt)
         {
             if (!m_IsResizingRightPanel)
@@ -216,6 +226,9 @@ namespace LWStep.Editor
             evt.StopPropagation();
         }
 
+        /// <summary>
+        /// 处理右侧分隔条释放，结束面板宽度拖拽状态。
+        /// </summary>
         private void OnRightSplitterMouseUp(MouseUpEvent evt)
         {
             if (!m_IsResizingRightPanel)
@@ -231,6 +244,9 @@ namespace LWStep.Editor
             evt.StopPropagation();
         }
 
+        /// <summary>
+        /// 构建左上角运行时上下文面板。
+        /// </summary>
         private void BuildContextPanel()
         {
             if (m_GraphContainer == null)
@@ -275,6 +291,9 @@ namespace LWStep.Editor
 
             m_ContextFoldout.RegisterValueChangedCallback(OnContextFoldoutValueChanged);
         }
+        /// <summary>
+        /// 切换上下文面板的自动刷新模式。
+        /// </summary>
         private void OnAutoUpdateToggleChanged()
         {
             m_AutoUpdateContext = !m_AutoUpdateContext;
@@ -310,11 +329,17 @@ namespace LWStep.Editor
 
             stepManager.LoadContextFromJson(contextJson);
         }
+        /// <summary>
+        /// 根据折叠状态调整上下文面板高度。
+        /// </summary>
         private void OnContextFoldoutValueChanged(ChangeEvent<bool> evt)
         {
             m_ContextPanel.style.height = evt.newValue ? m_ContextPanelMaxHeight : m_ContextPanelMinHeight;
         }
 
+        /// <summary>
+        /// 刷新上下文面板文本，展示当前节点、动作和 Context JSON。
+        /// </summary>
         private void UpdateContextPanel()
         {
             if (m_ContextText == null || !m_AutoUpdateContext)
@@ -323,6 +348,7 @@ namespace LWStep.Editor
             }
             if (!EditorApplication.isPlaying)
             {
+                // 编辑器未进入运行态时，显示固定占位文本，避免保留旧快照内容。
                 m_ContextText.value = "仅在运行时显示 StepContext / Report";
                 return;
             }
@@ -344,6 +370,7 @@ namespace LWStep.Editor
             string contextJson = stepManager.GetContextToJson();
             string currentNodeId = snapshot != null ? snapshot.CurrentNodeId : stepManager.CurrentNodeId;
             string currentActionName = snapshot != null ? snapshot.CurrentActionName : string.Empty;
+            // 调试面板统一复用一段文本，既便于查看，也便于后续直接回写 ContextJson 段。
             string reportText = "CurrentNode: " + currentNodeId + "\nCurrentAction: " + currentActionName;
             if (string.IsNullOrEmpty(contextJson))
             {
@@ -416,13 +443,19 @@ namespace LWStep.Editor
             m_GraphView.GraphChanged += OnGraphChanged;
             m_GraphView.style.flexGrow = 1;
             m_GraphContainer.Add(m_GraphView);
+            StepGraphView graphView = m_GraphView;
             //增加延迟刷新，防止在图数据更新时立即刷新导致的异常
             System.Func<Task> RefreshGraph = async () =>
             {
                 await Task.Delay(System.TimeSpan.FromSeconds(0.2f));
+                if (graphView == null || !ReferenceEquals(graphView, m_GraphView))
+                {
+                    return;
+                }
                 OnFrameAll();
             };
             RefreshGraph();
+       
         }
 
         /// <summary>
@@ -449,6 +482,32 @@ namespace LWStep.Editor
                     m_SelectedEdge = edge.userData as StepEditorEdgeData;
                 }
             }
+        }
+
+        /// <summary>
+        /// 批量折叠当前图中的所有节点。
+        /// </summary>
+        private void OnCollapseAllNodes()
+        {
+            if (m_GraphView == null)
+            {
+                return;
+            }
+
+            m_GraphView.CollapseAllNodes();
+        }
+
+        /// <summary>
+        /// 批量展开当前图中的所有节点。
+        /// </summary>
+        private void OnExpandAllNodes()
+        {
+            if (m_GraphView == null)
+            {
+                return;
+            }
+
+            m_GraphView.ExpandAllNodes();
         }
 
         /// <summary>
@@ -560,6 +619,9 @@ namespace LWStep.Editor
             stepManager.JumpTo(nodeId);
         }
 
+        /// <summary>
+        /// 扫描当前域内的步骤动作类型并刷新下拉缓存。
+        /// </summary>
         private void RefreshActionTypes()
         {
             List<Type> typeList = new List<Type>();
@@ -593,6 +655,7 @@ namespace LWStep.Editor
                 }
             }
 
+            // 先统一排序，再同步生成类型名和展示名，避免下拉框内容和索引错位。
             typeList.Sort(CompareActionTypeByCategoryAndName);
             s_ActionTypes = typeList.ToArray();
             s_ActionTypeNames = new string[s_ActionTypes.Length];
@@ -646,6 +709,9 @@ namespace LWStep.Editor
         }
 
 
+        /// <summary>
+        /// 根据类型全名在已缓存的动作类型中查找目标类型。
+        /// </summary>
         private static Type FindActionType(string typeName)
         {
             if (!string.IsNullOrEmpty(typeName))
@@ -665,6 +731,9 @@ namespace LWStep.Editor
             return null;
         }
 
+        /// <summary>
+        /// 获取动作参数绑定缓存，不存在时即时构建。
+        /// </summary>
         private static List<StepParamBinding> GetOrCreateStepParamBindings(Type actionType)
         {
             if (actionType == null)
@@ -845,7 +914,8 @@ namespace LWStep.Editor
                 }
 
                 EditorGUI.BeginChangeCheck();
-                object newValue = UGUIUtility.DrawValueField(member.Key, member.ValueType, currentValue);
+                string displayName = !string.IsNullOrEmpty(member.Label) ? member.Label : member.Key;
+                object newValue = UGUIUtility.DrawValueField(displayName, member.ValueType, currentValue);
                 if (EditorGUI.EndChangeCheck())
                 {
                     string newRawValue = StepUtility.ConvertToRawString(newValue, member.ValueType);

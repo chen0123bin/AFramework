@@ -169,6 +169,93 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
+        /// 旋转对象动作应暴露完整的展示与参数元数据。
+        /// </summary>
+        [Test]
+        public void StepRotateObjectAction_Metadata_ShouldMatchSpec()
+        {
+            StepActionInfoAttribute info = GetActionInfo(typeof(StepRotateObjectAction));
+            StepParamAttribute targetParam = GetParamAttribute(typeof(StepRotateObjectAction), "target");
+            StepParamAttribute xParam = GetParamAttribute(typeof(StepRotateObjectAction), "x");
+            StepParamAttribute rotateTimeParam = GetParamAttribute(typeof(StepRotateObjectAction), "rotateTime");
+
+            Assert.AreEqual("旋转对象", info.DisplayName);
+            Assert.AreEqual("对象控制", info.Category);
+            Assert.AreEqual("Rotate:{target}", info.SummaryTemplate);
+            Assert.AreEqual("目标对象", targetParam.Label);
+            Assert.AreEqual(0, targetParam.Order);
+            Assert.AreEqual("目标X", xParam.Label);
+            Assert.AreEqual(1, xParam.Order);
+            Assert.AreEqual("旋转时长", rotateTimeParam.Label);
+            Assert.AreEqual(5, rotateTimeParam.Order);
+        }
+
+        /// <summary>
+        /// 缩放对象动作应暴露完整的展示与参数元数据。
+        /// </summary>
+        [Test]
+        public void StepScaleObjectAction_Metadata_ShouldMatchSpec()
+        {
+            StepActionInfoAttribute info = GetActionInfo(typeof(StepScaleObjectAction));
+            StepParamAttribute targetParam = GetParamAttribute(typeof(StepScaleObjectAction), "target");
+            StepParamAttribute xParam = GetParamAttribute(typeof(StepScaleObjectAction), "x");
+            StepParamAttribute scaleTimeParam = GetParamAttribute(typeof(StepScaleObjectAction), "scaleTime");
+
+            Assert.AreEqual("缩放对象", info.DisplayName);
+            Assert.AreEqual("对象控制", info.Category);
+            Assert.AreEqual("Scale:{target}", info.SummaryTemplate);
+            Assert.AreEqual("目标对象", targetParam.Label);
+            Assert.AreEqual(0, targetParam.Order);
+            Assert.AreEqual("缩放X", xParam.Label);
+            Assert.AreEqual(1, xParam.Order);
+            Assert.AreEqual("缩放时长", scaleTimeParam.Label);
+            Assert.AreEqual(4, scaleTimeParam.Order);
+        }
+
+        /// <summary>
+        /// 旧版动画动作应暴露完整的展示与参数元数据。
+        /// </summary>
+        [Test]
+        public void StepLegacyAnimationAction_Metadata_ShouldMatchSpec()
+        {
+            StepActionInfoAttribute info = GetActionInfo(typeof(StepLegacyAnimationAction));
+            StepParamAttribute targetParam = GetParamAttribute(typeof(StepLegacyAnimationAction), "target");
+            StepParamAttribute stateParam = GetParamAttribute(typeof(StepLegacyAnimationAction), "state");
+            StepParamAttribute reverseParam = GetParamAttribute(typeof(StepLegacyAnimationAction), "reverse");
+
+            Assert.AreEqual("播放旧版动画", info.DisplayName);
+            Assert.AreEqual("动画与特效", info.Category);
+            Assert.AreEqual("Legacy:{state}", info.SummaryTemplate);
+            Assert.AreEqual("目标对象", targetParam.Label);
+            Assert.AreEqual(0, targetParam.Order);
+            Assert.AreEqual("状态名", stateParam.Label);
+            Assert.AreEqual(1, stateParam.Order);
+            Assert.AreEqual("倒放", reverseParam.Label);
+            Assert.AreEqual(2, reverseParam.Order);
+        }
+
+        /// <summary>
+        /// Animator 动作参数应补齐展示标签与顺序。
+        /// </summary>
+        [Test]
+        public void StepAnimationAction_ParamMetadata_ShouldMatchSpec()
+        {
+            StepParamAttribute targetParam = GetParamAttribute(typeof(StepAnimationAction), "target");
+            StepParamAttribute stateParam = GetParamAttribute(typeof(StepAnimationAction), "state");
+            StepParamAttribute reverseParam = GetParamAttribute(typeof(StepAnimationAction), "reverse");
+            StepParamAttribute manualSpeedKeyParam = GetParamAttribute(typeof(StepAnimationAction), "manualSpeedKey");
+
+            Assert.AreEqual("目标对象", targetParam.Label);
+            Assert.AreEqual(0, targetParam.Order);
+            Assert.AreEqual("状态名", stateParam.Label);
+            Assert.AreEqual(1, stateParam.Order);
+            Assert.AreEqual("倒放", reverseParam.Label);
+            Assert.AreEqual(2, reverseParam.Order);
+            Assert.AreEqual("速度上下文键", manualSpeedKeyParam.Label);
+            Assert.AreEqual(3, manualSpeedKeyParam.Order);
+        }
+
+        /// <summary>
         /// 当前宿主无法直接访问 Unity 对象时，断言对应行为用例在 Unity batchmode 中执行通过。
         /// </summary>
         private static void AssertBehaviorCasePasses(string caseName)

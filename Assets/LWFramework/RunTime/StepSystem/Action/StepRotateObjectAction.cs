@@ -4,21 +4,22 @@ using UnityEngine;
 
 namespace LWStep
 {
+    [StepActionInfo("旋转对象", Category = "对象控制", SummaryTemplate = "Rotate:{target}")]
     public class StepRotateObjectAction : BaseTargeStepAction, IStepBaselineStateAction
     {
-        [StepParam("x")]
+        [StepParam("x", label: "目标X", order: 1)]
         private float m_X;
 
-        [StepParam("y")]
+        [StepParam("y", label: "目标Y", order: 2)]
         private float m_Y;
 
-        [StepParam("z")]
+        [StepParam("z", label: "目标Z", order: 3)]
         private float m_Z;
 
-        [StepParam("isLocal")]
+        [StepParam("isLocal", label: "本地旋转", order: 4)]
         private bool m_IsLocal;
 
-        [StepParam("rotateTime")]
+        [StepParam("rotateTime", label: "旋转时长", order: 5)]
         private float m_RotateTime;
 
         private Vector3 m_TargetRotation;

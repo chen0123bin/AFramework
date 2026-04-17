@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-16"?>
-<graph start="step_start">
+<graph id="" start="step_start">
   <nodes>
-    <node id="step_start" name="开始" x="1.00" y="-2.00">
+    <node id="step_start" name="开始" x="1.00" y="-2.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="开始启动00333" />
@@ -9,7 +9,7 @@
         </action>
       </actions>
     </node>
-    <node id="step_mode_gate" name="模式判断" x="220.00" y="-2.00">
+    <node id="step_mode_gate" name="模式判断" x="220.00" y="-2.00" collapsed="false">
       <actions>
         <action type="LWStep.StepWaitMouseLeftClickAction" />
         <action type="LWStep.StepToggleObjectAction">
@@ -18,7 +18,7 @@
         </action>
       </actions>
     </node>
-    <node id="step_mode_a" name="模式A" x="448.00" y="92.00" mode="parallel">
+    <node id="step_mode_a" name="模式A" x="448.00" y="92.00" collapsed="true" mode="parallel">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="isBlocking" value="false" />
@@ -59,14 +59,14 @@
         </action>
       </actions>
     </node>
-    <node id="step_mode_other" name="非A模式" x="433.60" y="-57.60">
+    <node id="step_mode_other" name="非A模式" x="468.25" y="-114.77" collapsed="true">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：进入非A模式" />
         </action>
       </actions>
     </node>
-    <node id="step_condition_gate" name="条件选路" x="698.00" y="-3.00">
+    <node id="step_condition_gate" name="条件选路" x="698.00" y="-3.00" collapsed="true">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：标签选路" />
@@ -88,7 +88,7 @@
         </action>
       </actions>
     </node>
-    <node id="step_vip_true" name="条件为真-动画" x="996.80" y="121.60">
+    <node id="step_vip_true" name="条件为真-动画" x="996.80" y="121.60" collapsed="false">
       <actions>
         <action type="LWStep.StepAnimationAction">
           <param key="state" value="Test1" />
@@ -109,56 +109,56 @@
         </action>
       </actions>
     </node>
-    <node id="step_vip_false" name="条件为假" x="988.00" y="-79.00">
+    <node id="step_vip_false" name="条件为假" x="988.00" y="-79.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：条件为假" />
         </action>
       </actions>
     </node>
-    <node id="step_score_gate" name="分数判断" x="1245.00" y="0.00">
+    <node id="step_score_gate" name="分数判断" x="1245.00" y="0.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：分数判断" />
         </action>
       </actions>
     </node>
-    <node id="step_score_good" name="分数命中" x="1539.00" y="91.00">
+    <node id="step_score_good" name="分数命中" x="1539.00" y="91.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：分数命中" />
         </action>
       </actions>
     </node>
-    <node id="step_score_other" name="分数未命中" x="1521.00" y="-108.00">
+    <node id="step_score_other" name="分数未命中" x="1521.00" y="-108.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：分数未命中" />
         </action>
       </actions>
     </node>
-    <node id="step_priority_gate" name="优先级判断" x="1795.00" y="-13.00">
+    <node id="step_priority_gate" name="优先级判断" x="1795.00" y="-13.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：优先级判断" />
         </action>
       </actions>
     </node>
-    <node id="step_priority_high" name="高优先级" x="2071.00" y="92.00">
+    <node id="step_priority_high" name="高优先级" x="2071.00" y="92.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：高优先级路径" />
         </action>
       </actions>
     </node>
-    <node id="step_priority_low" name="低优先级" x="2070.00" y="-84.00">
+    <node id="step_priority_low" name="低优先级" x="2070.00" y="-84.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：低优先级路径" />
         </action>
       </actions>
     </node>
-    <node id="step_end" name="结束" x="2291.00" y="-3.00">
+    <node id="step_end" name="结束" x="2291.00" y="-3.00" collapsed="false">
       <actions>
         <action type="LWStep.StepLogAction">
           <param key="message" value="阶段4测试：结束" />

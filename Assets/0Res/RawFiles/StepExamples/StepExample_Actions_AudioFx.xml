@@ -1,39 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
-<graph id="step_example_actions_audio_fx" start="step_intro">
+<?xml version="1.0" encoding="utf-16"?>
+<graph id="step_example_basic_flow" start="step_intro">
   <nodes>
-    <node id="step_intro" name="音频特效-提示" x="0.00" y="0.00">
+    <node id="step_intro" name="基础流程-介绍" x="-219.00" y="-90.00">
       <actions>
         <action type="LWStep.StepLogAction">
-          <param key="message" value="准备播放音频与粒子特效" />
+          <param key="message" value="示例：基础流程开始" />
         </action>
       </actions>
     </node>
-    <node id="step_play" name="音频特效-执行" x="240.00" y="0.00" mode="parallel">
+    <node id="step_prepare" name="基础流程-准备" x="87.00" y="-85.00">
       <actions>
-        <action type="LWStep.StepPlayAudioAction">
-          <param key="target" value="AudioSourceObj" />
-          <param key="clip" value="Assets/0Res/Audios/bgm.wav" />
-          <param key="volume" value="1" />
-          <param key="isLoop" value="False" />
-          <param key="fadeInSeconds" value="0" />
-        </action>
-        <action type="LWStep.StepPlayParticleAction">
-          <param key="target" value="FxRoot" />
-          <param key="waitForFinish" value="False" />
-          <param key="restart" value="True" />
+        <action type="LWStep.StepWaitSecondsAction">
+          <param key="seconds" value="1" />
         </action>
       </actions>
     </node>
-    <node id="step_done" name="音频特效-结束" x="480.00" y="0.00">
+    <node id="step_finish" name="基础流程-完成" x="342.00" y="-80.00">
       <actions>
-        <action type="LWStep.StepLogAction">
-          <param key="message" value="音频特效流程结束" />
+        <action type="LWStep.StepDispatchEventAction">
+          <param key="eventName" value="StepExample.BasicFlow.Completed" />
         </action>
       </actions>
     </node>
   </nodes>
   <edges>
-    <edge from="step_intro" to="step_play" priority="0" />
-    <edge from="step_play" to="step_done" priority="0" />
+    <edge from="step_intro" to="step_prepare" priority="0" />
+    <edge from="step_prepare" to="step_finish" priority="0" />
   </edges>
 </graph>

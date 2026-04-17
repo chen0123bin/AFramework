@@ -11,7 +11,7 @@ namespace LWFramework.Tests.StepSystem.EditMode
     public sealed class StepXmlRoundTripTests
     {
         /// <summary>
-        /// 导入 XML 时应读取 graph.id 且兼容 action 内联参数属性。
+        /// 导入 XML 时应读取 graph.id，兼容 action 内联参数属性，并兼容缺失 collapsed 属性。
         /// </summary>
         [Test]
         public void LoadFromText_ShouldReadGraphIdAndInlineActionAttributes()
@@ -23,6 +23,7 @@ namespace LWFramework.Tests.StepSystem.EditMode
             Assert.IsNotNull(data);
             Assert.AreEqual("demo_graph", data.GraphId);
             Assert.AreEqual("hello", data.Nodes[0].Actions[0].GetParameterValue("message"));
+            Assert.IsFalse(data.Nodes[0].IsCollapsed);
         }
 
         /// <summary>
@@ -84,6 +85,36 @@ namespace LWFramework.Tests.StepSystem.EditMode
 
             StringAssert.Contains("<param key=\"message\" value=\"hello\" />", xmlText);
             Assert.AreEqual(1, CountOccurrences(xmlText, "<param key=\"message\""));
+        }
+
+        /// <summary>
+        /// 导出再导入后应恢复节点折叠状态。
+        /// </summary>
+        [Test]
+        public void ExportAndLoadCollapsed_ShouldRoundTripNodeCollapsedState()
+        {
+            StepEditorGraphData data = new StepEditorGraphData();
+            data.GraphId = "demo_graph";
+            data.StartNodeId = "node_a";
+
+            StepEditorNodeData nodeA = CreateNodeWithLogAction("node_a", "A");
+            nodeA.IsCollapsed = true;
+            data.Nodes.Add(nodeA);
+
+            StepEditorNodeData nodeB = CreateNodeWithLogAction("node_b", "B");
+            nodeB.IsCollapsed = false;
+            data.Nodes.Add(nodeB);
+
+            string xmlText = StepXmlExporter.ExportToText(data);
+
+            StringAssert.Contains("collapsed=\"true\"", xmlText);
+            StringAssert.Contains("collapsed=\"false\"", xmlText);
+
+            StepEditorGraphData loadedData = StepXmlImporter.LoadFromText(xmlText);
+
+            Assert.IsNotNull(loadedData);
+            Assert.IsTrue(loadedData.GetNode("node_a").IsCollapsed);
+            Assert.IsFalse(loadedData.GetNode("node_b").IsCollapsed);
         }
 
         /// <summary>

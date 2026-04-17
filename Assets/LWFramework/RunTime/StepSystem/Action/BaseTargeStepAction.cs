@@ -12,9 +12,12 @@ namespace LWStep
     /// </summary>
     public abstract class BaseTargeStepAction : BaseStepAction
     {
-        [StepParam("target")]
+        [StepParam("target", label: "目标对象", order: 0)]
         protected string m_TargetName;
         protected GameObject m_Target;
+        /// <summary>
+        /// 进入动作前先解析目标对象，再继续执行基类进入流程。
+        /// </summary>
         public override void Enter()
         {
             m_Target = FindTarget();

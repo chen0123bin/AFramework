@@ -51,6 +51,9 @@ namespace LWStep
             return defaultValue;
         }
 
+        /// <summary>
+        /// 尝试按指定类型读取上下文值。
+        /// </summary>
         public bool TryGetValue<T>(string key, out T value)
         {
             object rawValue;
@@ -74,12 +77,18 @@ namespace LWStep
             return m_Data.ContainsKey(key);
         }
 
+        /// <summary>
+        /// 移除指定键对应的上下文值。
+        /// </summary>
         public bool RemoveKey(string key)
         {
             bool removed = m_Data.Remove(key);
             return removed;
         }
 
+        /// <summary>
+        /// 尝试读取原始对象值，不做类型转换。
+        /// </summary>
         public bool TryGetRawValue(string key, out object value)
         {
             return m_Data.TryGetValue(key, out value);
@@ -101,11 +110,17 @@ namespace LWStep
             return new Dictionary<string, object>(m_Data);
         }
 
+        /// <summary>
+        /// 创建当前上下文的快照副本。
+        /// </summary>
         public StepContextSnapshot CreateSnapshot()
         {
             return new StepContextSnapshot(CloneData());
         }
 
+        /// <summary>
+        /// 将上下文中可持久化的基础类型序列化为 JSON。
+        /// </summary>
         public string ToJson()
         {
             m_Entries = new List<StepContextPersistEntry>();
@@ -126,6 +141,7 @@ namespace LWStep
                     continue;
                 }
 
+                // 只把基础类型转换为字符串存储，反序列化时再统一回推基础值类型。
                 string valueString = StepUtility.ConvertToRawString(value, valueType);
                 StepContextPersistEntry entry = new StepContextPersistEntry();
                 entry.Key = key;
@@ -135,6 +151,9 @@ namespace LWStep
             return JsonMapper.ToJson(m_Entries);
         }
 
+        /// <summary>
+        /// 从 JSON 文本恢复上下文内容。
+        /// </summary>
         public void LoadFromJson(string json)
         {
             Clear();
@@ -167,6 +186,7 @@ namespace LWStep
 
                 string rawValue = entry.Value;
                 object parsedValue;
+                // 优先恢复成基础数值/布尔类型，失败时退回原始字符串，保证调试面板可逆。
                 if (StepUtility.TryParseBasicValue(rawValue, out parsedValue))
                 {
                     m_Data[entry.Key] = parsedValue;

@@ -185,6 +185,9 @@ namespace LWStep
             m_Context.Clear();
         }
 
+        /// <summary>
+        /// 前进到下一个可达节点，优先消费前进历史中的可重做节点。
+        /// </summary>
         public void Forward()
         {
             if (!IsRunning || m_CurrentGraph == null || m_CurrentNode == null)
@@ -193,6 +196,7 @@ namespace LWStep
                 return;
             }
 
+            // 先补齐当前节点剩余动作，确保上下文状态已经推进到离开节点前的最终结果。
             m_CurrentNode.ApplyRemaining(m_Context);
 
             if (m_ForwardHistory.Count > 0)
@@ -239,6 +243,9 @@ namespace LWStep
             SwitchToNodeWithRebuild(targetNodeId, m_History.Count - 1);
         }
 
+        /// <summary>
+        /// 跳转到指定节点；若存在历史或路径则尽量补齐中间状态，否则直接切换。
+        /// </summary>
         public void JumpTo(string targetNodeId)
         {
             if (!IsRunning || m_CurrentGraph == null || m_CurrentNode == null)
@@ -273,6 +280,7 @@ namespace LWStep
             {
                 m_CurrentNode.ApplyRemaining(m_Context);
 
+                // 历史内回跳时，把被弹出的节点转存到前进栈，便于后续 Forward 继续重做。
                 m_ForwardHistory.Clear();
                 for (int i = m_History.Count - 1; i > targetHistoryIndex; i--)
                 {
@@ -293,6 +301,7 @@ namespace LWStep
 
             if (hasPath)
             {
+                // 顺着路径补齐中间节点的 Apply 结果，让上下文与直接手动推进后的状态保持一致。
                 for (int i = 1; i < path.Count - 1; i++)
                 {
                     string nodeId = path[i];
@@ -350,6 +359,9 @@ namespace LWStep
             }
             return new List<StepNode>();
         }
+        /// <summary>
+        /// 获取当前图内指定节点的运行状态。
+        /// </summary>
         public StepNodeStatus GetNodeStatus(string nodeId)
         {
             if (m_CurrentGraph == null || string.IsNullOrEmpty(nodeId))
@@ -374,11 +386,17 @@ namespace LWStep
             }
             return m_CurrentGraph.GetNextNodeIds(m_CurrentNode.Id, m_Context);
         }
+        /// <summary>
+        /// 获取当前步骤系统持有的运行时上下文。
+        /// </summary>
         public StepContext GetStepContext()
         {
             return m_Context;
         }
 
+        /// <summary>
+        /// 将当前上下文序列化为 JSON 文本。
+        /// </summary>
         public string GetContextToJson()
         {
             if (m_Context == null)
@@ -402,6 +420,9 @@ namespace LWStep
             return m_DebugTracker.CreateSnapshot(m_Context, CurrentNodeId, currentActionName);
         }
 
+        /// <summary>
+        /// 使用 JSON 文本直接覆盖当前上下文内容。
+        /// </summary>
         public void LoadContextFromJson(string json)
         {
             if (m_Context == null)
@@ -411,6 +432,9 @@ namespace LWStep
             m_Context.LoadFromJson(json);
         }
 
+        /// <summary>
+        /// 切换到指定节点，并按需写入历史栈。
+        /// </summary>
         private void SwitchToNode(string nodeId, bool appendHistory)
         {
             StepNode node = m_CurrentGraph.GetNode(nodeId);
@@ -442,6 +466,9 @@ namespace LWStep
             NotifyActionChanged(true);
         }
 
+        /// <summary>
+        /// 切换到指定节点前，先依据历史索引重建上下文和节点状态。
+        /// </summary>
         private void SwitchToNodeWithRebuild(string nodeId, int historyIndex)
         {
             StepNode node = m_CurrentGraph.GetNode(nodeId);
@@ -471,6 +498,9 @@ namespace LWStep
             NotifyActionChanged(true);
         }
 
+        /// <summary>
+        /// 捕获图内支持基线恢复的动作状态，供回退和重建时复用。
+        /// </summary>
         private void CaptureBaselineSnapshots(StepGraph graph)
         {
             m_Context.Clear();
@@ -498,6 +528,7 @@ namespace LWStep
                         continue;
                     }
                     m_BaselineStateActions.Add(baselineStateAction);
+                    // 基线只采集一次初始状态，后续回退时从这里恢复，再按历史重放。
                     baselineStateAction.CaptureBaselineState();
                 }
             }
@@ -535,6 +566,9 @@ namespace LWStep
             }
         }
 
+        /// <summary>
+        /// 根据历史索引重建上下文和节点状态，使前进/后退/跳转后的状态一致。
+        /// </summary>
         private void RebuildStateToHistoryIndex(int historyIndex)
         {
             if (m_CurrentGraph == null)
@@ -556,6 +590,7 @@ namespace LWStep
             RestoreBaselineSnapshots();
             m_Context.Clear();
 
+            // 从起点按历史顺序重放 Apply，恢复到目标历史节点进入前的上下文结果。
             for (int i = 0; i < historyIndex; i++)
             {
                 if (i < 0 || i >= m_History.Count)
@@ -573,6 +608,9 @@ namespace LWStep
         }
 
 
+        /// <summary>
+        /// 在动作名称变化时同步广播事件并记录调试轨迹。
+        /// </summary>
         private void NotifyActionChanged(bool force)
         {
             string actionName = m_CurrentNode != null ? m_CurrentNode.GetCurrentActionName() : string.Empty;
@@ -584,6 +622,9 @@ namespace LWStep
             }
         }
 
+        /// <summary>
+        /// 处理跳转失败，统一输出日志并抛出失败事件。
+        /// </summary>
         private void HandleJumpFailed(string reason)
         {
             LWDebug.LogWarning("跳转被阻止: " + reason);
