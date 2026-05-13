@@ -6,6 +6,7 @@ using LWStep.Editor;
 using NUnit.Framework;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace LWFramework.Tests.StepSystem.EditMode
 {
@@ -69,6 +70,32 @@ namespace LWFramework.Tests.StepSystem.EditMode
             List<Port> compatiblePorts = graphView.GetCompatiblePorts(fromView.OutputPort, null);
             CollectionAssert.Contains(compatiblePorts, toView.InputPort);
             CollectionAssert.DoesNotContain(compatiblePorts, fromView.InputPort);
+        }
+
+        /// <summary>
+        /// 图视图中的连线不应再显示优先级和条件标签。
+        /// </summary>
+        [Test]
+        public void StepGraphView_WhenBuiltWithConditionalEdge_ShouldNotCreateEdgeLabel()
+        {
+            StepEditorGraphData data = new StepEditorGraphData();
+            data.Nodes.Add(CreateNode("node_a", Vector2.zero));
+            data.Nodes.Add(CreateNode("node_b", new Vector2(240.0f, 0.0f)));
+
+            StepEditorEdgeData edgeData = new StepEditorEdgeData();
+            edgeData.FromId = "node_a";
+            edgeData.ToId = "node_b";
+            edgeData.Priority = 10;
+            edgeData.ConditionKey = "isVip";
+            edgeData.ConditionComparisonType = ComparisonType.EqualTo;
+            edgeData.ConditionValue = "True";
+            data.Edges.Add(edgeData);
+
+            StepGraphView graphView = new StepGraphView(data);
+            Edge edgeView = FindSingleEdge(graphView);
+
+            Assert.IsNotNull(edgeView);
+            Assert.IsNull(edgeView.Q<Label>("step-edge-label"));
         }
 
         /// <summary>
@@ -187,6 +214,35 @@ namespace LWFramework.Tests.StepSystem.EditMode
         {
             StepEditorGraphData data = new StepEditorGraphData();
             return new StepGraphView(data);
+        }
+
+        /// <summary>
+        /// 创建测试用节点数据。
+        /// </summary>
+        private static StepEditorNodeData CreateNode(string id, Vector2 position)
+        {
+            StepEditorNodeData node = new StepEditorNodeData();
+            node.Id = id;
+            node.Name = id;
+            node.Position = position;
+            return node;
+        }
+
+        /// <summary>
+        /// 从图视图中找到唯一连线。
+        /// </summary>
+        private static Edge FindSingleEdge(StepGraphView graphView)
+        {
+            foreach (GraphElement element in graphView.graphElements)
+            {
+                Edge edge = element as Edge;
+                if (edge != null)
+                {
+                    return edge;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

@@ -138,6 +138,51 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
+        /// 物体移动/旋转/缩放动作应在 Inspector 中以 Vector3Field 分组绘制 XYZ。
+        /// </summary>
+        [Test]
+        public void DrawActionTypedParameters_ShouldUseVector3FieldForObjectTweenActionsContract()
+        {
+            string source = ReadStepEditorWindowSource();
+
+            StringAssert.Contains("EditorGUILayout.Vector3Field", source);
+            StringAssert.Contains("EditorGUIUtility.systemCopyBuffer", source);
+            StringAssert.Contains("TryParseVector3Clipboard", source);
+            StringAssert.Contains("TryGetVector3Group", source);
+        }
+
+        /// <summary>
+        /// 向量复制文本应使用 InvariantCulture 的逗号分隔格式。
+        /// </summary>
+        [Test]
+        public void FormatVector3Clipboard_ShouldUseInvariantCommaSeparatedFormat()
+        {
+            MethodInfo formatMethod = typeof(StepEditorWindow).GetMethod("FormatVector3Clipboard", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(formatMethod);
+
+            object result = formatMethod.Invoke(null, new object[] { new Vector3(1.5f, -2f, 3.25f) });
+            string text = result as string;
+
+            Assert.AreEqual("1.5, -2, 3.25", text);
+        }
+
+        /// <summary>
+        /// 向量粘贴解析应兼容括号包裹的逗号分隔格式。
+        /// </summary>
+        [Test]
+        public void TryParseVector3Clipboard_ShouldSupportParenthesizedCommaSeparatedFormat()
+        {
+            MethodInfo parseMethod = typeof(StepEditorWindow).GetMethod("TryParseVector3Clipboard", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(parseMethod);
+
+            object[] args = { "(1.5, -2, 3.25)", null };
+            object result = parseMethod.Invoke(null, args);
+
+            Assert.IsTrue((bool)result);
+            Assert.AreEqual(new Vector3(1.5f, -2f, 3.25f), (Vector3)args[1]);
+        }
+
+        /// <summary>
         /// 读取 StepEditorWindow 源码文本，用于轻量契约验证。
         /// </summary>
         private static string ReadStepEditorWindowSource()

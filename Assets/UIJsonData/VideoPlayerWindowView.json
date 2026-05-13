@@ -1,0 +1,825 @@
+{
+  "Root": {
+    "name": "VideoPlayerWindowView",
+    "themeName": "Dark_Developer_Tool_IDE",
+    "rectTransform": {
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 0.5],
+      "anchoredPosition": [0.0, 0.0],
+      "sizeDelta": [0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "children": [
+      {
+        "name": "PnlWindow",
+        "active": true,
+        "rectTransform": {
+          "anchorMin": [0.5, 0.5],
+          "anchorMax": [0.5, 0.5],
+          "pivot": [0.5, 0.5],
+          "anchoredPosition": [0.0, 0.0],
+          "sizeDelta": [1280.0, 720.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "children": [
+          {
+            "name": "ImgWindowBg",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 0.0],
+              "anchorMax": [1.0, 1.0],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0.0, 0.0],
+              "sizeDelta": [0.0, 0.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "components": [
+              {
+                "type": "Image",
+                "data": {
+                  "sprite": null,
+                  "color": [0.114, 0.145, 0.216, 0.97],
+                  "material": "Default UI Material",
+                  "raycastTarget": true,
+                  "imageType": "Simple",
+                  "fillCenter": true,
+                  "pixelsPerUnitMultiplier": 1.0,
+                  "preserveAspect": false,
+                  "fillMethod": "Radial360",
+                  "fillAmount": 1.0,
+                  "fillClockwise": true,
+                  "fillOrigin": 0
+                }
+              }
+            ]
+          },
+          {
+            "name": "PnlTop",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 1.0],
+              "anchorMax": [1.0, 1.0],
+              "pivot": [0.5, 1.0],
+              "anchoredPosition": [0.0, 0.0],
+              "sizeDelta": [0.0, 72.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "children": [
+              {
+                "name": "TxtTitle",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.0],
+                  "anchorMax": [0.0, 1.0],
+                  "pivot": [0.0, 0.5],
+                  "anchoredPosition": [24.0, 0.0],
+                  "sizeDelta": [320.0, 0.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Text",
+                    "data": {
+                      "content": "视频播放器",
+                      "font": "Library/unity default resources",
+                      "fontSize": 24,
+                      "fontStyle": "Bold",
+                      "color": [0.945, 0.961, 0.976, 1.0],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false,
+                      "supportRichText": true,
+                      "lineSpacing": 1.0
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "BtnZoom",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [1.0, 0.5],
+                  "anchorMax": [1.0, 0.5],
+                  "pivot": [1.0, 0.5],
+                  "anchoredPosition": [-224.0, 0.0],
+                  "sizeDelta": [88.0, 40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": null,
+                      "color": [0.145, 0.388, 0.922, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Simple",
+                      "fillCenter": true,
+                      "pixelsPerUnitMultiplier": 1.0,
+                      "preserveAspect": false,
+                      "fillMethod": "Radial360",
+                      "fillAmount": 1.0,
+                      "fillClockwise": true,
+                      "fillOrigin": 0
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "data": {
+                      "interactable": true,
+                      "transition": "ColorTint",
+                      "navigation": { "mode": "Automatic" }
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "TxtZoom",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Text",
+                        "data": {
+                          "content": "放大",
+                          "font": "Library/unity default resources",
+                          "fontSize": 16,
+                          "fontStyle": "Bold",
+                          "color": [1.0, 1.0, 1.0, 1.0],
+                          "alignment": "MiddleCenter",
+                          "horizontalOverflow": "Wrap",
+                          "verticalOverflow": "Truncate",
+                          "raycastTarget": false,
+                          "supportRichText": true,
+                          "lineSpacing": 1.0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "BtnFullscreen",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [1.0, 0.5],
+                  "anchorMax": [1.0, 0.5],
+                  "pivot": [1.0, 0.5],
+                  "anchoredPosition": [-120.0, 0.0],
+                  "sizeDelta": [88.0, 40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": null,
+                      "color": [0.176, 0.231, 0.310, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Simple",
+                      "fillCenter": true,
+                      "pixelsPerUnitMultiplier": 1.0,
+                      "preserveAspect": false,
+                      "fillMethod": "Radial360",
+                      "fillAmount": 1.0,
+                      "fillClockwise": true,
+                      "fillOrigin": 0
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "data": {
+                      "interactable": true,
+                      "transition": "ColorTint",
+                      "navigation": { "mode": "Automatic" }
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "TxtFullscreen",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Text",
+                        "data": {
+                          "content": "全屏",
+                          "font": "Library/unity default resources",
+                          "fontSize": 16,
+                          "fontStyle": "Bold",
+                          "color": [0.945, 0.961, 0.976, 1.0],
+                          "alignment": "MiddleCenter",
+                          "horizontalOverflow": "Wrap",
+                          "verticalOverflow": "Truncate",
+                          "raycastTarget": false,
+                          "supportRichText": true,
+                          "lineSpacing": 1.0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "BtnClose",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [1.0, 0.5],
+                  "anchorMax": [1.0, 0.5],
+                  "pivot": [1.0, 0.5],
+                  "anchoredPosition": [-24.0, 0.0],
+                  "sizeDelta": [72.0, 40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": null,
+                      "color": [0.863, 0.188, 0.188, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Simple",
+                      "fillCenter": true,
+                      "pixelsPerUnitMultiplier": 1.0,
+                      "preserveAspect": false,
+                      "fillMethod": "Radial360",
+                      "fillAmount": 1.0,
+                      "fillClockwise": true,
+                      "fillOrigin": 0
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "data": {
+                      "interactable": true,
+                      "transition": "ColorTint",
+                      "navigation": { "mode": "Automatic" }
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "TxtClose",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Text",
+                        "data": {
+                          "content": "关闭",
+                          "font": "Library/unity default resources",
+                          "fontSize": 16,
+                          "fontStyle": "Bold",
+                          "color": [1.0, 1.0, 1.0, 1.0],
+                          "alignment": "MiddleCenter",
+                          "horizontalOverflow": "Wrap",
+                          "verticalOverflow": "Truncate",
+                          "raycastTarget": false,
+                          "supportRichText": true,
+                          "lineSpacing": 1.0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "PnlVideo",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 0.0],
+              "anchorMax": [1.0, 1.0],
+              "pivot": [0.5, 0.5],
+              "anchoredPosition": [0.0, -4.0],
+              "sizeDelta": [-40.0, -184.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "children": [
+              {
+                "name": "RImgVideo",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.0],
+                  "anchorMax": [1.0, 1.0],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0.0, 0.0],
+                  "sizeDelta": [0.0, 0.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "RawImage",
+                    "data": {
+                      "texture": null,
+                      "uvRect": [0.0, 0.0, 1.0, 1.0],
+                      "color": [1.0, 1.0, 1.0, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "TxtEmptyHint",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.5, 0.5],
+                  "anchorMax": [0.5, 0.5],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [0.0, 0.0],
+                  "sizeDelta": [420.0, 40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Text",
+                    "data": {
+                      "content": "请先设置 VideoClip 或 URL",
+                      "font": "Library/unity default resources",
+                      "fontSize": 22,
+                      "fontStyle": "Normal",
+                      "color": [0.749, 0.769, 0.796, 1.0],
+                      "alignment": "MiddleCenter",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false,
+                      "supportRichText": true,
+                      "lineSpacing": 1.0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "PnlBottom",
+            "active": true,
+            "rectTransform": {
+              "anchorMin": [0.0, 0.0],
+              "anchorMax": [1.0, 0.0],
+              "pivot": [0.5, 0.0],
+              "anchoredPosition": [0.0, 20.0],
+              "sizeDelta": [-40.0, 88.0],
+              "rotation": [0.0, 0.0, 0.0],
+              "scale": [1.0, 1.0, 1.0]
+            },
+            "children": [
+              {
+                "name": "BtnPlay",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.5],
+                  "anchorMax": [0.0, 0.5],
+                  "pivot": [0.0, 0.5],
+                  "anchoredPosition": [0.0, 0.0],
+                  "sizeDelta": [88.0, 40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": null,
+                      "color": [0.145, 0.388, 0.922, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Simple",
+                      "fillCenter": true,
+                      "pixelsPerUnitMultiplier": 1.0,
+                      "preserveAspect": false,
+                      "fillMethod": "Radial360",
+                      "fillAmount": 1.0,
+                      "fillClockwise": true,
+                      "fillOrigin": 0
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "data": {
+                      "interactable": true,
+                      "transition": "ColorTint",
+                      "navigation": { "mode": "Automatic" }
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "TxtPlay",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Text",
+                        "data": {
+                          "content": "播放",
+                          "font": "Library/unity default resources",
+                          "fontSize": 16,
+                          "fontStyle": "Bold",
+                          "color": [1.0, 1.0, 1.0, 1.0],
+                          "alignment": "MiddleCenter",
+                          "horizontalOverflow": "Wrap",
+                          "verticalOverflow": "Truncate",
+                          "raycastTarget": false,
+                          "supportRichText": true,
+                          "lineSpacing": 1.0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "BtnPause",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.5],
+                  "anchorMax": [0.0, 0.5],
+                  "pivot": [0.0, 0.5],
+                  "anchoredPosition": [100.0, 0.0],
+                  "sizeDelta": [88.0, 40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": null,
+                      "color": [0.176, 0.231, 0.310, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Simple",
+                      "fillCenter": true,
+                      "pixelsPerUnitMultiplier": 1.0,
+                      "preserveAspect": false,
+                      "fillMethod": "Radial360",
+                      "fillAmount": 1.0,
+                      "fillClockwise": true,
+                      "fillOrigin": 0
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "data": {
+                      "interactable": true,
+                      "transition": "ColorTint",
+                      "navigation": { "mode": "Automatic" }
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "TxtPause",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Text",
+                        "data": {
+                          "content": "暂停",
+                          "font": "Library/unity default resources",
+                          "fontSize": 16,
+                          "fontStyle": "Bold",
+                          "color": [0.945, 0.961, 0.976, 1.0],
+                          "alignment": "MiddleCenter",
+                          "horizontalOverflow": "Wrap",
+                          "verticalOverflow": "Truncate",
+                          "raycastTarget": false,
+                          "supportRichText": true,
+                          "lineSpacing": 1.0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "TxtCurrentTime",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.5],
+                  "anchorMax": [0.0, 0.5],
+                  "pivot": [0.0, 0.5],
+                  "anchoredPosition": [212.0, 0.0],
+                  "sizeDelta": [110.0, 32.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Text",
+                    "data": {
+                      "content": "00:00:00",
+                      "font": "Library/unity default resources",
+                      "fontSize": 16,
+                      "fontStyle": "Normal",
+                      "color": [0.945, 0.961, 0.976, 1.0],
+                      "alignment": "MiddleLeft",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false,
+                      "supportRichText": true,
+                      "lineSpacing": 1.0
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "SldProgress",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [0.0, 0.5],
+                  "anchorMax": [1.0, 0.5],
+                  "pivot": [0.5, 0.5],
+                  "anchoredPosition": [60.0, 0.0],
+                  "sizeDelta": [-560.0, 20.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Slider",
+                    "data": {
+                      "interactable": true,
+                      "targetGraphic": "ImgHandle",
+                      "transition": "ColorTint",
+                      "fillRect": "ImgFill",
+                      "handleRect": "ImgHandle",
+                      "direction": "LeftToRight",
+                      "minValue": 0.0,
+                      "maxValue": 1.0,
+                      "wholeNumbers": false,
+                      "value": 0.0,
+                      "navigation": { "mode": "Automatic" }
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "ImgBackground",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Image",
+                        "data": {
+                          "sprite": null,
+                          "color": [0.176, 0.231, 0.310, 1.0],
+                          "material": "Default UI Material",
+                          "raycastTarget": false,
+                          "imageType": "Simple",
+                          "fillCenter": true,
+                          "pixelsPerUnitMultiplier": 1.0,
+                          "preserveAspect": false,
+                          "fillMethod": "Radial360",
+                          "fillAmount": 1.0,
+                          "fillClockwise": true,
+                          "fillOrigin": 0
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "name": "ImgFill",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, -8.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Image",
+                        "data": {
+                          "sprite": null,
+                          "color": [0.145, 0.388, 0.922, 1.0],
+                          "material": "Default UI Material",
+                          "raycastTarget": false,
+                          "imageType": "Filled",
+                          "fillCenter": true,
+                          "pixelsPerUnitMultiplier": 1.0,
+                          "preserveAspect": false,
+                          "fillMethod": "Horizontal",
+                          "fillAmount": 0.0,
+                          "fillClockwise": true,
+                          "fillOrigin": 0
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "name": "ImgHandle",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.5],
+                      "anchorMax": [0.0, 0.5],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [20.0, 20.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Image",
+                        "data": {
+                          "sprite": null,
+                          "color": [0.945, 0.961, 0.976, 1.0],
+                          "material": "Default UI Material",
+                          "raycastTarget": true,
+                          "imageType": "Simple",
+                          "fillCenter": true,
+                          "pixelsPerUnitMultiplier": 1.0,
+                          "preserveAspect": false,
+                          "fillMethod": "Radial360",
+                          "fillAmount": 1.0,
+                          "fillClockwise": true,
+                          "fillOrigin": 0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "TxtDuration",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [1.0, 0.5],
+                  "anchorMax": [1.0, 0.5],
+                  "pivot": [1.0, 0.5],
+                  "anchoredPosition": [-100.0, 0.0],
+                  "sizeDelta": [110.0, 32.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Text",
+                    "data": {
+                      "content": "00:00:00",
+                      "font": "Library/unity default resources",
+                      "fontSize": 16,
+                      "fontStyle": "Normal",
+                      "color": [0.945, 0.961, 0.976, 1.0],
+                      "alignment": "MiddleRight",
+                      "horizontalOverflow": "Wrap",
+                      "verticalOverflow": "Truncate",
+                      "raycastTarget": false,
+                      "supportRichText": true,
+                      "lineSpacing": 1.0
+                    }
+                  }
+                ]
+              },
+              {
+                "name": "BtnShrink",
+                "active": true,
+                "rectTransform": {
+                  "anchorMin": [1.0, 0.5],
+                  "anchorMax": [1.0, 0.5],
+                  "pivot": [1.0, 0.5],
+                  "anchoredPosition": [0.0, 0.0],
+                  "sizeDelta": [88.0, 40.0],
+                  "rotation": [0.0, 0.0, 0.0],
+                  "scale": [1.0, 1.0, 1.0]
+                },
+                "components": [
+                  {
+                    "type": "Image",
+                    "data": {
+                      "sprite": null,
+                      "color": [0.176, 0.231, 0.310, 1.0],
+                      "material": "Default UI Material",
+                      "raycastTarget": true,
+                      "imageType": "Simple",
+                      "fillCenter": true,
+                      "pixelsPerUnitMultiplier": 1.0,
+                      "preserveAspect": false,
+                      "fillMethod": "Radial360",
+                      "fillAmount": 1.0,
+                      "fillClockwise": true,
+                      "fillOrigin": 0
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "data": {
+                      "interactable": true,
+                      "transition": "ColorTint",
+                      "navigation": { "mode": "Automatic" }
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "TxtShrink",
+                    "active": true,
+                    "rectTransform": {
+                      "anchorMin": [0.0, 0.0],
+                      "anchorMax": [1.0, 1.0],
+                      "pivot": [0.5, 0.5],
+                      "anchoredPosition": [0.0, 0.0],
+                      "sizeDelta": [0.0, 0.0],
+                      "rotation": [0.0, 0.0, 0.0],
+                      "scale": [1.0, 1.0, 1.0]
+                    },
+                    "components": [
+                      {
+                        "type": "Text",
+                        "data": {
+                          "content": "还原",
+                          "font": "Library/unity default resources",
+                          "fontSize": 16,
+                          "fontStyle": "Bold",
+                          "color": [0.945, 0.961, 0.976, 1.0],
+                          "alignment": "MiddleCenter",
+                          "horizontalOverflow": "Wrap",
+                          "verticalOverflow": "Truncate",
+                          "raycastTarget": false,
+                          "supportRichText": true,
+                          "lineSpacing": 1.0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

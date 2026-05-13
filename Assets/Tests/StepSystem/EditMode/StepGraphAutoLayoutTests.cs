@@ -84,6 +84,65 @@ namespace LWFramework.Tests.StepSystem.EditMode
         }
 
         /// <summary>
+        /// 单根双分支场景下，根节点应位于两个子节点的垂直中线附近。
+        /// </summary>
+        [Test]
+        public void ApplyLeftToRight_ShouldCenterRootBetweenBranches()
+        {
+            StepEditorGraphData data = new StepEditorGraphData();
+            data.StartNodeId = "start";
+            data.Nodes.Add(CreateNode("start", new Vector2(0f, 0f)));
+            data.Nodes.Add(CreateNode("branch_top", new Vector2(0f, 0f)));
+            data.Nodes.Add(CreateNode("branch_bottom", new Vector2(0f, 300f)));
+            data.Edges.Add(CreateEdge("start", "branch_top"));
+            data.Edges.Add(CreateEdge("start", "branch_bottom"));
+
+            StepGraphAutoLayout.ApplyLeftToRight(data, 240f, 160f);
+
+            StepEditorNodeData start = data.GetNode("start");
+            StepEditorNodeData branchTop = data.GetNode("branch_top");
+            StepEditorNodeData branchBottom = data.GetNode("branch_bottom");
+
+            Assert.IsNotNull(start);
+            Assert.IsNotNull(branchTop);
+            Assert.IsNotNull(branchBottom);
+
+            float childrenCenterY = (branchTop.Position.y + branchBottom.Position.y) * 0.5f;
+            Assert.That(start.Position.y, Is.EqualTo(childrenCenterY).Within(0.001f));
+        }
+
+        /// <summary>
+        /// 双分支汇合场景下，汇合节点应位于两个父节点的垂直中线附近。
+        /// </summary>
+        [Test]
+        public void ApplyLeftToRight_ShouldCenterMergeNodeBetweenIncomingBranches()
+        {
+            StepEditorGraphData data = new StepEditorGraphData();
+            data.StartNodeId = "start";
+            data.Nodes.Add(CreateNode("start", new Vector2(0f, 0f)));
+            data.Nodes.Add(CreateNode("branch_top", new Vector2(0f, 0f)));
+            data.Nodes.Add(CreateNode("branch_bottom", new Vector2(0f, 300f)));
+            data.Nodes.Add(CreateNode("merge", new Vector2(0f, 0f)));
+            data.Edges.Add(CreateEdge("start", "branch_top"));
+            data.Edges.Add(CreateEdge("start", "branch_bottom"));
+            data.Edges.Add(CreateEdge("branch_top", "merge"));
+            data.Edges.Add(CreateEdge("branch_bottom", "merge"));
+
+            StepGraphAutoLayout.ApplyLeftToRight(data, 240f, 160f);
+
+            StepEditorNodeData merge = data.GetNode("merge");
+            StepEditorNodeData branchTop = data.GetNode("branch_top");
+            StepEditorNodeData branchBottom = data.GetNode("branch_bottom");
+
+            Assert.IsNotNull(merge);
+            Assert.IsNotNull(branchTop);
+            Assert.IsNotNull(branchBottom);
+
+            float parentCenterY = (branchTop.Position.y + branchBottom.Position.y) * 0.5f;
+            Assert.That(merge.Position.y, Is.EqualTo(parentCenterY).Within(0.001f));
+        }
+
+        /// <summary>
         /// 创建测试节点数据。
         /// </summary>
         private static StepEditorNodeData CreateNode(string id, Vector2 position)

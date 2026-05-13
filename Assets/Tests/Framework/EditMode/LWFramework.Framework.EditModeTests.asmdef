@@ -3,7 +3,9 @@
   "rootNamespace": "",
   "references": [
     "LWFramework.Runtime",
-    "UniTask"
+    "UniTask",
+    "LWFramework.LitJson",
+    "Assembly-CSharp"
   ],
   "includePlatforms": [
     "Editor"

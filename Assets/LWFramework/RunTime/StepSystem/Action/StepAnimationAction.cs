@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace LWStep
 {
-     [StepActionInfo("播放视频", Category = "动画与特效", SummaryTemplate = "StateName:{state}")]
+     [StepActionInfo("播放动画", Category = "动画与特效", SummaryTemplate = "StateName:{state}")]
     public class StepAnimationAction : BaseTargeStepAction, IStepBaselineStateAction
     {
         private const float NORMALIZED_TIME_EPSILON = 0.0001f;

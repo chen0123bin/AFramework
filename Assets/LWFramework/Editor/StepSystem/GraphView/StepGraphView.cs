@@ -927,10 +927,11 @@ namespace LWStep.Editor
             }
 
             edge.userData = edgeData;
-            StepEdgePresentation presentation = StepGraphPresentationBuilder.BuildEdgePresentation(edgeData);
-            Label edgeLabel = GetOrCreateEdgeLabel(edge);
-            edgeLabel.text = presentation.Label ?? string.Empty;
-            edgeLabel.style.display = string.IsNullOrEmpty(edgeLabel.text) ? DisplayStyle.None : DisplayStyle.Flex;
+            Label edgeLabel = edge.Q<Label>(EDGE_LABEL_ELEMENT_NAME);
+            if (edgeLabel != null)
+            {
+                edgeLabel.RemoveFromHierarchy();
+            }
         }
 
         /// <summary>
@@ -945,25 +946,6 @@ namespace LWStep.Editor
             }
 
             styleSheets.Add(styleSheet);
-        }
-
-        /// <summary>
-        /// 获取或创建连线标签控件。
-        /// </summary>
-        private Label GetOrCreateEdgeLabel(Edge edge)
-        {
-            Label edgeLabel = edge.Q<Label>(EDGE_LABEL_ELEMENT_NAME);
-            if (edgeLabel != null)
-            {
-                return edgeLabel;
-            }
-
-            edgeLabel = new Label();
-            edgeLabel.name = EDGE_LABEL_ELEMENT_NAME;
-            edgeLabel.pickingMode = PickingMode.Ignore;
-            edgeLabel.AddToClassList("step-edge-label");
-            edge.Add(edgeLabel);
-            return edgeLabel;
         }
 
         /// <summary>

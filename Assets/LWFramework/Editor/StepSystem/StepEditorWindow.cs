@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using LWStep;
 using LWStep.Editor.Metadata;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LWStep.Editor
@@ -71,6 +72,24 @@ namespace LWStep.Editor
             public string GraphJson;
         }
 
+        private sealed class StepVector3ParameterGroup
+        {
+            public string Label;
+            public string XKey;
+            public string YKey;
+            public string ZKey;
+
+            /// <summary>
+            /// 判断指定参数键是否属于当前向量分组。
+            /// </summary>
+            public bool ContainsKey(string key)
+            {
+                return string.Equals(XKey, key, StringComparison.Ordinal)
+                    || string.Equals(YKey, key, StringComparison.Ordinal)
+                    || string.Equals(ZKey, key, StringComparison.Ordinal);
+            }
+        }
+
         [MenuItem("LWFramework/Step/Step Editor", false, -1)]
         /// <summary>
         /// 打开步骤图编辑器窗口
@@ -120,7 +139,7 @@ namespace LWStep.Editor
             Button exportButton = new Button(OnExportXml) { text = "导出XML" };
             Button validateButton = new Button(OnValidateGraph) { text = "校验" };
             Button frameButton = new Button(OnFrameAll) { text = "居中" };
-            Button duplicateButton = new Button(OnDuplicateSelection) { text = "重复" };
+            Button duplicateButton = new Button(OnDuplicateSelection) { text = "复制" };
             Button collapseSelectionButton = new Button(OnCollapseAllNodes) { text = "批量折叠" };
             Button expandSelectionButton = new Button(OnExpandAllNodes) { text = "批量展开" };
             Button autoLayoutButton = new Button(OnAutoLayout) { text = "自动布局" };
@@ -137,7 +156,7 @@ namespace LWStep.Editor
             toolbar.Add(autoLayoutButton);
             toolbar.Add(previewButton);
             rootVisualElement.Add(toolbar);
-
+            
             VisualElement body = new VisualElement();
             body.style.flexGrow = 1;
             body.style.flexDirection = FlexDirection.Row;
@@ -146,7 +165,7 @@ namespace LWStep.Editor
             m_GraphContainer = new VisualElement();
             m_GraphContainer.style.flexGrow = 1;
             body.Add(m_GraphContainer);
-
+            
             m_RightSplitter = new VisualElement();
             m_RightSplitter.style.width = 4;
             m_RightSplitter.style.backgroundColor = new Color(0.16f, 0.16f, 0.16f, 1f);
@@ -883,11 +902,25 @@ namespace LWStep.Editor
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("参数（类型化）", EditorStyles.boldLabel);
 
+            StepVector3ParameterGroup vector3Group;
+            bool hasVector3Group = TryGetVector3Group(actionType, members, out vector3Group);
+            bool hasDrawnVector3Group = false;
+
             for (int i = 0; i < members.Count; i++)
             {
                 StepParamBinding member = members[i];
                 if (member == null || string.IsNullOrEmpty(member.Key) || member.ValueType == null)
                 {
+                    continue;
+                }
+
+                if (hasVector3Group && vector3Group.ContainsKey(member.Key))
+                {
+                    if (!hasDrawnVector3Group)
+                    {
+                        DrawVector3ParameterGroup(action, vector3Group);
+                        hasDrawnVector3Group = true;
+                    }
                     continue;
                 }
 
@@ -922,6 +955,209 @@ namespace LWStep.Editor
                     SetOrUpdateParameter(action, member.Key, newRawValue);
                 }
             }
+        }
+
+        /// <summary>
+        /// 尝试为物体移动/旋转/缩放动作创建 XYZ 向量分组。
+        /// </summary>
+        private static bool TryGetVector3Group(Type actionType, List<StepParamBinding> members, out StepVector3ParameterGroup group)
+        {
+            group = null;
+            if (actionType == null || members == null || members.Count == 0)
+            {
+                return false;
+            }
+
+            if (actionType != typeof(StepMoveObjectAction)
+                && actionType != typeof(StepRotateObjectAction)
+                && actionType != typeof(StepScaleObjectAction))
+            {
+                return false;
+            }
+
+            if (FindStepParamBinding(members, "x") == null
+                || FindStepParamBinding(members, "y") == null
+                || FindStepParamBinding(members, "z") == null)
+            {
+                return false;
+            }
+
+            group = new StepVector3ParameterGroup();
+            group.XKey = "x";
+            group.YKey = "y";
+            group.ZKey = "z";
+            if (actionType == typeof(StepMoveObjectAction))
+            {
+                group.Label = "目标坐标";
+            }
+            else if (actionType == typeof(StepRotateObjectAction))
+            {
+                group.Label = "目标旋转";
+            }
+            else
+            {
+                group.Label = "目标缩放";
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 绘制 XYZ 向量参数组，并提供复制粘贴快捷操作。
+        /// </summary>
+        private static void DrawVector3ParameterGroup(StepEditorActionData action, StepVector3ParameterGroup group)
+        {
+            if (action == null || group == null)
+            {
+                return;
+            }
+
+            Vector3 currentValue = ReadVector3ParameterValue(action, group);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            Vector3 editedValue = EditorGUILayout.Vector3Field(group.Label, currentValue);
+            bool isValueChanged = EditorGUI.EndChangeCheck();
+            bool isCopyClicked = GUILayout.Button("复制", GUILayout.Width(36f));
+            bool isPasteClicked = GUILayout.Button("粘贴", GUILayout.Width(36f));
+            EditorGUILayout.EndHorizontal();
+
+            if (isCopyClicked)
+            {
+                EditorGUIUtility.systemCopyBuffer = FormatVector3Clipboard(currentValue);
+            }
+
+            if (isPasteClicked)
+            {
+                Vector3 pastedValue;
+                if (TryParseVector3Clipboard(EditorGUIUtility.systemCopyBuffer, out pastedValue))
+                {
+                    editedValue = pastedValue;
+                    isValueChanged = true;
+                }
+            }
+
+            if (isValueChanged)
+            {
+                WriteVector3ParameterValue(action, group, editedValue);
+            }
+        }
+
+        /// <summary>
+        /// 从动作参数中读取当前向量值。
+        /// </summary>
+        private static Vector3 ReadVector3ParameterValue(StepEditorActionData action, StepVector3ParameterGroup group)
+        {
+            return new Vector3(
+                ReadFloatParameter(action, group.XKey),
+                ReadFloatParameter(action, group.YKey),
+                ReadFloatParameter(action, group.ZKey));
+        }
+
+        /// <summary>
+        /// 将向量值回写到动作参数的 XYZ 三个字段。
+        /// </summary>
+        private static void WriteVector3ParameterValue(StepEditorActionData action, StepVector3ParameterGroup group, Vector3 value)
+        {
+            SetOrUpdateParameter(action, group.XKey, StepUtility.ConvertToRawString(value.x, typeof(float)));
+            SetOrUpdateParameter(action, group.YKey, StepUtility.ConvertToRawString(value.y, typeof(float)));
+            SetOrUpdateParameter(action, group.ZKey, StepUtility.ConvertToRawString(value.z, typeof(float)));
+        }
+
+        /// <summary>
+        /// 读取指定键对应的浮点参数值，缺失或解析失败时返回 0。
+        /// </summary>
+        private static float ReadFloatParameter(StepEditorActionData action, string key)
+        {
+            if (action == null || string.IsNullOrEmpty(key))
+            {
+                return 0f;
+            }
+
+            string rawValue;
+            int existingIndex;
+            if (!TryGetParameter(action.Parameters, key, out rawValue, out existingIndex))
+            {
+                return 0f;
+            }
+
+            float value;
+            if (float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+            {
+                return value;
+            }
+
+            return 0f;
+        }
+
+        /// <summary>
+        /// 将向量值格式化为可复制的剪贴板文本。
+        /// </summary>
+        private static string FormatVector3Clipboard(Vector3 value)
+        {
+            return value.x.ToString(CultureInfo.InvariantCulture)
+                + ", "
+                + value.y.ToString(CultureInfo.InvariantCulture)
+                + ", "
+                + value.z.ToString(CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// 尝试从剪贴板文本中解析向量值，兼容常见 Inspector 数值文本格式。
+        /// </summary>
+        private static bool TryParseVector3Clipboard(string text, out Vector3 value)
+        {
+            value = Vector3.zero;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            MatchCollection matches = Regex.Matches(text, @"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?");
+            if (matches == null || matches.Count < 3)
+            {
+                return false;
+            }
+
+            float x;
+            float y;
+            float z;
+            if (!float.TryParse(matches[0].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out x)
+                || !float.TryParse(matches[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out y)
+                || !float.TryParse(matches[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out z))
+            {
+                return false;
+            }
+
+            value = new Vector3(x, y, z);
+            return true;
+        }
+
+        /// <summary>
+        /// 按参数键查找绑定定义。
+        /// </summary>
+        private static StepParamBinding FindStepParamBinding(List<StepParamBinding> members, string key)
+        {
+            if (members == null || string.IsNullOrEmpty(key))
+            {
+                return null;
+            }
+
+            for (int i = 0; i < members.Count; i++)
+            {
+                StepParamBinding member = members[i];
+                if (member == null || string.IsNullOrEmpty(member.Key))
+                {
+                    continue;
+                }
+
+                if (string.Equals(member.Key, key, StringComparison.Ordinal))
+                {
+                    return member;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
